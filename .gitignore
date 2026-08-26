@@ -1,0 +1,48 @@
+# ============================================================================
+# InfoGen —— 忽略规则
+# 说明：InfoGen_Data/3rdParty 下的第三方依赖（fmtlib、pybind 为 git 子模块，
+#       antlr 为源码占位目录）均属于工程源码，不参与忽略。
+# ============================================================================
+
+# 注：本文件为Claude Code+腾讯云混元3模型生成
+
+# ---- 构建产物 ----
+build/
+out/
+cmake-build-*/
+bin/
+lib/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+*.cmake.user
+
+# ---- Python ----
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# ---- IDE ----
+.vscode/
+.idea/
+*.user
+*.suo
+
+# ---- 编辑器临时文件 ----
+*.swp
+*~
+*.tmp
+
+# ---- 操作系统 ----
+.DS_Store
+Thumbs.db
+ehthumbs.db
