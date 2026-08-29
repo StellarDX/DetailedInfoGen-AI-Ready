@@ -3,19 +3,22 @@
 #include <fmt/format.h>
 #include <iostream>
 #include <pybind11/pybind11.h>
-#include <antlr4-runtime.h>
-#include <sstream>
-#include <ANTLRFileStream.h>
-#include <ANTLRInputStream.h>
-#include <CharStream.h>
-#include <Lexer.h>
-#include <Parser.h>
+
+#include "final.h"
+
+namespace py = pybind11;
+
+using ArgsType = py::dict;
+using ReturnType = std::vector<std::string>;
 
 int InfoGen_Main()
 {
-    std::string str = "Test";
-    std::istringstream is(str);
-    antlr4::ANTLRInputStream Test(is);
     std::cout << fmt::format("Hello World\n");
     return 0;
+}
+
+PYBIND11_MODULE(InfoGen, InfoGenPythonExport)
+{
+    InfoGenPythonExport.doc() = "Test";
+    InfoGenPythonExport.def("InfoGen_Main", &InfoGen_Main, "Test Function");
 }
