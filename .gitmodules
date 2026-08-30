@@ -4,3 +4,6 @@
 [submodule "InfoGen_Data/3rdParty/fmtlib"]
 	path = InfoGen_Data/3rdParty/fmtlib
 	url = git@github.com:StellarDX/fmt-StellarDX-Fork.git
+[submodule "InfoGen_Data/3rdParty/eigen"]
+	path = InfoGen_Data/3rdParty/eigen
+	url = git@github.com:StellarDX/eigen-StellarDX-Fork.git
