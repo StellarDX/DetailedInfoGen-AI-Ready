@@ -22,3 +22,4 @@ PYBIND11_MODULE(InfoGen, InfoGenPythonExport)
     InfoGenPythonExport.doc() = "Test";
     InfoGenPythonExport.def("InfoGen_Main", &InfoGen_Main, "Test Function");
 }
+

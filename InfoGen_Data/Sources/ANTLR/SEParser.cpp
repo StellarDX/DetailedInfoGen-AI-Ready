@@ -52,53 +52,50 @@ void seParserInitialize() {
 #endif
   auto staticData = std::make_unique<SEParserStaticData>(
     std::vector<std::string>{
-      "start", "table", "entry", "key", "valueGroup", "boolBlock", "boolOp", 
-      "value", "subTable", "simpleTypes", "numeric", "variable", "array", 
-      "tuple"
+      "table", "key", "valueGroup", "boolOp", "variableOp", "value", "subTable", 
+      "simpleTypes", "array", "tuple", "modifier", "op"
     },
     std::vector<std::string>{
-      "", "", "", "", "'('", "')'", "'{'", "'}'", "','"
+      "", "'{'", "'}'", "'('", "')'", "','", "'Set'", "'SetU'", "'SetForce'", 
+      "'Reset'", "'Interpolate'", "'Get'", "'WaitVar'", "'SaveVars'", "'RestoreVars'"
     },
     std::vector<std::string>{
-      "", "WS", "LINE_COMMENT", "BLOCK_COMMENT", "LPAREN", "RPAREN", "LBRACE", 
-      "RBRACE", "COMMA", "BOOL", "OP", "IDENT", "STRING", "INTEGER", "DEC_FLOAT", 
-      "HEX_FLOAT"
+      "", "", "", "", "", "", "Set", "SetU", "SetForce", "Reset", "Interpolate", 
+      "Get", "WaitVar", "SaveVars", "RestoreVars", "Boolean", "Op", "Numeric", 
+      "String", "Identifier", "WS", "LINE_COMMENT", "BLOCK_COMMENT"
     }
   );
   static const int32_t serializedATNSegment[] = {
-  	4,1,15,113,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
-  	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,1,0,1,0,
-  	1,0,1,1,5,1,33,8,1,10,1,12,1,36,9,1,1,2,1,2,1,2,1,2,1,2,1,2,1,2,3,2,45,
-  	8,2,1,3,1,3,1,4,4,4,50,8,4,11,4,12,4,51,1,4,3,4,55,8,4,1,5,1,5,1,5,1,
-  	5,1,6,1,6,1,6,1,6,1,7,1,7,1,7,1,7,1,7,1,7,1,7,1,7,1,7,3,7,74,8,7,1,8,
-  	1,8,1,8,1,8,1,9,1,9,1,9,1,9,3,9,84,8,9,1,10,1,10,1,11,1,11,1,12,1,12,
-  	3,12,92,8,12,1,12,5,12,95,8,12,10,12,12,12,98,9,12,1,13,1,13,3,13,102,
-  	8,13,1,13,5,13,105,8,13,10,13,12,13,108,9,13,1,13,3,13,111,8,13,1,13,
-  	0,0,14,0,2,4,6,8,10,12,14,16,18,20,22,24,26,0,1,1,0,13,15,113,0,28,1,
-  	0,0,0,2,34,1,0,0,0,4,44,1,0,0,0,6,46,1,0,0,0,8,54,1,0,0,0,10,56,1,0,0,
-  	0,12,60,1,0,0,0,14,73,1,0,0,0,16,75,1,0,0,0,18,83,1,0,0,0,20,85,1,0,0,
-  	0,22,87,1,0,0,0,24,89,1,0,0,0,26,99,1,0,0,0,28,29,3,2,1,0,29,30,5,0,0,
-  	1,30,1,1,0,0,0,31,33,3,4,2,0,32,31,1,0,0,0,33,36,1,0,0,0,34,32,1,0,0,
-  	0,34,35,1,0,0,0,35,3,1,0,0,0,36,34,1,0,0,0,37,38,3,6,3,0,38,39,3,8,4,
-  	0,39,45,1,0,0,0,40,41,3,6,3,0,41,42,3,10,5,0,42,45,1,0,0,0,43,45,3,6,
-  	3,0,44,37,1,0,0,0,44,40,1,0,0,0,44,43,1,0,0,0,45,5,1,0,0,0,46,47,5,11,
-  	0,0,47,7,1,0,0,0,48,50,3,14,7,0,49,48,1,0,0,0,50,51,1,0,0,0,51,49,1,0,
-  	0,0,51,52,1,0,0,0,52,55,1,0,0,0,53,55,3,16,8,0,54,49,1,0,0,0,54,53,1,
-  	0,0,0,55,9,1,0,0,0,56,57,5,6,0,0,57,58,3,12,6,0,58,59,5,7,0,0,59,11,1,
-  	0,0,0,60,61,3,18,9,0,61,62,5,10,0,0,62,63,3,18,9,0,63,13,1,0,0,0,64,74,
-  	3,18,9,0,65,66,5,4,0,0,66,67,3,24,12,0,67,68,5,5,0,0,68,74,1,0,0,0,69,
-  	70,5,6,0,0,70,71,3,26,13,0,71,72,5,7,0,0,72,74,1,0,0,0,73,64,1,0,0,0,
-  	73,65,1,0,0,0,73,69,1,0,0,0,74,15,1,0,0,0,75,76,5,6,0,0,76,77,3,2,1,0,
-  	77,78,5,7,0,0,78,17,1,0,0,0,79,84,3,20,10,0,80,84,5,12,0,0,81,84,5,9,
-  	0,0,82,84,3,22,11,0,83,79,1,0,0,0,83,80,1,0,0,0,83,81,1,0,0,0,83,82,1,
-  	0,0,0,84,19,1,0,0,0,85,86,7,0,0,0,86,21,1,0,0,0,87,88,5,11,0,0,88,23,
-  	1,0,0,0,89,96,3,18,9,0,90,92,5,8,0,0,91,90,1,0,0,0,91,92,1,0,0,0,92,93,
-  	1,0,0,0,93,95,3,18,9,0,94,91,1,0,0,0,95,98,1,0,0,0,96,94,1,0,0,0,96,97,
-  	1,0,0,0,97,25,1,0,0,0,98,96,1,0,0,0,99,106,3,14,7,0,100,102,5,8,0,0,101,
-  	100,1,0,0,0,101,102,1,0,0,0,102,103,1,0,0,0,103,105,3,14,7,0,104,101,
-  	1,0,0,0,105,108,1,0,0,0,106,104,1,0,0,0,106,107,1,0,0,0,107,110,1,0,0,
-  	0,108,106,1,0,0,0,109,111,5,8,0,0,110,109,1,0,0,0,110,111,1,0,0,0,111,
-  	27,1,0,0,0,11,34,44,51,54,73,83,91,96,101,106,110
+  	4,1,22,106,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,
+  	7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,2,11,7,11,1,0,1,0,1,0,1,0,1,0,1,0,1,0,
+  	1,0,1,0,1,0,3,0,35,8,0,1,0,1,0,1,0,3,0,40,8,0,1,1,1,1,1,2,1,2,1,2,1,2,
+  	1,2,3,2,49,8,2,1,3,1,3,1,3,1,3,1,4,1,4,1,4,1,4,1,5,1,5,1,5,1,5,1,5,1,
+  	5,1,5,1,5,1,5,3,5,68,8,5,1,6,1,6,1,6,1,6,1,7,1,7,1,8,1,8,1,8,1,8,1,8,
+  	1,8,1,8,1,8,5,8,84,8,8,10,8,12,8,87,9,8,1,9,1,9,1,9,1,9,1,9,1,9,1,9,1,
+  	9,1,9,1,9,1,9,3,9,100,8,9,1,10,1,10,1,11,1,11,1,11,0,1,16,12,0,2,4,6,
+  	8,10,12,14,16,18,20,22,0,2,2,0,15,15,17,18,1,0,6,14,106,0,39,1,0,0,0,
+  	2,41,1,0,0,0,4,48,1,0,0,0,6,50,1,0,0,0,8,54,1,0,0,0,10,67,1,0,0,0,12,
+  	69,1,0,0,0,14,73,1,0,0,0,16,75,1,0,0,0,18,99,1,0,0,0,20,101,1,0,0,0,22,
+  	103,1,0,0,0,24,25,3,2,1,0,25,26,3,4,2,0,26,35,1,0,0,0,27,28,3,2,1,0,28,
+  	29,5,1,0,0,29,30,3,6,3,0,30,31,5,2,0,0,31,35,1,0,0,0,32,35,3,8,4,0,33,
+  	35,3,2,1,0,34,24,1,0,0,0,34,27,1,0,0,0,34,32,1,0,0,0,34,33,1,0,0,0,35,
+  	36,1,0,0,0,36,37,3,0,0,0,37,40,1,0,0,0,38,40,1,0,0,0,39,34,1,0,0,0,39,
+  	38,1,0,0,0,40,1,1,0,0,0,41,42,5,19,0,0,42,3,1,0,0,0,43,44,3,10,5,0,44,
+  	45,3,4,2,0,45,49,1,0,0,0,46,49,3,10,5,0,47,49,3,12,6,0,48,43,1,0,0,0,
+  	48,46,1,0,0,0,48,47,1,0,0,0,49,5,1,0,0,0,50,51,3,14,7,0,51,52,3,22,11,
+  	0,52,53,3,14,7,0,53,7,1,0,0,0,54,55,3,20,10,0,55,56,5,19,0,0,56,57,3,
+  	14,7,0,57,9,1,0,0,0,58,68,3,14,7,0,59,60,5,3,0,0,60,61,3,16,8,0,61,62,
+  	5,4,0,0,62,68,1,0,0,0,63,64,5,1,0,0,64,65,3,18,9,0,65,66,5,2,0,0,66,68,
+  	1,0,0,0,67,58,1,0,0,0,67,59,1,0,0,0,67,63,1,0,0,0,68,11,1,0,0,0,69,70,
+  	5,1,0,0,70,71,3,0,0,0,71,72,5,2,0,0,72,13,1,0,0,0,73,74,7,0,0,0,74,15,
+  	1,0,0,0,75,76,6,8,-1,0,76,77,3,14,7,0,77,85,1,0,0,0,78,79,10,2,0,0,79,
+  	80,5,5,0,0,80,84,3,14,7,0,81,82,10,1,0,0,82,84,3,14,7,0,83,78,1,0,0,0,
+  	83,81,1,0,0,0,84,87,1,0,0,0,85,83,1,0,0,0,85,86,1,0,0,0,86,17,1,0,0,0,
+  	87,85,1,0,0,0,88,100,3,10,5,0,89,90,3,10,5,0,90,91,5,5,0,0,91,92,3,18,
+  	9,0,92,100,1,0,0,0,93,94,3,10,5,0,94,95,3,18,9,0,95,100,1,0,0,0,96,97,
+  	3,10,5,0,97,98,5,5,0,0,98,100,1,0,0,0,99,88,1,0,0,0,99,89,1,0,0,0,99,
+  	93,1,0,0,0,99,96,1,0,0,0,100,19,1,0,0,0,101,102,7,1,0,0,102,21,1,0,0,
+  	0,103,104,5,16,0,0,104,23,1,0,0,0,7,34,39,48,67,83,85,99
   };
   staticData->serializedATN = antlr4::atn::SerializedATNView(serializedATNSegment, sizeof(serializedATNSegment) / sizeof(serializedATNSegment[0]));
 
@@ -147,77 +144,30 @@ antlr4::atn::SerializedATNView SEParser::getSerializedATN() const {
 }
 
 
-//----------------- StartContext ------------------------------------------------------------------
-
-SEParser::StartContext::StartContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
-
-SEParser::TableContext* SEParser::StartContext::table() {
-  return getRuleContext<SEParser::TableContext>(0);
-}
-
-tree::TerminalNode* SEParser::StartContext::EOF() {
-  return getToken(SEParser::EOF, 0);
-}
-
-
-size_t SEParser::StartContext::getRuleIndex() const {
-  return SEParser::RuleStart;
-}
-
-void SEParser::StartContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<SEListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterStart(this);
-}
-
-void SEParser::StartContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<SEListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitStart(this);
-}
-
-SEParser::StartContext* SEParser::start() {
-  StartContext *_localctx = _tracker.createInstance<StartContext>(_ctx, getState());
-  enterRule(_localctx, 0, SEParser::RuleStart);
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(28);
-    table();
-    setState(29);
-    match(SEParser::EOF);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
-
 //----------------- TableContext ------------------------------------------------------------------
 
 SEParser::TableContext::TableContext(ParserRuleContext *parent, size_t invokingState)
   : ParserRuleContext(parent, invokingState) {
 }
 
-std::vector<SEParser::EntryContext *> SEParser::TableContext::entry() {
-  return getRuleContexts<SEParser::EntryContext>();
+SEParser::TableContext* SEParser::TableContext::table() {
+  return getRuleContext<SEParser::TableContext>(0);
 }
 
-SEParser::EntryContext* SEParser::TableContext::entry(size_t i) {
-  return getRuleContext<SEParser::EntryContext>(i);
+SEParser::KeyContext* SEParser::TableContext::key() {
+  return getRuleContext<SEParser::KeyContext>(0);
+}
+
+SEParser::ValueGroupContext* SEParser::TableContext::valueGroup() {
+  return getRuleContext<SEParser::ValueGroupContext>(0);
+}
+
+SEParser::BoolOpContext* SEParser::TableContext::boolOp() {
+  return getRuleContext<SEParser::BoolOpContext>(0);
+}
+
+SEParser::VariableOpContext* SEParser::TableContext::variableOp() {
+  return getRuleContext<SEParser::VariableOpContext>(0);
 }
 
 
@@ -239,8 +189,7 @@ void SEParser::TableContext::exitRule(tree::ParseTreeListener *listener) {
 
 SEParser::TableContext* SEParser::table() {
   TableContext *_localctx = _tracker.createInstance<TableContext>(_ctx, getState());
-  enterRule(_localctx, 2, SEParser::RuleTable);
-  size_t _la = 0;
+  enterRule(_localctx, 0, SEParser::RuleTable);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -250,105 +199,71 @@ SEParser::TableContext* SEParser::table() {
     exitRule();
   });
   try {
-    enterOuterAlt(_localctx, 1);
-    setState(34);
+    setState(39);
     _errHandler->sync(this);
-    _la = _input->LA(1);
-    while (_la == SEParser::IDENT) {
-      setState(31);
-      entry();
-      setState(36);
-      _errHandler->sync(this);
-      _la = _input->LA(1);
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
+    switch (_input->LA(1)) {
+      case SEParser::Set:
+      case SEParser::SetU:
+      case SEParser::SetForce:
+      case SEParser::Reset:
+      case SEParser::Interpolate:
+      case SEParser::Get:
+      case SEParser::WaitVar:
+      case SEParser::SaveVars:
+      case SEParser::RestoreVars:
+      case SEParser::Identifier: {
+        enterOuterAlt(_localctx, 1);
+        setState(34);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 0, _ctx)) {
+        case 1: {
+          setState(24);
+          key();
+          setState(25);
+          valueGroup();
+          break;
+        }
 
-  return _localctx;
-}
+        case 2: {
+          setState(27);
+          key();
+          setState(28);
+          match(SEParser::T__0);
+          setState(29);
+          boolOp();
+          setState(30);
+          match(SEParser::T__1);
+          break;
+        }
 
-//----------------- EntryContext ------------------------------------------------------------------
+        case 3: {
+          setState(32);
+          variableOp();
+          break;
+        }
 
-SEParser::EntryContext::EntryContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
+        case 4: {
+          setState(33);
+          key();
+          break;
+        }
 
-SEParser::KeyContext* SEParser::EntryContext::key() {
-  return getRuleContext<SEParser::KeyContext>(0);
-}
+        default:
+          break;
+        }
+        setState(36);
+        table();
+        break;
+      }
 
-SEParser::ValueGroupContext* SEParser::EntryContext::valueGroup() {
-  return getRuleContext<SEParser::ValueGroupContext>(0);
-}
+      case SEParser::T__1: {
+        enterOuterAlt(_localctx, 2);
 
-SEParser::BoolBlockContext* SEParser::EntryContext::boolBlock() {
-  return getRuleContext<SEParser::BoolBlockContext>(0);
-}
-
-
-size_t SEParser::EntryContext::getRuleIndex() const {
-  return SEParser::RuleEntry;
-}
-
-void SEParser::EntryContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<SEListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterEntry(this);
-}
-
-void SEParser::EntryContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<SEListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitEntry(this);
-}
-
-SEParser::EntryContext* SEParser::entry() {
-  EntryContext *_localctx = _tracker.createInstance<EntryContext>(_ctx, getState());
-  enterRule(_localctx, 4, SEParser::RuleEntry);
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    setState(44);
-    _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 1, _ctx)) {
-    case 1: {
-      enterOuterAlt(_localctx, 1);
-      setState(37);
-      key();
-      setState(38);
-      valueGroup();
-      break;
-    }
-
-    case 2: {
-      enterOuterAlt(_localctx, 2);
-      setState(40);
-      key();
-      setState(41);
-      boolBlock();
-      break;
-    }
-
-    case 3: {
-      enterOuterAlt(_localctx, 3);
-      setState(43);
-      key();
-      break;
-    }
+        break;
+      }
 
     default:
-      break;
+      throw NoViableAltException(this);
     }
    
   }
@@ -367,8 +282,8 @@ SEParser::KeyContext::KeyContext(ParserRuleContext *parent, size_t invokingState
   : ParserRuleContext(parent, invokingState) {
 }
 
-tree::TerminalNode* SEParser::KeyContext::IDENT() {
-  return getToken(SEParser::IDENT, 0);
+tree::TerminalNode* SEParser::KeyContext::Identifier() {
+  return getToken(SEParser::Identifier, 0);
 }
 
 
@@ -390,7 +305,7 @@ void SEParser::KeyContext::exitRule(tree::ParseTreeListener *listener) {
 
 SEParser::KeyContext* SEParser::key() {
   KeyContext *_localctx = _tracker.createInstance<KeyContext>(_ctx, getState());
-  enterRule(_localctx, 6, SEParser::RuleKey);
+  enterRule(_localctx, 2, SEParser::RuleKey);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -401,8 +316,8 @@ SEParser::KeyContext* SEParser::key() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(46);
-    match(SEParser::IDENT);
+    setState(41);
+    match(SEParser::Identifier);
    
   }
   catch (RecognitionException &e) {
@@ -420,12 +335,12 @@ SEParser::ValueGroupContext::ValueGroupContext(ParserRuleContext *parent, size_t
   : ParserRuleContext(parent, invokingState) {
 }
 
-std::vector<SEParser::ValueContext *> SEParser::ValueGroupContext::value() {
-  return getRuleContexts<SEParser::ValueContext>();
+SEParser::ValueContext* SEParser::ValueGroupContext::value() {
+  return getRuleContext<SEParser::ValueContext>(0);
 }
 
-SEParser::ValueContext* SEParser::ValueGroupContext::value(size_t i) {
-  return getRuleContext<SEParser::ValueContext>(i);
+SEParser::ValueGroupContext* SEParser::ValueGroupContext::valueGroup() {
+  return getRuleContext<SEParser::ValueGroupContext>(0);
 }
 
 SEParser::SubTableContext* SEParser::ValueGroupContext::subTable() {
@@ -451,7 +366,7 @@ void SEParser::ValueGroupContext::exitRule(tree::ParseTreeListener *listener) {
 
 SEParser::ValueGroupContext* SEParser::valueGroup() {
   ValueGroupContext *_localctx = _tracker.createInstance<ValueGroupContext>(_ctx, getState());
-  enterRule(_localctx, 8, SEParser::RuleValueGroup);
+  enterRule(_localctx, 4, SEParser::RuleValueGroup);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -461,36 +376,28 @@ SEParser::ValueGroupContext* SEParser::valueGroup() {
     exitRule();
   });
   try {
-    size_t alt;
-    setState(54);
+    setState(48);
     _errHandler->sync(this);
-    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 3, _ctx)) {
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 2, _ctx)) {
     case 1: {
       enterOuterAlt(_localctx, 1);
-      setState(49); 
-      _errHandler->sync(this);
-      alt = 1;
-      do {
-        switch (alt) {
-          case 1: {
-                setState(48);
-                value();
-                break;
-              }
-
-        default:
-          throw NoViableAltException(this);
-        }
-        setState(51); 
-        _errHandler->sync(this);
-        alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 2, _ctx);
-      } while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER);
+      setState(43);
+      value();
+      setState(44);
+      valueGroup();
       break;
     }
 
     case 2: {
       enterOuterAlt(_localctx, 2);
-      setState(53);
+      setState(46);
+      value();
+      break;
+    }
+
+    case 3: {
+      enterOuterAlt(_localctx, 3);
+      setState(47);
       subTable();
       break;
     }
@@ -498,71 +405,6 @@ SEParser::ValueGroupContext* SEParser::valueGroup() {
     default:
       break;
     }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
-
-//----------------- BoolBlockContext ------------------------------------------------------------------
-
-SEParser::BoolBlockContext::BoolBlockContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
-
-tree::TerminalNode* SEParser::BoolBlockContext::LBRACE() {
-  return getToken(SEParser::LBRACE, 0);
-}
-
-SEParser::BoolOpContext* SEParser::BoolBlockContext::boolOp() {
-  return getRuleContext<SEParser::BoolOpContext>(0);
-}
-
-tree::TerminalNode* SEParser::BoolBlockContext::RBRACE() {
-  return getToken(SEParser::RBRACE, 0);
-}
-
-
-size_t SEParser::BoolBlockContext::getRuleIndex() const {
-  return SEParser::RuleBoolBlock;
-}
-
-void SEParser::BoolBlockContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<SEListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterBoolBlock(this);
-}
-
-void SEParser::BoolBlockContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<SEListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitBoolBlock(this);
-}
-
-SEParser::BoolBlockContext* SEParser::boolBlock() {
-  BoolBlockContext *_localctx = _tracker.createInstance<BoolBlockContext>(_ctx, getState());
-  enterRule(_localctx, 10, SEParser::RuleBoolBlock);
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(56);
-    match(SEParser::LBRACE);
-    setState(57);
-    boolOp();
-    setState(58);
-    match(SEParser::RBRACE);
    
   }
   catch (RecognitionException &e) {
@@ -588,8 +430,8 @@ SEParser::SimpleTypesContext* SEParser::BoolOpContext::simpleTypes(size_t i) {
   return getRuleContext<SEParser::SimpleTypesContext>(i);
 }
 
-tree::TerminalNode* SEParser::BoolOpContext::OP() {
-  return getToken(SEParser::OP, 0);
+SEParser::OpContext* SEParser::BoolOpContext::op() {
+  return getRuleContext<SEParser::OpContext>(0);
 }
 
 
@@ -611,7 +453,7 @@ void SEParser::BoolOpContext::exitRule(tree::ParseTreeListener *listener) {
 
 SEParser::BoolOpContext* SEParser::boolOp() {
   BoolOpContext *_localctx = _tracker.createInstance<BoolOpContext>(_ctx, getState());
-  enterRule(_localctx, 12, SEParser::RuleBoolOp);
+  enterRule(_localctx, 6, SEParser::RuleBoolOp);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -622,11 +464,76 @@ SEParser::BoolOpContext* SEParser::boolOp() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(60);
+    setState(50);
     simpleTypes();
-    setState(61);
-    match(SEParser::OP);
-    setState(62);
+    setState(51);
+    op();
+    setState(52);
+    simpleTypes();
+   
+  }
+  catch (RecognitionException &e) {
+    _errHandler->reportError(this, e);
+    _localctx->exception = std::current_exception();
+    _errHandler->recover(this, _localctx->exception);
+  }
+
+  return _localctx;
+}
+
+//----------------- VariableOpContext ------------------------------------------------------------------
+
+SEParser::VariableOpContext::VariableOpContext(ParserRuleContext *parent, size_t invokingState)
+  : ParserRuleContext(parent, invokingState) {
+}
+
+SEParser::ModifierContext* SEParser::VariableOpContext::modifier() {
+  return getRuleContext<SEParser::ModifierContext>(0);
+}
+
+tree::TerminalNode* SEParser::VariableOpContext::Identifier() {
+  return getToken(SEParser::Identifier, 0);
+}
+
+SEParser::SimpleTypesContext* SEParser::VariableOpContext::simpleTypes() {
+  return getRuleContext<SEParser::SimpleTypesContext>(0);
+}
+
+
+size_t SEParser::VariableOpContext::getRuleIndex() const {
+  return SEParser::RuleVariableOp;
+}
+
+void SEParser::VariableOpContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<SEListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterVariableOp(this);
+}
+
+void SEParser::VariableOpContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<SEListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitVariableOp(this);
+}
+
+SEParser::VariableOpContext* SEParser::variableOp() {
+  VariableOpContext *_localctx = _tracker.createInstance<VariableOpContext>(_ctx, getState());
+  enterRule(_localctx, 8, SEParser::RuleVariableOp);
+
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
+  auto onExit = finally([=] {
+#endif
+    exitRule();
+  });
+  try {
+    enterOuterAlt(_localctx, 1);
+    setState(54);
+    modifier();
+    setState(55);
+    match(SEParser::Identifier);
+    setState(56);
     simpleTypes();
    
   }
@@ -649,28 +556,12 @@ SEParser::SimpleTypesContext* SEParser::ValueContext::simpleTypes() {
   return getRuleContext<SEParser::SimpleTypesContext>(0);
 }
 
-tree::TerminalNode* SEParser::ValueContext::LPAREN() {
-  return getToken(SEParser::LPAREN, 0);
-}
-
 SEParser::ArrayContext* SEParser::ValueContext::array() {
   return getRuleContext<SEParser::ArrayContext>(0);
 }
 
-tree::TerminalNode* SEParser::ValueContext::RPAREN() {
-  return getToken(SEParser::RPAREN, 0);
-}
-
-tree::TerminalNode* SEParser::ValueContext::LBRACE() {
-  return getToken(SEParser::LBRACE, 0);
-}
-
 SEParser::TupleContext* SEParser::ValueContext::tuple() {
   return getRuleContext<SEParser::TupleContext>(0);
-}
-
-tree::TerminalNode* SEParser::ValueContext::RBRACE() {
-  return getToken(SEParser::RBRACE, 0);
 }
 
 
@@ -692,7 +583,7 @@ void SEParser::ValueContext::exitRule(tree::ParseTreeListener *listener) {
 
 SEParser::ValueContext* SEParser::value() {
   ValueContext *_localctx = _tracker.createInstance<ValueContext>(_ctx, getState());
-  enterRule(_localctx, 14, SEParser::RuleValue);
+  enterRule(_localctx, 10, SEParser::RuleValue);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -702,40 +593,37 @@ SEParser::ValueContext* SEParser::value() {
     exitRule();
   });
   try {
-    setState(73);
+    setState(67);
     _errHandler->sync(this);
     switch (_input->LA(1)) {
-      case SEParser::BOOL:
-      case SEParser::IDENT:
-      case SEParser::STRING:
-      case SEParser::INTEGER:
-      case SEParser::DEC_FLOAT:
-      case SEParser::HEX_FLOAT: {
+      case SEParser::Boolean:
+      case SEParser::Numeric:
+      case SEParser::String: {
         enterOuterAlt(_localctx, 1);
-        setState(64);
+        setState(58);
         simpleTypes();
         break;
       }
 
-      case SEParser::LPAREN: {
+      case SEParser::T__2: {
         enterOuterAlt(_localctx, 2);
-        setState(65);
-        match(SEParser::LPAREN);
-        setState(66);
-        array();
-        setState(67);
-        match(SEParser::RPAREN);
+        setState(59);
+        match(SEParser::T__2);
+        setState(60);
+        array(0);
+        setState(61);
+        match(SEParser::T__3);
         break;
       }
 
-      case SEParser::LBRACE: {
+      case SEParser::T__0: {
         enterOuterAlt(_localctx, 3);
-        setState(69);
-        match(SEParser::LBRACE);
-        setState(70);
+        setState(63);
+        match(SEParser::T__0);
+        setState(64);
         tuple();
-        setState(71);
-        match(SEParser::RBRACE);
+        setState(65);
+        match(SEParser::T__1);
         break;
       }
 
@@ -759,16 +647,8 @@ SEParser::SubTableContext::SubTableContext(ParserRuleContext *parent, size_t inv
   : ParserRuleContext(parent, invokingState) {
 }
 
-tree::TerminalNode* SEParser::SubTableContext::LBRACE() {
-  return getToken(SEParser::LBRACE, 0);
-}
-
 SEParser::TableContext* SEParser::SubTableContext::table() {
   return getRuleContext<SEParser::TableContext>(0);
-}
-
-tree::TerminalNode* SEParser::SubTableContext::RBRACE() {
-  return getToken(SEParser::RBRACE, 0);
 }
 
 
@@ -790,7 +670,7 @@ void SEParser::SubTableContext::exitRule(tree::ParseTreeListener *listener) {
 
 SEParser::SubTableContext* SEParser::subTable() {
   SubTableContext *_localctx = _tracker.createInstance<SubTableContext>(_ctx, getState());
-  enterRule(_localctx, 16, SEParser::RuleSubTable);
+  enterRule(_localctx, 12, SEParser::RuleSubTable);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -801,12 +681,12 @@ SEParser::SubTableContext* SEParser::subTable() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(75);
-    match(SEParser::LBRACE);
-    setState(76);
+    setState(69);
+    match(SEParser::T__0);
+    setState(70);
     table();
-    setState(77);
-    match(SEParser::RBRACE);
+    setState(71);
+    match(SEParser::T__1);
    
   }
   catch (RecognitionException &e) {
@@ -824,20 +704,16 @@ SEParser::SimpleTypesContext::SimpleTypesContext(ParserRuleContext *parent, size
   : ParserRuleContext(parent, invokingState) {
 }
 
-SEParser::NumericContext* SEParser::SimpleTypesContext::numeric() {
-  return getRuleContext<SEParser::NumericContext>(0);
+tree::TerminalNode* SEParser::SimpleTypesContext::Numeric() {
+  return getToken(SEParser::Numeric, 0);
 }
 
-tree::TerminalNode* SEParser::SimpleTypesContext::STRING() {
-  return getToken(SEParser::STRING, 0);
+tree::TerminalNode* SEParser::SimpleTypesContext::String() {
+  return getToken(SEParser::String, 0);
 }
 
-tree::TerminalNode* SEParser::SimpleTypesContext::BOOL() {
-  return getToken(SEParser::BOOL, 0);
-}
-
-SEParser::VariableContext* SEParser::SimpleTypesContext::variable() {
-  return getRuleContext<SEParser::VariableContext>(0);
+tree::TerminalNode* SEParser::SimpleTypesContext::Boolean() {
+  return getToken(SEParser::Boolean, 0);
 }
 
 
@@ -859,101 +735,7 @@ void SEParser::SimpleTypesContext::exitRule(tree::ParseTreeListener *listener) {
 
 SEParser::SimpleTypesContext* SEParser::simpleTypes() {
   SimpleTypesContext *_localctx = _tracker.createInstance<SimpleTypesContext>(_ctx, getState());
-  enterRule(_localctx, 18, SEParser::RuleSimpleTypes);
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    setState(83);
-    _errHandler->sync(this);
-    switch (_input->LA(1)) {
-      case SEParser::INTEGER:
-      case SEParser::DEC_FLOAT:
-      case SEParser::HEX_FLOAT: {
-        enterOuterAlt(_localctx, 1);
-        setState(79);
-        numeric();
-        break;
-      }
-
-      case SEParser::STRING: {
-        enterOuterAlt(_localctx, 2);
-        setState(80);
-        match(SEParser::STRING);
-        break;
-      }
-
-      case SEParser::BOOL: {
-        enterOuterAlt(_localctx, 3);
-        setState(81);
-        match(SEParser::BOOL);
-        break;
-      }
-
-      case SEParser::IDENT: {
-        enterOuterAlt(_localctx, 4);
-        setState(82);
-        variable();
-        break;
-      }
-
-    default:
-      throw NoViableAltException(this);
-    }
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
-
-//----------------- NumericContext ------------------------------------------------------------------
-
-SEParser::NumericContext::NumericContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
-
-tree::TerminalNode* SEParser::NumericContext::INTEGER() {
-  return getToken(SEParser::INTEGER, 0);
-}
-
-tree::TerminalNode* SEParser::NumericContext::DEC_FLOAT() {
-  return getToken(SEParser::DEC_FLOAT, 0);
-}
-
-tree::TerminalNode* SEParser::NumericContext::HEX_FLOAT() {
-  return getToken(SEParser::HEX_FLOAT, 0);
-}
-
-
-size_t SEParser::NumericContext::getRuleIndex() const {
-  return SEParser::RuleNumeric;
-}
-
-void SEParser::NumericContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<SEListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterNumeric(this);
-}
-
-void SEParser::NumericContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<SEListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitNumeric(this);
-}
-
-SEParser::NumericContext* SEParser::numeric() {
-  NumericContext *_localctx = _tracker.createInstance<NumericContext>(_ctx, getState());
-  enterRule(_localctx, 20, SEParser::RuleNumeric);
+  enterRule(_localctx, 14, SEParser::RuleSimpleTypes);
   size_t _la = 0;
 
 #if __cplusplus > 201703L
@@ -965,10 +747,10 @@ SEParser::NumericContext* SEParser::numeric() {
   });
   try {
     enterOuterAlt(_localctx, 1);
-    setState(85);
+    setState(73);
     _la = _input->LA(1);
     if (!((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 57344) != 0))) {
+      ((1ULL << _la) & 425984) != 0))) {
     _errHandler->recoverInline(this);
     }
     else {
@@ -986,79 +768,18 @@ SEParser::NumericContext* SEParser::numeric() {
   return _localctx;
 }
 
-//----------------- VariableContext ------------------------------------------------------------------
-
-SEParser::VariableContext::VariableContext(ParserRuleContext *parent, size_t invokingState)
-  : ParserRuleContext(parent, invokingState) {
-}
-
-tree::TerminalNode* SEParser::VariableContext::IDENT() {
-  return getToken(SEParser::IDENT, 0);
-}
-
-
-size_t SEParser::VariableContext::getRuleIndex() const {
-  return SEParser::RuleVariable;
-}
-
-void SEParser::VariableContext::enterRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<SEListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->enterVariable(this);
-}
-
-void SEParser::VariableContext::exitRule(tree::ParseTreeListener *listener) {
-  auto parserListener = dynamic_cast<SEListener *>(listener);
-  if (parserListener != nullptr)
-    parserListener->exitVariable(this);
-}
-
-SEParser::VariableContext* SEParser::variable() {
-  VariableContext *_localctx = _tracker.createInstance<VariableContext>(_ctx, getState());
-  enterRule(_localctx, 22, SEParser::RuleVariable);
-
-#if __cplusplus > 201703L
-  auto onExit = finally([=, this] {
-#else
-  auto onExit = finally([=] {
-#endif
-    exitRule();
-  });
-  try {
-    enterOuterAlt(_localctx, 1);
-    setState(87);
-    match(SEParser::IDENT);
-   
-  }
-  catch (RecognitionException &e) {
-    _errHandler->reportError(this, e);
-    _localctx->exception = std::current_exception();
-    _errHandler->recover(this, _localctx->exception);
-  }
-
-  return _localctx;
-}
-
 //----------------- ArrayContext ------------------------------------------------------------------
 
 SEParser::ArrayContext::ArrayContext(ParserRuleContext *parent, size_t invokingState)
   : ParserRuleContext(parent, invokingState) {
 }
 
-std::vector<SEParser::SimpleTypesContext *> SEParser::ArrayContext::simpleTypes() {
-  return getRuleContexts<SEParser::SimpleTypesContext>();
+SEParser::SimpleTypesContext* SEParser::ArrayContext::simpleTypes() {
+  return getRuleContext<SEParser::SimpleTypesContext>(0);
 }
 
-SEParser::SimpleTypesContext* SEParser::ArrayContext::simpleTypes(size_t i) {
-  return getRuleContext<SEParser::SimpleTypesContext>(i);
-}
-
-std::vector<tree::TerminalNode *> SEParser::ArrayContext::COMMA() {
-  return getTokens(SEParser::COMMA);
-}
-
-tree::TerminalNode* SEParser::ArrayContext::COMMA(size_t i) {
-  return getToken(SEParser::COMMA, i);
+SEParser::ArrayContext* SEParser::ArrayContext::array() {
+  return getRuleContext<SEParser::ArrayContext>(0);
 }
 
 
@@ -1078,49 +799,84 @@ void SEParser::ArrayContext::exitRule(tree::ParseTreeListener *listener) {
     parserListener->exitArray(this);
 }
 
+
 SEParser::ArrayContext* SEParser::array() {
-  ArrayContext *_localctx = _tracker.createInstance<ArrayContext>(_ctx, getState());
-  enterRule(_localctx, 24, SEParser::RuleArray);
-  size_t _la = 0;
+   return array(0);
+}
+
+SEParser::ArrayContext* SEParser::array(int precedence) {
+  ParserRuleContext *parentContext = _ctx;
+  size_t parentState = getState();
+  SEParser::ArrayContext *_localctx = _tracker.createInstance<ArrayContext>(_ctx, parentState);
+  SEParser::ArrayContext *previousContext = _localctx;
+  (void)previousContext; // Silence compiler, in case the context is not used by generated code.
+  size_t startState = 16;
+  enterRecursionRule(_localctx, 16, SEParser::RuleArray, precedence);
+
+    
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
 #else
   auto onExit = finally([=] {
 #endif
-    exitRule();
+    unrollRecursionContexts(parentContext);
   });
   try {
+    size_t alt;
     enterOuterAlt(_localctx, 1);
-    setState(89);
+    setState(76);
     simpleTypes();
-    setState(96);
+    _ctx->stop = _input->LT(-1);
+    setState(85);
     _errHandler->sync(this);
-    _la = _input->LA(1);
-    while ((((_la & ~ 0x3fULL) == 0) &&
-      ((1ULL << _la) & 64256) != 0)) {
-      setState(91);
-      _errHandler->sync(this);
+    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 5, _ctx);
+    while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
+      if (alt == 1) {
+        if (!_parseListeners.empty())
+          triggerExitRuleEvent();
+        previousContext = _localctx;
+        setState(83);
+        _errHandler->sync(this);
+        switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 4, _ctx)) {
+        case 1: {
+          _localctx = _tracker.createInstance<ArrayContext>(parentContext, parentState);
+          pushNewRecursionContext(_localctx, startState, RuleArray);
+          setState(78);
 
-      _la = _input->LA(1);
-      if (_la == SEParser::COMMA) {
-        setState(90);
-        match(SEParser::COMMA);
+          if (!(precpred(_ctx, 2))) throw FailedPredicateException(this, "precpred(_ctx, 2)");
+          setState(79);
+          match(SEParser::T__4);
+          setState(80);
+          simpleTypes();
+          break;
+        }
+
+        case 2: {
+          _localctx = _tracker.createInstance<ArrayContext>(parentContext, parentState);
+          pushNewRecursionContext(_localctx, startState, RuleArray);
+          setState(81);
+
+          if (!(precpred(_ctx, 1))) throw FailedPredicateException(this, "precpred(_ctx, 1)");
+          setState(82);
+          simpleTypes();
+          break;
+        }
+
+        default:
+          break;
+        } 
       }
-      setState(93);
-      simpleTypes();
-      setState(98);
+      setState(87);
       _errHandler->sync(this);
-      _la = _input->LA(1);
+      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 5, _ctx);
     }
-   
   }
   catch (RecognitionException &e) {
     _errHandler->reportError(this, e);
     _localctx->exception = std::current_exception();
     _errHandler->recover(this, _localctx->exception);
   }
-
   return _localctx;
 }
 
@@ -1130,20 +886,12 @@ SEParser::TupleContext::TupleContext(ParserRuleContext *parent, size_t invokingS
   : ParserRuleContext(parent, invokingState) {
 }
 
-std::vector<SEParser::ValueContext *> SEParser::TupleContext::value() {
-  return getRuleContexts<SEParser::ValueContext>();
+SEParser::ValueContext* SEParser::TupleContext::value() {
+  return getRuleContext<SEParser::ValueContext>(0);
 }
 
-SEParser::ValueContext* SEParser::TupleContext::value(size_t i) {
-  return getRuleContext<SEParser::ValueContext>(i);
-}
-
-std::vector<tree::TerminalNode *> SEParser::TupleContext::COMMA() {
-  return getTokens(SEParser::COMMA);
-}
-
-tree::TerminalNode* SEParser::TupleContext::COMMA(size_t i) {
-  return getToken(SEParser::COMMA, i);
+SEParser::TupleContext* SEParser::TupleContext::tuple() {
+  return getRuleContext<SEParser::TupleContext>(0);
 }
 
 
@@ -1165,8 +913,7 @@ void SEParser::TupleContext::exitRule(tree::ParseTreeListener *listener) {
 
 SEParser::TupleContext* SEParser::tuple() {
   TupleContext *_localctx = _tracker.createInstance<TupleContext>(_ctx, getState());
-  enterRule(_localctx, 26, SEParser::RuleTuple);
-  size_t _la = 0;
+  enterRule(_localctx, 18, SEParser::RuleTuple);
 
 #if __cplusplus > 201703L
   auto onExit = finally([=, this] {
@@ -1176,37 +923,47 @@ SEParser::TupleContext* SEParser::tuple() {
     exitRule();
   });
   try {
-    size_t alt;
-    enterOuterAlt(_localctx, 1);
     setState(99);
-    value();
-    setState(106);
     _errHandler->sync(this);
-    alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 9, _ctx);
-    while (alt != 2 && alt != atn::ATN::INVALID_ALT_NUMBER) {
-      if (alt == 1) {
-        setState(101);
-        _errHandler->sync(this);
-
-        _la = _input->LA(1);
-        if (_la == SEParser::COMMA) {
-          setState(100);
-          match(SEParser::COMMA);
-        }
-        setState(103);
-        value(); 
-      }
-      setState(108);
-      _errHandler->sync(this);
-      alt = getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 9, _ctx);
+    switch (getInterpreter<atn::ParserATNSimulator>()->adaptivePredict(_input, 6, _ctx)) {
+    case 1: {
+      enterOuterAlt(_localctx, 1);
+      setState(88);
+      value();
+      break;
     }
-    setState(110);
-    _errHandler->sync(this);
 
-    _la = _input->LA(1);
-    if (_la == SEParser::COMMA) {
-      setState(109);
-      match(SEParser::COMMA);
+    case 2: {
+      enterOuterAlt(_localctx, 2);
+      setState(89);
+      value();
+      setState(90);
+      match(SEParser::T__4);
+      setState(91);
+      tuple();
+      break;
+    }
+
+    case 3: {
+      enterOuterAlt(_localctx, 3);
+      setState(93);
+      value();
+      setState(94);
+      tuple();
+      break;
+    }
+
+    case 4: {
+      enterOuterAlt(_localctx, 4);
+      setState(96);
+      value();
+      setState(97);
+      match(SEParser::T__4);
+      break;
+    }
+
+    default:
+      break;
     }
    
   }
@@ -1217,6 +974,174 @@ SEParser::TupleContext* SEParser::tuple() {
   }
 
   return _localctx;
+}
+
+//----------------- ModifierContext ------------------------------------------------------------------
+
+SEParser::ModifierContext::ModifierContext(ParserRuleContext *parent, size_t invokingState)
+  : ParserRuleContext(parent, invokingState) {
+}
+
+tree::TerminalNode* SEParser::ModifierContext::Set() {
+  return getToken(SEParser::Set, 0);
+}
+
+tree::TerminalNode* SEParser::ModifierContext::SetU() {
+  return getToken(SEParser::SetU, 0);
+}
+
+tree::TerminalNode* SEParser::ModifierContext::SetForce() {
+  return getToken(SEParser::SetForce, 0);
+}
+
+tree::TerminalNode* SEParser::ModifierContext::Reset() {
+  return getToken(SEParser::Reset, 0);
+}
+
+tree::TerminalNode* SEParser::ModifierContext::Interpolate() {
+  return getToken(SEParser::Interpolate, 0);
+}
+
+tree::TerminalNode* SEParser::ModifierContext::Get() {
+  return getToken(SEParser::Get, 0);
+}
+
+tree::TerminalNode* SEParser::ModifierContext::WaitVar() {
+  return getToken(SEParser::WaitVar, 0);
+}
+
+tree::TerminalNode* SEParser::ModifierContext::SaveVars() {
+  return getToken(SEParser::SaveVars, 0);
+}
+
+tree::TerminalNode* SEParser::ModifierContext::RestoreVars() {
+  return getToken(SEParser::RestoreVars, 0);
+}
+
+
+size_t SEParser::ModifierContext::getRuleIndex() const {
+  return SEParser::RuleModifier;
+}
+
+void SEParser::ModifierContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<SEListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterModifier(this);
+}
+
+void SEParser::ModifierContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<SEListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitModifier(this);
+}
+
+SEParser::ModifierContext* SEParser::modifier() {
+  ModifierContext *_localctx = _tracker.createInstance<ModifierContext>(_ctx, getState());
+  enterRule(_localctx, 20, SEParser::RuleModifier);
+  size_t _la = 0;
+
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
+  auto onExit = finally([=] {
+#endif
+    exitRule();
+  });
+  try {
+    enterOuterAlt(_localctx, 1);
+    setState(101);
+    _la = _input->LA(1);
+    if (!((((_la & ~ 0x3fULL) == 0) &&
+      ((1ULL << _la) & 32704) != 0))) {
+    _errHandler->recoverInline(this);
+    }
+    else {
+      _errHandler->reportMatch(this);
+      consume();
+    }
+   
+  }
+  catch (RecognitionException &e) {
+    _errHandler->reportError(this, e);
+    _localctx->exception = std::current_exception();
+    _errHandler->recover(this, _localctx->exception);
+  }
+
+  return _localctx;
+}
+
+//----------------- OpContext ------------------------------------------------------------------
+
+SEParser::OpContext::OpContext(ParserRuleContext *parent, size_t invokingState)
+  : ParserRuleContext(parent, invokingState) {
+}
+
+tree::TerminalNode* SEParser::OpContext::Op() {
+  return getToken(SEParser::Op, 0);
+}
+
+
+size_t SEParser::OpContext::getRuleIndex() const {
+  return SEParser::RuleOp;
+}
+
+void SEParser::OpContext::enterRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<SEListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->enterOp(this);
+}
+
+void SEParser::OpContext::exitRule(tree::ParseTreeListener *listener) {
+  auto parserListener = dynamic_cast<SEListener *>(listener);
+  if (parserListener != nullptr)
+    parserListener->exitOp(this);
+}
+
+SEParser::OpContext* SEParser::op() {
+  OpContext *_localctx = _tracker.createInstance<OpContext>(_ctx, getState());
+  enterRule(_localctx, 22, SEParser::RuleOp);
+
+#if __cplusplus > 201703L
+  auto onExit = finally([=, this] {
+#else
+  auto onExit = finally([=] {
+#endif
+    exitRule();
+  });
+  try {
+    enterOuterAlt(_localctx, 1);
+    setState(103);
+    match(SEParser::Op);
+   
+  }
+  catch (RecognitionException &e) {
+    _errHandler->reportError(this, e);
+    _localctx->exception = std::current_exception();
+    _errHandler->recover(this, _localctx->exception);
+  }
+
+  return _localctx;
+}
+
+bool SEParser::sempred(RuleContext *context, size_t ruleIndex, size_t predicateIndex) {
+  switch (ruleIndex) {
+    case 8: return arraySempred(antlrcpp::downCast<ArrayContext *>(context), predicateIndex);
+
+  default:
+    break;
+  }
+  return true;
+}
+
+bool SEParser::arraySempred(ArrayContext *_localctx, size_t predicateIndex) {
+  switch (predicateIndex) {
+    case 0: return precpred(_ctx, 2);
+    case 1: return precpred(_ctx, 1);
+
+  default:
+    break;
+  }
+  return true;
 }
 
 void SEParser::initialize() {

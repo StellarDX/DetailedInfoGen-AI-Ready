@@ -14,14 +14,8 @@
 class  SEListener : public antlr4::tree::ParseTreeListener {
 public:
 
-  virtual void enterStart(SEParser::StartContext *ctx) = 0;
-  virtual void exitStart(SEParser::StartContext *ctx) = 0;
-
   virtual void enterTable(SEParser::TableContext *ctx) = 0;
   virtual void exitTable(SEParser::TableContext *ctx) = 0;
-
-  virtual void enterEntry(SEParser::EntryContext *ctx) = 0;
-  virtual void exitEntry(SEParser::EntryContext *ctx) = 0;
 
   virtual void enterKey(SEParser::KeyContext *ctx) = 0;
   virtual void exitKey(SEParser::KeyContext *ctx) = 0;
@@ -29,11 +23,11 @@ public:
   virtual void enterValueGroup(SEParser::ValueGroupContext *ctx) = 0;
   virtual void exitValueGroup(SEParser::ValueGroupContext *ctx) = 0;
 
-  virtual void enterBoolBlock(SEParser::BoolBlockContext *ctx) = 0;
-  virtual void exitBoolBlock(SEParser::BoolBlockContext *ctx) = 0;
-
   virtual void enterBoolOp(SEParser::BoolOpContext *ctx) = 0;
   virtual void exitBoolOp(SEParser::BoolOpContext *ctx) = 0;
+
+  virtual void enterVariableOp(SEParser::VariableOpContext *ctx) = 0;
+  virtual void exitVariableOp(SEParser::VariableOpContext *ctx) = 0;
 
   virtual void enterValue(SEParser::ValueContext *ctx) = 0;
   virtual void exitValue(SEParser::ValueContext *ctx) = 0;
@@ -44,17 +38,17 @@ public:
   virtual void enterSimpleTypes(SEParser::SimpleTypesContext *ctx) = 0;
   virtual void exitSimpleTypes(SEParser::SimpleTypesContext *ctx) = 0;
 
-  virtual void enterNumeric(SEParser::NumericContext *ctx) = 0;
-  virtual void exitNumeric(SEParser::NumericContext *ctx) = 0;
-
-  virtual void enterVariable(SEParser::VariableContext *ctx) = 0;
-  virtual void exitVariable(SEParser::VariableContext *ctx) = 0;
-
   virtual void enterArray(SEParser::ArrayContext *ctx) = 0;
   virtual void exitArray(SEParser::ArrayContext *ctx) = 0;
 
   virtual void enterTuple(SEParser::TupleContext *ctx) = 0;
   virtual void exitTuple(SEParser::TupleContext *ctx) = 0;
+
+  virtual void enterModifier(SEParser::ModifierContext *ctx) = 0;
+  virtual void exitModifier(SEParser::ModifierContext *ctx) = 0;
+
+  virtual void enterOp(SEParser::OpContext *ctx) = 0;
+  virtual void exitOp(SEParser::OpContext *ctx) = 0;
 
 
 };
