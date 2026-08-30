@@ -35,14 +35,23 @@ public:
   virtual void enterSubTable(SEParser::SubTableContext *ctx) = 0;
   virtual void exitSubTable(SEParser::SubTableContext *ctx) = 0;
 
-  virtual void enterSimpleTypes(SEParser::SimpleTypesContext *ctx) = 0;
-  virtual void exitSimpleTypes(SEParser::SimpleTypesContext *ctx) = 0;
+  virtual void enterNumeric(SEParser::NumericContext *ctx) = 0;
+  virtual void exitNumeric(SEParser::NumericContext *ctx) = 0;
+
+  virtual void enterString(SEParser::StringContext *ctx) = 0;
+  virtual void exitString(SEParser::StringContext *ctx) = 0;
+
+  virtual void enterBoolean(SEParser::BooleanContext *ctx) = 0;
+  virtual void exitBoolean(SEParser::BooleanContext *ctx) = 0;
 
   virtual void enterArray(SEParser::ArrayContext *ctx) = 0;
   virtual void exitArray(SEParser::ArrayContext *ctx) = 0;
 
   virtual void enterTuple(SEParser::TupleContext *ctx) = 0;
   virtual void exitTuple(SEParser::TupleContext *ctx) = 0;
+
+  virtual void enterComparableTypes(SEParser::ComparableTypesContext *ctx) = 0;
+  virtual void exitComparableTypes(SEParser::ComparableTypesContext *ctx) = 0;
 
   virtual void enterModifier(SEParser::ModifierContext *ctx) = 0;
   virtual void exitModifier(SEParser::ModifierContext *ctx) = 0;

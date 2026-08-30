@@ -21,7 +21,7 @@ public:
   enum {
     RuleTable = 0, RuleKey = 1, RuleValueGroup = 2, RuleBoolOp = 3, RuleVariableOp = 4, 
     RuleValue = 5, RuleSubTable = 6, RuleSimpleTypes = 7, RuleArray = 8, 
-    RuleTuple = 9, RuleModifier = 10, RuleOp = 11
+    RuleTuple = 9, RuleComparableTypes = 10, RuleModifier = 11, RuleOp = 12
   };
 
   explicit SEParser(antlr4::TokenStream *input);
@@ -51,6 +51,7 @@ public:
   class SimpleTypesContext;
   class ArrayContext;
   class TupleContext;
+  class ComparableTypesContext;
   class ModifierContext;
   class OpContext; 
 
@@ -103,8 +104,8 @@ public:
   public:
     BoolOpContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<SimpleTypesContext *> simpleTypes();
-    SimpleTypesContext* simpleTypes(size_t i);
+    std::vector<ComparableTypesContext *> comparableTypes();
+    ComparableTypesContext* comparableTypes(size_t i);
     OpContext *op();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -160,14 +161,41 @@ public:
   class  SimpleTypesContext : public antlr4::ParserRuleContext {
   public:
     SimpleTypesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *Numeric();
-    antlr4::tree::TerminalNode *String();
-    antlr4::tree::TerminalNode *Boolean();
+   
+    SimpleTypesContext() = default;
+    void copyFrom(SimpleTypesContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  NumericContext : public SimpleTypesContext {
+  public:
+    NumericContext(SimpleTypesContext *ctx);
+
+    antlr4::tree::TerminalNode *Numeric();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
+  };
+
+  class  StringContext : public SimpleTypesContext {
+  public:
+    StringContext(SimpleTypesContext *ctx);
+
+    antlr4::tree::TerminalNode *String();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  BooleanContext : public SimpleTypesContext {
+  public:
+    BooleanContext(SimpleTypesContext *ctx);
+
+    antlr4::tree::TerminalNode *Boolean();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
   SimpleTypesContext* simpleTypes();
@@ -199,6 +227,20 @@ public:
   };
 
   TupleContext* tuple();
+
+  class  ComparableTypesContext : public antlr4::ParserRuleContext {
+  public:
+    ComparableTypesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *Identifier();
+    SimpleTypesContext *simpleTypes();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  ComparableTypesContext* comparableTypes();
 
   class  ModifierContext : public antlr4::ParserRuleContext {
   public:

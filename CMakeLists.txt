@@ -49,13 +49,28 @@ find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
 # 每个包含 CMakeLists.txt 的子目录都会作为子工程加入构建。
 # 当前内置：fmtlib（格式化库）、pybind（pybind11 绑定框架）、antlr（占位）。
 # 新增依赖时只需把目录放进 3rdParty 即可，无需修改本脚本。
+#
+# add_subdirectory 使用 EXCLUDE_FROM_ALL：
+#   - 通用禁用第三方 install 规则（无需逐个硬编码 EIGEN_INSTALL/OFF 等选项，
+#     以后新增依赖目录自动生效）：按 CMake 官方文档，EXCLUDE_FROM_ALL 目录
+#     属性会使该子目录（含其下级）定义的全部 install() 规则在安装父目录时
+#     被忽略，因此 Eigen/pybind11/fmtlib 等不会再向安装前缀写入头文件、
+#     CMake 配置文件或 pkg-config 文件。
+#   - 不影响构建：被排除子目录的目标仍会被顶层模块作为依赖正常编译链接
+#     （eigen/pybind11 为纯接口库无需编译，fmt 由 InfoGen 链接而按需构建）。
+#   - 注意：该机制只能「整体禁用」，无法把第三方头文件「重定向」到
+#     InfoGen_Data/Headers —— 各库用各自私有变量决定安装目的地
+#     （Eigen 用 INCLUDE_INSTALL_DIR 且自带 /eigen3 后缀、pybind11/fmtlib 用
+#     CMAKE_INSTALL_INCLUDEDIR，还有库直接硬编码 DESTINATION include），
+#     CMake 的 install() 没有全局“头文件目的地”钩子，想重定向必须逐库
+#     改其私有变量（即硬编码库名），故这里采用禁用方案。
 # ----------------------------------------------------------------------------
 set(INFOGEN_ADDED_3RDPARTY_DIRS "")
 file(GLOB THIRD_PARTY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/InfoGen_Data/3rdParty/*")
 foreach(_dir ${THIRD_PARTY_DIRS})
     if(IS_DIRECTORY "${_dir}" AND EXISTS "${_dir}/CMakeLists.txt")
         message(STATUS "[${PROJECT_NAME}] 引入第三方依赖: ${_dir}")
-        add_subdirectory("${_dir}")
+        add_subdirectory("${_dir}" EXCLUDE_FROM_ALL)
         list(APPEND INFOGEN_ADDED_3RDPARTY_DIRS "${_dir}")
     endif()
 endforeach()

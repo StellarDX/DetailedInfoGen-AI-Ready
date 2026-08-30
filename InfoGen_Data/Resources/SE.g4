@@ -1,67 +1,68 @@
 /*
-   适用于ANTLR4的SpaceEngine文件语法
-   本语法基于IBM和IEEE754标准制定，不代表SE原版语法
+    适用于ANTLR4的SpaceEngine文件语法
+    本语法基于IBM和IEEE754标准制定，不代表SE原版语法
 
-   词类：
-   {
-       标识符类：（Identifier, Variable）
-       {
-           标识符：[a-zA-Z_][a-zA-Z0-9_]*
-       }
+    词类：
+    {
+        标识符类：（Identifier, Variable）
+        {
+            标识符：[a-zA-Z_][a-zA-Z0-9_]*
+        }
 
-       数字类：（Numeric）
-       {
-           整数：[+-]?([二进制整数]|[八进制整数]|[十进制整数]|[十六进制整数])(([Ll]{1,2}[Uu]?)|([Uu]([Ll]{1,2})?)|([Uu]?[Ii]128)|([Uu]?[Ii][Nn][Ff][Tt][Yy]))?
-               - 二进制整数：0[Bb][0-1]+
-               - 八进制整数：0[Oo]?[0-7]+
-               - 十进制整数：[:digit:]+
-               - 十六进制整数：0[Xx][:xdigit:]+
-           二进制/十进制浮点数/科学计数：[+-]?(([:digit:]*\.[:digit:]+[指数e]?)|([:digit:]+\.[指数e]?)|([:digit:]+[指数e]))(([Dd]?[Ff])|([Dd]?[Ll])|([Dd]?[Qq])|[Oo]|([Dd]?[Ii][Nn][Ff][Tt][Yy]))?
-               - 指数e：[Ee][+-]?[:digit:]+
-           十六进制科学计数：[+-]?0[Xx](([:xdigit:]*\.[:xdigit:]+[指数p])|([:xdigit:]+\.[指数p])|([:xdigit:]+[指数p]))([Ff]|[Ll]|[Qq]|[Oo]|([Ii][Nn][Ff][Tt][Yy]))?
-               - 指数p：[Pp][+-]?[:digit:]+
-       }
-       --注：整数后缀中(U)i128为128位整数，(U)infty为无限长度整数；
-           浮点数后缀中的那个d表示十进制浮点数，即df，dl和dq分别为32，64和128位十进制浮点，o后缀为256位浮点（无对应十进制后缀），(d)infty为无限精度浮点
-           十六进制科学计数的指数表示为2的p次方，p为十进制数，指数为必填项
+        数字类：（Numeric）
+        {
+            整数：[+-]?([二进制整数]|[八进制整数]|[十进制整数]|[十六进制整数])(([Ll]{1,2}[Uu]?)|([Uu]([Ll]{1,2})?)|([Uu]?[Ii]128)|([Uu]?[Ii][Nn][Ff][Tt][Yy]))?
+             - 二进制整数：0[Bb][0-1]+
+             - 八进制整数：0[Oo]?[0-7]+
+             - 十进制整数：[:digit:]+
+             - 十六进制整数：0[Xx][:xdigit:]+
+            二进制/十进制浮点数/科学计数：[+-]?(([:digit:]*\.[:digit:]+[指数e]?)|([:digit:]+\.[指数e]?)|([:digit:]+[指数e]))(([Dd]?[Ff])|([Dd]?[Ll])|([Dd]?[Qq])|[Oo]|([Dd]?[Ii][Nn][Ff][Tt][Yy]))?
+             - 指数e：[Ee][+-]?[:digit:]+
+            十六进制科学计数：[+-]?0[Xx](([:xdigit:]*\.[:xdigit:]+[指数p])|([:xdigit:]+\.[指数p])|([:xdigit:]+[指数p]))([Ff]|[Ll]|[Qq]|[Oo]|([Ii][Nn][Ff][Tt][Yy]))?
+             - 指数p：[Pp][+-]?[:digit:]+
+        }
+        --注：整数后缀中(U)i128为128位整数，(U)infty为无限长度整数；
+            浮点数后缀中的那个d表示十进制浮点数，即df，dl和dq分别为32，64和128位十进制浮点，o后缀为256位浮点（无对应十进制后缀），(d)infty为无限精度浮点
+            十六进制科学计数的指数表示为2的p次方，p为十进制数，指数为必填项
 
-       字符串类：（String）
-       {
-           字符串：\".*\"
-       }
+        字符串类：（String）
+        {
+            字符串：\".*\"
+        }
 
-       布尔类：（Boolean）
-       {
-           布尔值：true，false
-       }
+        布尔类：（Boolean）
+        {
+            布尔值：true，false
+        }
 
-       操作符类：（Operator）
-       {
-           比较操作符：==，!=，<，>，<=，>=
-       }
+        操作符类：（Operator）
+        {
+            比较操作符：==，!=，<，>，<=，>=
+        }
 
-       保留关键字：（Modifier）
-       {
-           变量操作：Set，SetU，SetForce，Reset，Interpolate，Get，WaitVar，SaveVars，RestoreVars
-       }
-       --注：布尔值与保留关键字区分大小写
-   }
+        保留关键字：（Modifier）
+        {
+            变量操作：Set，SetU，SetForce，Reset，Interpolate，Get，WaitVar，SaveVars，RestoreVars
+        }
+        --注：布尔值与保留关键字区分大小写
+    }
 
-   语法：
-   {
-       Table => Key ValueGroup Table | Key '{' BoolOp '}' Table | VariableOp Table | Key Table | [Empty]
-       Key => <Identifier>
-       ValueGroup => Value ValueGroup | Value | SubTable
-       BoolOp => SimpleTypes <Operator> SimpleTypes
-       VariableOp => <Modifier> <Identifier> SimpleTypes
-       Value => SimpleTypes | '(' Array ')' | '{' Tuple '}'
-       SubTable => '{' Table '}'
-       SimpleTypes => <Numeric> | <String> | <Boolean>
-       Array => SimpleTypes | Array ',' SimpleTypes | Array SimpleTypes
-       Tuple => Value | Value ',' Tuple | Value Tuple | Value ','
-   }
-   --注：本语法原是基于Bison的，为LR1语法。
-       [Empty]表示空推导，带<>的为终结语词（名称见词类后面的英文表示）
+    语法：
+    {
+        Table => Key ValueGroup Table | Key '{' BoolOp '}' Table | VariableOp Table | Key Table | [Empty]
+        Key => <Identifier>
+        ValueGroup => Value ValueGroup | Value | SubTable
+        BoolOp => ComparableTypes <Operator> ComparableTypes
+        VariableOp => <Modifier> <Identifier> SimpleTypes
+        Value => SimpleTypes | '(' Array ')' | '{' Tuple '}'
+        SubTable => '{' Table '}'
+        SimpleTypes => <Numeric> | <String> | <Boolean>
+        Array => SimpleTypes | Array ',' SimpleTypes | Array SimpleTypes
+        Tuple => Value | Value ',' Tuple | Value Tuple | Value ','
+        ComparableTypes => <Identifier> | SimpleTypes
+    }
+    --注：本语法原是基于Bison的，为LR1语法。
+        [Empty]表示空推导，带<>的为终结语词（名称见词类后面的英文表示）
 */
 
 // ----------本文件以下内容由DeepSeek-V4-Flash 0731生成（腾讯云混元3被干烧了）----------
@@ -90,8 +91,8 @@ valueGroup
     | subTable
     ;
 
-// BoolOp => SimpleTypes <Operator> SimpleTypes
-boolOp : simpleTypes op simpleTypes;
+// BoolOp => ComparableTypes <Operator> ComparableTypes
+boolOp : comparableTypes op comparableTypes;
 
 // VariableOp => <Modifier> <Identifier> SimpleTypes
 variableOp : modifier Identifier simpleTypes;
@@ -108,9 +109,9 @@ subTable : '{' table '}';
 
 // SimpleTypes => <Numeric> | <String> | <Boolean>
 simpleTypes
-    : Numeric
-    | String
-    | Boolean
+    : Numeric # Numeric
+    | String  # String
+    | Boolean # Boolean
     ;
 
 // Array => SimpleTypes | Array ',' SimpleTypes | Array SimpleTypes
@@ -126,6 +127,12 @@ tuple
     | value ',' tuple
     | value tuple
     | value ','
+    ;
+
+// ComparableTypes => <Identifier> | SimpleTypes
+comparableTypes 
+    : Identifier 
+    | simpleTypes 
     ;
 
 // ============ 词法规则（Lexer Rules） ============

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <pybind11/pybind11.h>
 
+#include "Mini-NeoCSE/ISCStream.h"
+
 #include "final.h"
 
 namespace py = pybind11;
