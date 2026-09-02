@@ -16,44 +16,89 @@
 class  SEBaseListener : public SEListener {
 public:
 
-  virtual void enterTable(SEParser::TableContext * /*ctx*/) override { }
-  virtual void exitTable(SEParser::TableContext * /*ctx*/) override { }
+  virtual void enterTableWithKeyValue(SEParser::TableWithKeyValueContext * /*ctx*/) override { }
+  virtual void exitTableWithKeyValue(SEParser::TableWithKeyValueContext * /*ctx*/) override { }
 
-  virtual void enterKey(SEParser::KeyContext * /*ctx*/) override { }
-  virtual void exitKey(SEParser::KeyContext * /*ctx*/) override { }
+  virtual void enterTableWithKeyValueSubtable(SEParser::TableWithKeyValueSubtableContext * /*ctx*/) override { }
+  virtual void exitTableWithKeyValueSubtable(SEParser::TableWithKeyValueSubtableContext * /*ctx*/) override { }
 
-  virtual void enterValueGroup(SEParser::ValueGroupContext * /*ctx*/) override { }
-  virtual void exitValueGroup(SEParser::ValueGroupContext * /*ctx*/) override { }
+  virtual void enterTableWithKeyOnly(SEParser::TableWithKeyOnlyContext * /*ctx*/) override { }
+  virtual void exitTableWithKeyOnly(SEParser::TableWithKeyOnlyContext * /*ctx*/) override { }
 
-  virtual void enterBoolOp(SEParser::BoolOpContext * /*ctx*/) override { }
-  virtual void exitBoolOp(SEParser::BoolOpContext * /*ctx*/) override { }
+  virtual void enterTableWithKeySubTable(SEParser::TableWithKeySubTableContext * /*ctx*/) override { }
+  virtual void exitTableWithKeySubTable(SEParser::TableWithKeySubTableContext * /*ctx*/) override { }
 
-  virtual void enterVariableOp(SEParser::VariableOpContext * /*ctx*/) override { }
-  virtual void exitVariableOp(SEParser::VariableOpContext * /*ctx*/) override { }
+  virtual void enterTableWithBoolOperation(SEParser::TableWithBoolOperationContext * /*ctx*/) override { }
+  virtual void exitTableWithBoolOperation(SEParser::TableWithBoolOperationContext * /*ctx*/) override { }
 
-  virtual void enterValue(SEParser::ValueContext * /*ctx*/) override { }
-  virtual void exitValue(SEParser::ValueContext * /*ctx*/) override { }
+  virtual void enterTableWithVarOperation(SEParser::TableWithVarOperationContext * /*ctx*/) override { }
+  virtual void exitTableWithVarOperation(SEParser::TableWithVarOperationContext * /*ctx*/) override { }
 
-  virtual void enterSubTable(SEParser::SubTableContext * /*ctx*/) override { }
-  virtual void exitSubTable(SEParser::SubTableContext * /*ctx*/) override { }
+  virtual void enterTableIsEmpty(SEParser::TableIsEmptyContext * /*ctx*/) override { }
+  virtual void exitTableIsEmpty(SEParser::TableIsEmptyContext * /*ctx*/) override { }
 
-  virtual void enterNumeric(SEParser::NumericContext * /*ctx*/) override { }
-  virtual void exitNumeric(SEParser::NumericContext * /*ctx*/) override { }
+  virtual void enterKeyLabel(SEParser::KeyLabelContext * /*ctx*/) override { }
+  virtual void exitKeyLabel(SEParser::KeyLabelContext * /*ctx*/) override { }
 
-  virtual void enterString(SEParser::StringContext * /*ctx*/) override { }
-  virtual void exitString(SEParser::StringContext * /*ctx*/) override { }
+  virtual void enterValueGroupIterating(SEParser::ValueGroupIteratingContext * /*ctx*/) override { }
+  virtual void exitValueGroupIterating(SEParser::ValueGroupIteratingContext * /*ctx*/) override { }
 
-  virtual void enterBoolean(SEParser::BooleanContext * /*ctx*/) override { }
-  virtual void exitBoolean(SEParser::BooleanContext * /*ctx*/) override { }
+  virtual void enterValueGroupTerminating(SEParser::ValueGroupTerminatingContext * /*ctx*/) override { }
+  virtual void exitValueGroupTerminating(SEParser::ValueGroupTerminatingContext * /*ctx*/) override { }
 
-  virtual void enterArray(SEParser::ArrayContext * /*ctx*/) override { }
-  virtual void exitArray(SEParser::ArrayContext * /*ctx*/) override { }
+  virtual void enterBoolOperation(SEParser::BoolOperationContext * /*ctx*/) override { }
+  virtual void exitBoolOperation(SEParser::BoolOperationContext * /*ctx*/) override { }
 
-  virtual void enterTuple(SEParser::TupleContext * /*ctx*/) override { }
-  virtual void exitTuple(SEParser::TupleContext * /*ctx*/) override { }
+  virtual void enterVariableOperation(SEParser::VariableOperationContext * /*ctx*/) override { }
+  virtual void exitVariableOperation(SEParser::VariableOperationContext * /*ctx*/) override { }
 
-  virtual void enterComparableTypes(SEParser::ComparableTypesContext * /*ctx*/) override { }
-  virtual void exitComparableTypes(SEParser::ComparableTypesContext * /*ctx*/) override { }
+  virtual void enterValueAsRawTypes(SEParser::ValueAsRawTypesContext * /*ctx*/) override { }
+  virtual void exitValueAsRawTypes(SEParser::ValueAsRawTypesContext * /*ctx*/) override { }
+
+  virtual void enterValueAsArray(SEParser::ValueAsArrayContext * /*ctx*/) override { }
+  virtual void exitValueAsArray(SEParser::ValueAsArrayContext * /*ctx*/) override { }
+
+  virtual void enterValueAsTuple(SEParser::ValueAsTupleContext * /*ctx*/) override { }
+  virtual void exitValueAsTuple(SEParser::ValueAsTupleContext * /*ctx*/) override { }
+
+  virtual void enterSubTableExpand(SEParser::SubTableExpandContext * /*ctx*/) override { }
+  virtual void exitSubTableExpand(SEParser::SubTableExpandContext * /*ctx*/) override { }
+
+  virtual void enterSimpleTypeNumeric(SEParser::SimpleTypeNumericContext * /*ctx*/) override { }
+  virtual void exitSimpleTypeNumeric(SEParser::SimpleTypeNumericContext * /*ctx*/) override { }
+
+  virtual void enterSimpleTypeString(SEParser::SimpleTypeStringContext * /*ctx*/) override { }
+  virtual void exitSimpleTypeString(SEParser::SimpleTypeStringContext * /*ctx*/) override { }
+
+  virtual void enterSimpleTypeBoolean(SEParser::SimpleTypeBooleanContext * /*ctx*/) override { }
+  virtual void exitSimpleTypeBoolean(SEParser::SimpleTypeBooleanContext * /*ctx*/) override { }
+
+  virtual void enterArrayIterating2(SEParser::ArrayIterating2Context * /*ctx*/) override { }
+  virtual void exitArrayIterating2(SEParser::ArrayIterating2Context * /*ctx*/) override { }
+
+  virtual void enterArrayIterating1(SEParser::ArrayIterating1Context * /*ctx*/) override { }
+  virtual void exitArrayIterating1(SEParser::ArrayIterating1Context * /*ctx*/) override { }
+
+  virtual void enterArrayStart(SEParser::ArrayStartContext * /*ctx*/) override { }
+  virtual void exitArrayStart(SEParser::ArrayStartContext * /*ctx*/) override { }
+
+  virtual void enterTupleTerminating1(SEParser::TupleTerminating1Context * /*ctx*/) override { }
+  virtual void exitTupleTerminating1(SEParser::TupleTerminating1Context * /*ctx*/) override { }
+
+  virtual void enterTupleIterating1(SEParser::TupleIterating1Context * /*ctx*/) override { }
+  virtual void exitTupleIterating1(SEParser::TupleIterating1Context * /*ctx*/) override { }
+
+  virtual void enterTupleIterating2(SEParser::TupleIterating2Context * /*ctx*/) override { }
+  virtual void exitTupleIterating2(SEParser::TupleIterating2Context * /*ctx*/) override { }
+
+  virtual void enterTupleTerminating2(SEParser::TupleTerminating2Context * /*ctx*/) override { }
+  virtual void exitTupleTerminating2(SEParser::TupleTerminating2Context * /*ctx*/) override { }
+
+  virtual void enterCompTypeAsIdent(SEParser::CompTypeAsIdentContext * /*ctx*/) override { }
+  virtual void exitCompTypeAsIdent(SEParser::CompTypeAsIdentContext * /*ctx*/) override { }
+
+  virtual void enterCompTypeAsRawTypes(SEParser::CompTypeAsRawTypesContext * /*ctx*/) override { }
+  virtual void exitCompTypeAsRawTypes(SEParser::CompTypeAsRawTypesContext * /*ctx*/) override { }
 
   virtual void enterModifier(SEParser::ModifierContext * /*ctx*/) override { }
   virtual void exitModifier(SEParser::ModifierContext * /*ctx*/) override { }

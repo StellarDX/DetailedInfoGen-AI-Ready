@@ -11,6 +11,7 @@
 #include <flat_map>
 #include <concepts>
 #include <type_traits>
+#include <filesystem>
 
 #include <Eigen/Core>
 
@@ -62,7 +63,7 @@ using SETuple   = std::vector<class SEObject>;
 
 using SEKey     = SEString;
 using SEValues  = std::vector<class SEObject>;
-using SETable   = std::flat_map<SEKey, SEValues>;
+using SETable   = std::multimap<SEKey, SEValues>; // 主要用于读取物体而非顺序执行，因此采用哈希字典
 
 struct SECondition
 {
@@ -81,7 +82,6 @@ struct SECondition
 
 struct SEVarOperation
 {
-    SEString Operation;
     SEString Identifier;
     std::shared_ptr<class SEObject> Value;
 };
@@ -91,7 +91,7 @@ class SEObject
 public:
     using ValueType = std::variant<
         SEInteger, SEUInt, SEReal, SEBoolean, SEString,
-        SEArray, SEIArray, SEUArray, SEBArray, 
+        SEArray, SEIArray, SEUArray, SEBArray, std::vector<std::string>,
         SETuple, SETable, SECondition, SEVarOperation>;
 
     ValueType Elem;
@@ -116,6 +116,7 @@ public:
     SEObject(bool B) : Elem(B) {}
     template<typename Tp>
     SEObject(Eigen::Array<Tp, Eigen::Dynamic, 1> Arr) : Elem(Arr) {}
+    SEObject(std::vector<std::string> Arr) : Elem(Arr) {}
     SEObject(SETuple M) : Elem(M) {}
     SEObject(SETable T) : Elem(T) {}
     SEObject(SECondition C) : Elem(C) {}
@@ -123,7 +124,7 @@ public:
 
     template<typename Tp> 
     requires (std::is_integral_v<Tp> || std::is_floating_point_v<Tp>)
-    Tp AsNumeric()const
+    Tp As()const
     {
         return std::visit([](auto&& v) -> Tp 
         {
@@ -138,28 +139,10 @@ public:
         }, Elem);
     }
 
-    SEBoolean AsBoolean()const
-    {
-        if (std::holds_alternative<SEBoolean>(Elem))
-        {
-            return std::get<SEBoolean>(Elem);
-        }
-        else {throw std::bad_variant_access();}
-    }
-
-    SEString AsString()const
-    {
-        if (std::holds_alternative<SEString>(Elem))
-        {
-            return std::get<SEString>(Elem);
-        }
-        else {throw std::bad_variant_access();}
-    }
-
     template<typename Tp>
-    Eigen::Array<Tp, Eigen::Dynamic, 1> AsArray()const
+    Eigen::Array<Tp, Eigen::Dynamic, 1> As(std::type_identity<Eigen::Array<Tp, Eigen::Dynamic, 1>>)const
     {
-        return std::visit([](auto&& v) -> Tp 
+        return std::visit([](auto&& v) -> Eigen::Array<Tp, Eigen::Dynamic, 1>
         {
             using T = std::decay_t<decltype(v)>;
             if constexpr (std::is_same_v<T, SEArray> ||
@@ -173,116 +156,99 @@ public:
         }, Elem);
     }
 
-    SETuple AsTuple()const
+    template<typename Tp>
+    Tp As()const
     {
-        if (std::holds_alternative<SETuple>(Elem))
+        if (std::holds_alternative<Tp>(Elem))
         {
-            return std::get<SETuple>(Elem);
-        }
-        else {throw std::bad_variant_access();}
-    }
-
-    SETable AsTable()const
-    {
-        if (std::holds_alternative<SETable>(Elem))
-        {
-            return std::get<SETable>(Elem);
-        }
-        else {throw std::bad_variant_access();}
-    }
-
-    SECondition AsCondition()const
-    {
-        if (std::holds_alternative<SECondition>(Elem))
-        {
-            return std::get<SECondition>(Elem);
-        }
-        else {throw std::bad_variant_access();}
-    }
-
-    SEVarOperation AsVariableOperation()const
-    {
-        if (std::holds_alternative<SEVarOperation>(Elem))
-        {
-            return std::get<SEVarOperation>(Elem);
+            return std::get<Tp>(Elem);
         }
         else {throw std::bad_variant_access();}
     }
 };
-
 
 class ISCStream : public SEBaseListener
 {
 public:
-    using Mybase        = SEBaseListener;
-    using ValueType     = SEObject;
-    using Reference     = ValueType&;
-    using ConstRef      = const ValueType&;
-
-    using TableType     = SETable;
-    using KeyValueType  = TableType::value_type;
-    using TempTableType = std::stack<KeyValueType>;
-    using TempValueArr  = std::stack<SEObject>;
+    using Mybase    = SEBaseListener;
+    using ValueType = SEObject;
+    using Reference = ValueType&;
+    using ConstRef  = const ValueType&;
+    using TableType = SETable;
 
 protected:
     SEObject Data; ///< 最终数据保存在这里
 
-    // 以下所有变量均为中间状态
-    std::stack<TempTableType> CurrentTable;
-    TempValueArr CurrentValues;
+    // 以下所有变量均为中间状态，访问它们得到的结果是未定义的
+    std::stack<std::pair<SEString, std::deque<SEObject>>> KeyValueBuffer1; ///< 这个缓冲区存储已有的键值对
+    std::deque<TableType::value_type> KeyValueBuffer2; ///< 这个缓冲区存储即将构造为表的键值对
+
+    std::stack<TableType::mapped_type::value_type> CurrentValueBuffer; ///< 这个缓冲区中存储值
+    TableType::mapped_type::value_type CurrentValue; ///< 这个缓冲区用来存放分析好的单值
+    std::vector<TableType::mapped_type::value_type> ArrayValueBuffer; ///< 这个缓冲区中存储数组里的值
+    std::deque<TableType::mapped_type::value_type> TupleValueBuffer; ///< 这个缓冲区中存储即将被构造为tuple的值
+
+    SECondition CondBuffer; ///< 这个缓冲区存最近一次的布尔变量操作（即if语句）
+
+    static SEObject NumericToObject(std::string Context);
+    static SEObject ArrayBufferToObject(std::vector<TableType::mapped_type::value_type> Context);
+
+    void PostParsing();
 
 public:
-    void enterTable(SEParser::TableContext* Ctx) override;
-    void exitTable(SEParser::TableContext* Ctx) override;
+    ISCStream() {}
 
-    void enterKey(SEParser::KeyContext* Ctx) override;
-    void exitKey(SEParser::KeyContext* Ctx) override;
+    // 以下是语义分析时用的中间函数，此处依然采用和以前版本一样的自下而上归约的策略
+    void exitKeyLabel(SEParser::KeyLabelContext* Ctx) override final; // <Identifier> <= Key
 
-    void enterValueGroup(SEParser::ValueGroupContext* Ctx) override;
-    void exitValueGroup(SEParser::ValueGroupContext* Ctx) override;
+    void exitSimpleTypeNumeric(SEParser::SimpleTypeNumericContext* Ctx) override final; // <Numeric> <= SimpleTypes
+    void exitSimpleTypeString(SEParser::SimpleTypeStringContext* Ctx) override final; // <String> <= SimpleTypes
+    void exitSimpleTypeBoolean(SEParser::SimpleTypeBooleanContext* Ctx) override final; // <Boolean> <= SimpleTypes
 
-    void enterBoolOp(SEParser::BoolOpContext* Ctx) override;
-    void exitBoolOp(SEParser::BoolOpContext* Ctx) override;
+    void exitArrayStart(SEParser::ArrayStartContext* Ctx) override final; // SimpleTypes <= Array
+    void exitArrayIterating1(SEParser::ArrayIterating1Context* Ctx) override final; // Array ',' SimpleTypes <= Array
+    void exitArrayIterating2(SEParser::ArrayIterating2Context* Ctx) override final; // Array SimpleTypes <= Array
 
-    void enterVariableOp(SEParser::VariableOpContext* Ctx) override;
-    void exitVariableOp(SEParser::VariableOpContext* Ctx) override;
+    void exitTupleTerminating1(SEParser::TupleTerminating1Context* Ctx) override final; // Value <= Tuple
+    void exitTupleTerminating2(SEParser::TupleTerminating2Context* Ctx) override final; // Value ',' <= Tuple
+    void exitTupleIterating1(SEParser::TupleIterating1Context* Ctx) override final; // Value ',' Tuple <= Tuple
+    void exitTupleIterating2(SEParser::TupleIterating2Context* Ctx) override final; // Value Tuple <= Tuple
 
-    void enterValue(SEParser::ValueContext* Ctx) override;
-    void exitValue(SEParser::ValueContext* Ctx) override;
+    void exitValueAsRawTypes(SEParser::ValueAsRawTypesContext* Ctx) override final; // SimpleTypes <= Value
+    void exitValueAsArray(SEParser::ValueAsArrayContext* Ctx) override final; // '(' Array ')' <= Value
+    void exitValueAsTuple(SEParser::ValueAsTupleContext* Ctx) override final; // '{' Tuple '}' <= Value
 
-    void enterSubTable(SEParser::SubTableContext* Ctx) override;
-    void exitSubTable(SEParser::SubTableContext* Ctx) override;
+    void exitValueGroupTerminating(SEParser::ValueGroupTerminatingContext* Ctx) override final; // Value <= ValueGroup
+    void exitValueGroupIterating(SEParser::ValueGroupIteratingContext* Ctx) override final; // Value ValueGroup <= ValueGroup
 
-    void enterNumeric(SEParser::NumericContext* Ctx) override;
-    void exitNumeric(SEParser::NumericContext* Ctx) override;
+    void exitTableWithKeyValue(SEParser::TableWithKeyValueContext* Ctx) override final; // Key ValueGroup Table <= Table
+    void exitTableWithKeyValueSubtable(SEParser::TableWithKeyValueSubtableContext* Ctx) override final; // Key ValueGroup SubTable Table <= Table
+    void exitTableWithKeyOnly(SEParser::TableWithKeyOnlyContext* Ctx) override final; // Key Table <= Table
+    void exitTableWithKeySubTable(SEParser::TableWithKeySubTableContext* Ctx) override final; // Key SubTable Table <= Table
 
-    void enterString(SEParser::StringContext* Ctx) override;
-    void exitString(SEParser::StringContext* Ctx) override;
+    void exitSubTableExpand(SEParser::SubTableExpandContext* Ctx) override final; // '{' Table '}' <= SubTable
 
-    void enterBoolean(SEParser::BooleanContext* Ctx) override;
-    void exitBoolean(SEParser::BooleanContext* Ctx) override;
+    // 为了保证逻辑完整，以下过程仍会正常进行，但是最终得到的结果是未定义的，
+    // 要保留顺序请使用ISEStream（命令行模式，最终数据结构为线性表，TODO）而不是ISCStream（数据模式，最终数据结构为哈希表）
 
-    void enterArray(SEParser::ArrayContext* Ctx) override;
-    void exitArray(SEParser::ArrayContext* Ctx) override;
+    void exitCompTypeAsIdent(SEParser::CompTypeAsIdentContext* Ctx) override final; // <Identifier> <= ComparableTypes
+    void exitOp(SEParser::OpContext* Ctx) override final; // 读取操作符
+    void exitCompTypeAsRawTypes(SEParser::CompTypeAsRawTypesContext* Ctx) override final; // SimpleTypes <= ComparableTypes
 
-    void enterTuple(SEParser::TupleContext* Ctx) override;
-    void exitTuple(SEParser::TupleContext* Ctx) override;
+    void exitModifier(SEParser::ModifierContext* Ctx) override final; // 读取关键字
 
-    void enterComparableTypes(SEParser::ComparableTypesContext* Ctx) override;
-    void exitComparableTypes(SEParser::ComparableTypesContext* Ctx) override;
+    void exitBoolOperation(SEParser::BoolOperationContext* Ctx) override final; // ComparableTypes <Operator> ComparableTypes <= BoolOp
 
-    void enterModifier(SEParser::ModifierContext* Ctx) override;
-    void exitModifier(SEParser::ModifierContext* Ctx) override;
+    void exitVariableOperation(SEParser::VariableOperationContext* Ctx) override final; // <Modifier> <Identifier> SimpleTypes <= VariableOp
 
-    void enterOp(SEParser::OpContext* Ctx) override;
-    void exitOp(SEParser::OpContext* Ctx) override;
-
-    void enterEveryRule(antlr4::ParserRuleContext* Ctx) override;
-    void exitEveryRule(antlr4::ParserRuleContext* Ctx) override;
-    void visitTerminal(antlr4::tree::TerminalNode* Node) override;
-    void visitErrorNode(antlr4::tree::ErrorNode* Node) override;
+    void exitTableWithBoolOperation(SEParser::TableWithBoolOperationContext* Ctx) override final; // Key '{' BoolOp '}' Table <= Table
+    void exitTableWithVarOperation(SEParser::TableWithVarOperationContext* Ctx) override final; // VariableOp Table <= Table
 
     ConstRef GetObject()const{return Data;}
+
+    friend ISCStream ParseFile(std::filesystem::path Path);
 };
+
+ISCStream ParseFile(std::filesystem::path Path);
 
 #endif

@@ -16,7 +16,7 @@
              - 八进制整数：0[Oo]?[0-7]+
              - 十进制整数：[:digit:]+
              - 十六进制整数：0[Xx][:xdigit:]+
-            二进制/十进制浮点数/科学计数：[+-]?(([:digit:]*\.[:digit:]+[指数e]?)|([:digit:]+\.[指数e]?)|([:digit:]+[指数e]))(([Dd]?[Ff])|([Dd]?[Ll])|([Dd]?[Qq])|[Oo]|([Dd]?[Ii][Nn][Ff][Tt][Yy]))?
+            二进制/十进制浮点数/科学计数：[+-]?(([:digit:]*\.[:digit:]+[指数e]?)|([:digit:]+\.[指数e]?)|([:digit:]+[指数e]))(([Dd]?[Ff])|[Dd]|[Ll]|([Dd]?[Qq])|[Oo]|([Dd]?[Ii][Nn][Ff][Tt][Yy]))?
              - 指数e：[Ee][+-]?[:digit:]+
             十六进制科学计数：[+-]?0[Xx](([:xdigit:]*\.[:xdigit:]+[指数p])|([:xdigit:]+\.[指数p])|([:xdigit:]+[指数p]))([Ff]|[Ll]|[Qq]|[Oo]|([Ii][Nn][Ff][Tt][Yy]))?
              - 指数p：[Pp][+-]?[:digit:]+
@@ -49,9 +49,9 @@
 
     语法：
     {
-        Table => Key ValueGroup Table | Key '{' BoolOp '}' Table | VariableOp Table | Key Table | [Empty]
+        Table => Key ValueGroup Table | Key ValueGroup SubTable Key | Key Table | Key SubTable Table | Key '{' BoolOp '}' Table | VariableOp Table | [Empty]
         Key => <Identifier>
-        ValueGroup => Value ValueGroup | Value | SubTable
+        ValueGroup => Value ValueGroup | Value
         BoolOp => ComparableTypes <Operator> ComparableTypes
         VariableOp => <Modifier> <Identifier> SimpleTypes
         Value => SimpleTypes | '(' Array ')' | '{' Tuple '}'
@@ -71,68 +71,78 @@ grammar SE;
 
 // ============ 语法规则（Parser Rules） ============
 
-// Table => Key ValueGroup Table | Key '{' BoolOp '}' Table | VariableOp Table | Key Table | [Empty]
+// 这里为了方便区分，每个分支都起了名字
+
+// Table => Key ValueGroup Table | Key ValueGroup SubTable Table | Key Table | Key SubTable Table | Key '{' BoolOp '}' Table | VariableOp Table | [Empty]
 table
-    : ( key valueGroup
-      | key '{' boolOp '}'
-      | variableOp
-      | key
-      ) table
-    | /* [Empty] */
+    : key valueGroup table               # TableWithKeyValue
+    | key valueGroup subTable table      # TableWithKeyValueSubtable
+    | key table                          # TableWithKeyOnly
+    | key subTable table                 # TableWithKeySubTable
+    | key '{' boolOp '}' table           # TableWithBoolOperation
+    | variableOp table                   # TableWithVarOperation
+    | /* [Empty] */                      # TableIsEmpty
     ;
 
 // Key => <Identifier>
-key : Identifier;
+key 
+    : Identifier                         # KeyLabel
+    ;
 
-// ValueGroup => Value ValueGroup | Value | SubTable
+// ValueGroup => Value ValueGroup | Value
 valueGroup
-    : value valueGroup
-    | value
-    | subTable
+    : value valueGroup                   # ValueGroupIterating
+    | value                              # ValueGroupTerminating
     ;
 
 // BoolOp => ComparableTypes <Operator> ComparableTypes
-boolOp : comparableTypes op comparableTypes;
+boolOp 
+    : comparableTypes op comparableTypes # BoolOperation
+    ;
 
 // VariableOp => <Modifier> <Identifier> SimpleTypes
-variableOp : modifier Identifier simpleTypes;
+variableOp 
+    : modifier Identifier simpleTypes    # VariableOperation
+    ;
 
 // Value => SimpleTypes | '(' Array ')' | '{' Tuple '}'
 value
-    : simpleTypes
-    | '(' array ')'
-    | '{' tuple '}'
+    : simpleTypes                        # ValueAsRawTypes
+    | '(' array ')'                      # ValueAsArray
+    | '{' tuple '}'                      # ValueAsTuple
     ;
 
 // SubTable => '{' Table '}'
-subTable : '{' table '}';
+subTable 
+    : '{' table '}'                      # SubTableExpand
+    ;
 
 // SimpleTypes => <Numeric> | <String> | <Boolean>
 simpleTypes
-    : Numeric # Numeric
-    | String  # String
-    | Boolean # Boolean
+    : Numeric                            # SimpleTypeNumeric
+    | String                             # SimpleTypeString
+    | Boolean                            # SimpleTypeBoolean
     ;
 
 // Array => SimpleTypes | Array ',' SimpleTypes | Array SimpleTypes
 array
-    : simpleTypes
-    | array ',' simpleTypes
-    | array simpleTypes
+    : simpleTypes                        # ArrayStart
+    | array ',' simpleTypes              # ArrayIterating1
+    | array simpleTypes                  # ArrayIterating2
     ;
 
 // Tuple => Value | Value ',' Tuple | Value Tuple | Value ','
 tuple
-    : value
-    | value ',' tuple
-    | value tuple
-    | value ','
+    : value                              # TupleTerminating1
+    | value ',' tuple                    # TupleIterating1
+    | value tuple                        # TupleIterating2
+    | value ','                          # TupleTerminating2
     ;
 
 // ComparableTypes => <Identifier> | SimpleTypes
 comparableTypes 
-    : Identifier 
-    | simpleTypes 
+    : Identifier                         # CompTypeAsIdent
+    | simpleTypes                        # CompTypeAsRawTypes
     ;
 
 // ============ 词法规则（Lexer Rules） ============
@@ -196,7 +206,8 @@ fragment EXPONENT : [eE] Sign? DIGITS;
 
 fragment FLOAT_SUFFIX
     : [Dd]? [Ff]            // f, df
-    | [Dd]? [Ll]            // l, dl
+    | [Dd]                  // d
+    | [Ll]                  // l
     | [Dd]? [Qq]            // q, dq
     | [Oo]                  // o
     | [Dd]? [Ii] [Nn] [Ff] [Tt] [Yy]  // infty, dinfty

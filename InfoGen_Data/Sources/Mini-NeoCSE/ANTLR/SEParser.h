@@ -58,16 +58,87 @@ public:
   class  TableContext : public antlr4::ParserRuleContext {
   public:
     TableContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+   
+    TableContext() = default;
+    void copyFrom(TableContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
+
     virtual size_t getRuleIndex() const override;
-    TableContext *table();
+
+   
+  };
+
+  class  TableWithKeyValueSubtableContext : public TableContext {
+  public:
+    TableWithKeyValueSubtableContext(TableContext *ctx);
+
     KeyContext *key();
     ValueGroupContext *valueGroup();
+    SubTableContext *subTable();
+    TableContext *table();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  TableWithKeyValueContext : public TableContext {
+  public:
+    TableWithKeyValueContext(TableContext *ctx);
+
+    KeyContext *key();
+    ValueGroupContext *valueGroup();
+    TableContext *table();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  TableWithKeyOnlyContext : public TableContext {
+  public:
+    TableWithKeyOnlyContext(TableContext *ctx);
+
+    KeyContext *key();
+    TableContext *table();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  TableWithBoolOperationContext : public TableContext {
+  public:
+    TableWithBoolOperationContext(TableContext *ctx);
+
+    KeyContext *key();
     BoolOpContext *boolOp();
+    TableContext *table();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  TableWithKeySubTableContext : public TableContext {
+  public:
+    TableWithKeySubTableContext(TableContext *ctx);
+
+    KeyContext *key();
+    SubTableContext *subTable();
+    TableContext *table();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  TableWithVarOperationContext : public TableContext {
+  public:
+    TableWithVarOperationContext(TableContext *ctx);
+
     VariableOpContext *variableOp();
+    TableContext *table();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  TableIsEmptyContext : public TableContext {
+  public:
+    TableIsEmptyContext(TableContext *ctx);
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
   };
 
   TableContext* table();
@@ -75,12 +146,23 @@ public:
   class  KeyContext : public antlr4::ParserRuleContext {
   public:
     KeyContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *Identifier();
+   
+    KeyContext() = default;
+    void copyFrom(KeyContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  KeyLabelContext : public KeyContext {
+  public:
+    KeyLabelContext(KeyContext *ctx);
+
+    antlr4::tree::TerminalNode *Identifier();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
   };
 
   KeyContext* key();
@@ -88,14 +170,33 @@ public:
   class  ValueGroupContext : public antlr4::ParserRuleContext {
   public:
     ValueGroupContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+   
+    ValueGroupContext() = default;
+    void copyFrom(ValueGroupContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
+
     virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  ValueGroupIteratingContext : public ValueGroupContext {
+  public:
+    ValueGroupIteratingContext(ValueGroupContext *ctx);
+
     ValueContext *value();
     ValueGroupContext *valueGroup();
-    SubTableContext *subTable();
-
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
+  };
+
+  class  ValueGroupTerminatingContext : public ValueGroupContext {
+  public:
+    ValueGroupTerminatingContext(ValueGroupContext *ctx);
+
+    ValueContext *value();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
   ValueGroupContext* valueGroup();
@@ -103,14 +204,25 @@ public:
   class  BoolOpContext : public antlr4::ParserRuleContext {
   public:
     BoolOpContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+   
+    BoolOpContext() = default;
+    void copyFrom(BoolOpContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
+
     virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  BoolOperationContext : public BoolOpContext {
+  public:
+    BoolOperationContext(BoolOpContext *ctx);
+
     std::vector<ComparableTypesContext *> comparableTypes();
     ComparableTypesContext* comparableTypes(size_t i);
     OpContext *op();
-
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
   };
 
   BoolOpContext* boolOp();
@@ -118,14 +230,25 @@ public:
   class  VariableOpContext : public antlr4::ParserRuleContext {
   public:
     VariableOpContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+   
+    VariableOpContext() = default;
+    void copyFrom(VariableOpContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
+
     virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  VariableOperationContext : public VariableOpContext {
+  public:
+    VariableOperationContext(VariableOpContext *ctx);
+
     ModifierContext *modifier();
     antlr4::tree::TerminalNode *Identifier();
     SimpleTypesContext *simpleTypes();
-
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
   };
 
   VariableOpContext* variableOp();
@@ -133,14 +256,41 @@ public:
   class  ValueContext : public antlr4::ParserRuleContext {
   public:
     ValueContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    SimpleTypesContext *simpleTypes();
-    ArrayContext *array();
-    TupleContext *tuple();
+   
+    ValueContext() = default;
+    void copyFrom(ValueContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  ValueAsTupleContext : public ValueContext {
+  public:
+    ValueAsTupleContext(ValueContext *ctx);
+
+    TupleContext *tuple();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
+  };
+
+  class  ValueAsArrayContext : public ValueContext {
+  public:
+    ValueAsArrayContext(ValueContext *ctx);
+
+    ArrayContext *array();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  ValueAsRawTypesContext : public ValueContext {
+  public:
+    ValueAsRawTypesContext(ValueContext *ctx);
+
+    SimpleTypesContext *simpleTypes();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
   ValueContext* value();
@@ -148,12 +298,23 @@ public:
   class  SubTableContext : public antlr4::ParserRuleContext {
   public:
     SubTableContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    TableContext *table();
+   
+    SubTableContext() = default;
+    void copyFrom(SubTableContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  SubTableExpandContext : public SubTableContext {
+  public:
+    SubTableExpandContext(SubTableContext *ctx);
+
+    TableContext *table();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
   };
 
   SubTableContext* subTable();
@@ -171,29 +332,29 @@ public:
    
   };
 
-  class  NumericContext : public SimpleTypesContext {
+  class  SimpleTypeStringContext : public SimpleTypesContext {
   public:
-    NumericContext(SimpleTypesContext *ctx);
-
-    antlr4::tree::TerminalNode *Numeric();
-    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
-    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-  };
-
-  class  StringContext : public SimpleTypesContext {
-  public:
-    StringContext(SimpleTypesContext *ctx);
+    SimpleTypeStringContext(SimpleTypesContext *ctx);
 
     antlr4::tree::TerminalNode *String();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
-  class  BooleanContext : public SimpleTypesContext {
+  class  SimpleTypeBooleanContext : public SimpleTypesContext {
   public:
-    BooleanContext(SimpleTypesContext *ctx);
+    SimpleTypeBooleanContext(SimpleTypesContext *ctx);
 
     antlr4::tree::TerminalNode *Boolean();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  SimpleTypeNumericContext : public SimpleTypesContext {
+  public:
+    SimpleTypeNumericContext(SimpleTypesContext *ctx);
+
+    antlr4::tree::TerminalNode *Numeric();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
@@ -203,13 +364,43 @@ public:
   class  ArrayContext : public antlr4::ParserRuleContext {
   public:
     ArrayContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    SimpleTypesContext *simpleTypes();
-    ArrayContext *array();
+   
+    ArrayContext() = default;
+    void copyFrom(ArrayContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  ArrayIterating2Context : public ArrayContext {
+  public:
+    ArrayIterating2Context(ArrayContext *ctx);
+
+    ArrayContext *array();
+    SimpleTypesContext *simpleTypes();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
+  };
+
+  class  ArrayIterating1Context : public ArrayContext {
+  public:
+    ArrayIterating1Context(ArrayContext *ctx);
+
+    ArrayContext *array();
+    SimpleTypesContext *simpleTypes();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  ArrayStartContext : public ArrayContext {
+  public:
+    ArrayStartContext(ArrayContext *ctx);
+
+    SimpleTypesContext *simpleTypes();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
   ArrayContext* array();
@@ -217,13 +408,52 @@ public:
   class  TupleContext : public antlr4::ParserRuleContext {
   public:
     TupleContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+   
+    TupleContext() = default;
+    void copyFrom(TupleContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
+
     virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  TupleIterating2Context : public TupleContext {
+  public:
+    TupleIterating2Context(TupleContext *ctx);
+
     ValueContext *value();
     TupleContext *tuple();
-
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
+  };
+
+  class  TupleIterating1Context : public TupleContext {
+  public:
+    TupleIterating1Context(TupleContext *ctx);
+
+    ValueContext *value();
+    TupleContext *tuple();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  TupleTerminating2Context : public TupleContext {
+  public:
+    TupleTerminating2Context(TupleContext *ctx);
+
+    ValueContext *value();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+  };
+
+  class  TupleTerminating1Context : public TupleContext {
+  public:
+    TupleTerminating1Context(TupleContext *ctx);
+
+    ValueContext *value();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
   TupleContext* tuple();
@@ -231,13 +461,32 @@ public:
   class  ComparableTypesContext : public antlr4::ParserRuleContext {
   public:
     ComparableTypesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    antlr4::tree::TerminalNode *Identifier();
-    SimpleTypesContext *simpleTypes();
+   
+    ComparableTypesContext() = default;
+    void copyFrom(ComparableTypesContext *context);
+    using antlr4::ParserRuleContext::copyFrom;
 
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  class  CompTypeAsIdentContext : public ComparableTypesContext {
+  public:
+    CompTypeAsIdentContext(ComparableTypesContext *ctx);
+
+    antlr4::tree::TerminalNode *Identifier();
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
-   
+  };
+
+  class  CompTypeAsRawTypesContext : public ComparableTypesContext {
+  public:
+    CompTypeAsRawTypesContext(ComparableTypesContext *ctx);
+
+    SimpleTypesContext *simpleTypes();
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
   };
 
   ComparableTypesContext* comparableTypes();

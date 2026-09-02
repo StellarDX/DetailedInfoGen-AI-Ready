@@ -1,9 +1,11 @@
 // 测试编译
 
-#include <fmt/format.h>
 #include <iostream>
+#include <fmt/format.h>
 #include <pybind11/pybind11.h>
 
+#include "Mini-NeoCSE/ANTLR/SELexer.h"
+#include "Mini-NeoCSE/ANTLR/SEParser.h"
 #include "Mini-NeoCSE/ISCStream.h"
 
 #include "final.h"
@@ -15,13 +17,13 @@ using ReturnType = std::vector<std::string>;
 
 int InfoGen_Main()
 {
-    std::cout << fmt::format("Hello World\n");
+
     return 0;
 }
 
 PYBIND11_MODULE(InfoGen, InfoGenPythonExport)
 {
-    InfoGenPythonExport.doc() = "Test";
-    InfoGenPythonExport.def("InfoGen_Main", &InfoGen_Main, "Test Function");
+    InfoGenPythonExport.doc() = "InfoGen C++ Main function";
+    InfoGenPythonExport.def("InfoGen_Main", &InfoGen_Main, "InfoGen C++ Main function");
 }
 

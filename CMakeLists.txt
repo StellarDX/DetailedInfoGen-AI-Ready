@@ -39,6 +39,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/InfoGen_Data)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/InfoGen_Data/Libraries)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/InfoGen_Data/Libraries)
 
+# 最终产物是 Python 扩展模块（共享对象），所有被链接进 .so 的
+# 静态依赖（如 double-conversion）都必须以 -fPIC 编译，否则链接时报
+# "relocation R_X86_64_32 ... can not be used when making a shared object"。
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # ----------------------------------------------------------------------------
 # Python 环境（pybind11 在 add_subdirectory 前需要 Python 开发组件）
 # ----------------------------------------------------------------------------
@@ -187,6 +192,14 @@ if(PROJECT_SOURCES)
 
     # 模块名保持为 InfoGen，便于 Python 侧 `import InfoGen`
     set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}")
+
+    # Linux下需要做一些特殊处理，让编译好的模块在当前目录下寻找依赖
+    if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+            INSTALL_RPATH "\$ORIGIN"
+            BUILD_RPATH_USE_ORIGIN TRUE  # 关键：让构建目录下的RPATH也使用$ORIGIN
+        )
+    endif()
 
     install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION "${PROJECT_NAME}_Data")
 else()
