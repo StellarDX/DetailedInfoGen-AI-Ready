@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <filesystem>
 
+#include <fmt/format.h>
 #include <Eigen/Core>
 
 #include "./ANTLR/SELexer.h"
@@ -246,9 +247,14 @@ public:
 
     ConstRef GetObject()const{return Data;}
 
-    friend ISCStream ParseFile(std::filesystem::path Path);
+    friend ISCStream ParseFile(std::filesystem::path Path, std::string* Report);
 };
 
-ISCStream ParseFile(std::filesystem::path Path);
+using ANTLRReportRowType = std::tuple<std::string, int, double, int, int, int, int>;
+
+std::string ANTLRReportTableToString(const std::vector<ANTLRReportRowType>& Data);
+std::string GenerateParseReport(antlr4::Parser& Parser);
+
+ISCStream ParseFile(std::filesystem::path Path, std::string* Report = nullptr);
 
 #endif

@@ -486,14 +486,108 @@ void ISCStream::exitTableWithVarOperation(SEParser::TableWithVarOperationContext
     KeyValueBuffer1.pop();
 }
 
-ISCStream ParseFile(std::filesystem::path Path)
+std::string ANTLRReportTableToString(const std::vector<ANTLRReportRowType>& Data)
+{
+    if (Data.empty()) return "";
+    
+    std::vector<std::string> THead =
+    {
+        "语法规则", 
+        "调用次数", 
+        "总延迟(ms)", 
+        "已查看总Token数", 
+        "单次预测最远Token数", 
+        "歧义事件数", 
+        "DFA缓存未命中计数"
+    };
+    
+    std::vector<size_t> ColWidths(7, 0);
+    
+    for (size_t i = 0; i < THead.size(); ++i) 
+    {
+        ColWidths[i] = THead[i].length();
+    }
+
+    for (const auto& row : Data)
+    {
+        ColWidths[0] = std::max(ColWidths[0], std::get<0>(row).length());
+        ColWidths[1] = std::max(ColWidths[1], std::to_string(std::get<1>(row)).length());
+        ColWidths[2] = std::max(ColWidths[2], fmt::format("{:.6f}", std::get<2>(row)).length());
+        ColWidths[3] = std::max(ColWidths[3], std::to_string(std::get<3>(row)).length());
+        ColWidths[4] = std::max(ColWidths[4], std::to_string(std::get<4>(row)).length());
+        ColWidths[5] = std::max(ColWidths[5], std::to_string(std::get<5>(row)).length());
+        ColWidths[6] = std::max(ColWidths[6], std::to_string(std::get<6>(row)).length());
+    }
+    
+    std::string formatStr = "|";
+    for (size_t i = 0; i < ColWidths.size(); ++i) 
+    {
+        formatStr += fmt::format(" {{:>{}}} |", ColWidths[i]);
+    }
+    formatStr += "\n";
+    
+    std::string Separator = "+";
+    for (size_t w : ColWidths) 
+    {
+        Separator += std::string(w + 2, '-') + "+";
+    }
+    Separator += "\n";
+    
+    std::string Result;
+    Result += Separator;
+    
+    Result += fmt::vformat(formatStr, fmt::make_format_args(
+        THead[0], THead[1], THead[2], THead[3], 
+        THead[4], THead[5], THead[6]
+    ));
+    Result += Separator;
+    
+    for (const auto& row : Data) 
+    {
+        std::string DelayStr = fmt::format("{:.6f}", std::get<2>(row));
+        Result += fmt::vformat(formatStr, fmt::make_format_args(
+            std::get<0>(row),
+            std::get<1>(row),
+            DelayStr,
+            std::get<3>(row),
+            std::get<4>(row),
+            std::get<5>(row),
+            std::get<6>(row)
+        ));
+    }
+    Result += Separator;
+    
+    return Result;
+}
+
+std::string GenerateParseReport(antlr4::Parser& Parser)
+{
+    std::vector<ANTLRReportRowType> Table;
+    auto Info = Parser.getParseInfo();
+    for (const auto& i : Info.getDecisionInfo())
+    {
+        auto DecNumber = i.decision;
+        auto DState = Parser.getATN().decisionToState.at(DecNumber);
+        auto RuleIdx = DState->ruleIndex;
+        std::string RuleName = fmt::format("{}:{}", Parser.getRuleNames().at(RuleIdx), DecNumber);
+
+        Table.push_back({RuleName, i.invocations, i.timeInPrediction / 1000000.,
+            i.SLL_TotalLook + i.LL_TotalLook, std::max(i.SLL_MaxLook, i.LL_MaxLook),
+            i.ambiguities.size(), i.SLL_ATNTransitions});
+    }
+    return ANTLRReportTableToString(Table);
+}
+
+ISCStream ParseFile(std::filesystem::path Path, std::string* Report)
 {
     std::ifstream fin(Path);
     antlr4::ANTLRInputStream Input(fin);
     SELexer Lex(&Input);
     antlr4::CommonTokenStream Tokens(&Lex);
     SEParser Parser(&Tokens);
+    if (Report) {Parser.setProfile(true);}
     auto ParseTree = Parser.table();
+    if (Report) {*Report = GenerateParseReport(Parser);}
     ISCStream ISC;
     antlr4::tree::ParseTreeWalker::DEFAULT.walk(&ISC, ParseTree);
     ISC.PostParsing();

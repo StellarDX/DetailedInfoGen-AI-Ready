@@ -1,9 +1,6 @@
 [submodule "InfoGen_Data/3rdParty/pybind"]
 	path = InfoGen_Data/3rdParty/pybind
 	url = git@github.com:StellarDX/pybind-StellarDX-Fork.git
-[submodule "InfoGen_Data/3rdParty/fmtlib"]
-	path = InfoGen_Data/3rdParty/fmtlib
-	url = git@github.com:StellarDX/fmt-StellarDX-Fork.git
 [submodule "InfoGen_Data/3rdParty/eigen"]
 	path = InfoGen_Data/3rdParty/eigen
 	url = git@github.com:StellarDX/eigen-StellarDX-Fork.git
@@ -13,3 +10,9 @@
 [submodule "InfoGen_Data/3rdParty/google-double-conversion"]
 	path = InfoGen_Data/3rdParty/google-double-conversion
 	url = git@github.com:StellarDX/Google-double-conversion-StellarDX-Fork.git
+[submodule "InfoGen_Data/3rdParty/spdlog"]
+	path = InfoGen_Data/3rdParty/spdlog
+	url = git@github.com:StellarDX/spdlog-StellarDX-Fork.git
+[submodule "InfoGen_Data/3rdParty/fmtlib"]
+	path = InfoGen_Data/3rdParty/fmtlib
+	url = git@github.com:StellarDX/fmt-StellarDX-Fork.git
