@@ -1,0 +1,378 @@
+/*
+    角度arcsin函数，基于GLibC中的四倍精度算法改编而来。
+
+    License provided by GLibC:
+    Quaduple expansions are
+    Copyright (C) 2001 Stephen L. Moshier <moshier@na-net.ornl.gov>
+    and are incorporated herein by permission of the author.  The author
+    reserves the right to distribute this material elsewhere under different
+    copying permissions.  These modifications are distributed here under the
+    following terms:
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, see
+    <https://www.gnu.org/licenses/>.  
+*/
+
+#include <bit>
+#include <cmath>
+#include <cstdint>
+
+#include "Trigonometry.h"
+
+extern "C" {
+
+/* arcsin(x)
+ * Method :
+ *	Since  arcsin(x) = x + x^3/6 + x^5*3/40 + x^7*15/336 + ...
+ *	we approximate arcsin(x) on [0,0.5] by
+ *		arcsin(x) = x + x*x^2*R(x^2)
+ *      Between .5 and .625 the approximation is
+ *              arcsin(0.5625 + x) = arcsin(0.5625) + x rS(x) / sS(x)
+ *	For x in [0.625,1]
+ *		arcsin(x) = 90-2*arcsin(sqrt((1-x)/2))
+ *	Let y = (1-x), z = y/2, s := sqrt(z);
+ *	then for x>0.98
+ *		arcsin(x) = 90 - 2*(s+s*z*R(z))
+ *	For x<=0.98, then
+ *		f = hi part of s;
+ *		c = sqrt(z) - f = (z-f*f)/(s+f) 	...f+c=sqrt(z)
+ *	and
+ *		arcsin(x) = 90 - 2*(s+s*z*R(z))
+ *			= 45+(45-2s)-(2s*z*R(z))
+ *			= 45+(45-2f)-(2s*z*R(z)-(2c))
+ *
+ * Special cases:
+ *	if x is NaN, return x itself;
+ *	if |x|>1, return NaN with invalid signal.
+ *
+ */
+double __cdecl __IEEE854_ASIN128F_C64F(double _X)
+{
+    double x = _X;
+    double a, t, w, p, q, c, r, s;
+    int flag;
+
+    if (std::isnan(x)) {return x;}
+
+    static const double
+        R2D = 57.2957795130823208767981548141051703324054724665643215491602438612028471483215526324409689958511109442,
+        R2DM2 = 114.5915590261646417535963096282103406648109449331286430983204877224056942966431052648819379917022218884;
+
+    flag = 0;
+    a = std::abs(x);
+    if (a == 1.0L) {return ::copysign(90, x);}	// |x|>= 1
+    else if (a > 1.0L)
+    {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+    else if (a < 0.5L)
+    {
+        if (a < 0x1p-57L) // |x| < 2**-57
+        {
+            return R2D * x; // return x with inexact if x!=0
+        }
+        else
+        {
+            t = x * x;
+            // Mark to use pS, qS later on.
+            flag = 1;
+        }
+    }
+    else if (a < 0.625L)
+    {
+        // 这里，包括下面的那些多项式都是用雷米兹算法求解得到的，所以直接转成角度系数。
+        static const double
+            // asin(0.5625 + x) = asin(0.5625) + x rS(x) / sS(x)
+            // -0.0625 <= x <= 0.0625
+            // peak relative error 3.3e-35
+            // converted to degrees by StellarDX
+            /*rS0 = -5.619049346208901520945464704848780243887E0L,
+            rS1 =  4.460504162777731472539175700169871920352E1L,
+            rS2 = -1.317669505315409261479577040530751477488E2L,
+            rS3 =  1.626532582423661989632442410808596009227E2L,
+            rS4 = -3.144806644195158614904369445440583873264E1L,
+            rS5 = -9.806674443470740708765165604769099559553E1L,
+            rS6 =  5.708468492052010816555762842394927806920E1L,
+            rS7 =  1.396540499232262112248553357962639431922E1L,
+            rS8 = -1.126243289311910363001762058295832610344E1L,
+            rS9 = -4.956179821329901954211277873774472383512E-1L,
+            rS10 =  3.313227657082367169241333738391762525780E-1L,*/
+            rS0 = -1011.42888231760227377018364687278044389966L,
+            rS1 = +8028.9074929999166505705162603057694566336L,
+            rS2 = -23718.051095677366706632386729553526594784L,
+            rS3 = +29277.586483625915813383963394554728166086L,
+            rS4 = -5660.6519595512855068278650017930509718752L,
+            rS5 = -17652.0139982473332757772980885843792071954L,
+            rS6 = +10275.243285693619469800373116310870052456L,
+            rS7 = +2513.7728986180718020473960443327509774596L,
+            rS8 = -2027.2379207614386534031717049324986986192L,
+            rS9 = -89.211236783938235175803001727940502903216L,
+            rS10 = +59.63809782748260904634400729105172546404L,
+
+            /*sS0 = -4.645814742084009935700221277307007679325E0L,
+            sS1 =  3.879074822457694323970438316317961918430E1L,
+            sS2 = -1.221986588013474694623973554726201001066E2L,
+            sS3 =  1.658821150347718105012079876756201905822E2L,
+            sS4 = -4.804379630977558197953176474426239748977E1L,
+            sS5 = -1.004296417397316948114344573811562952793E2L,
+            sS6 =  7.530281592861320234941101403870010111138E1L,
+            sS7 =  1.270735595411673647119592092304357226607E1L,
+            sS8 = -1.815144839646376500705105967064792930282E1L,
+            sS9 = -7.821597334910963922204235247786840828217E-2L,
+            sS10 = 1.000000000000000000000000000000000000000E0;*/
+            sS0 = -14.5952574636702856448060361136303137019576L,
+            sS1 = +121.8647296495822399328155775693910968304904L,
+            sS2 = -383.8984087688389392734477154368191004924278L,
+            sS3 = +521.1340339551761092314940733385193225464266L,
+            sS4 = -150.9340375373553866392783245200875319645678L,
+            sS5 = -315.5090246921959542501601304697638172627817L,
+            sS6 = +236.5707733159557006516050875761556773582279L,
+            sS7 = +39.9213361120036570227223148798915033412032L,
+            sS8 = -57.0244569343447968594080214679151754208322L,
+            sS9 = -0.24572272726693789889252807126981941027009L,
+            sS10 = 3.14159265358979323846264338327950288419717L;
+
+        // 这里为了照顾一下某些特殊角，所以用了一个骚办法，就是把arcsin(0.5625)的值
+        // 计算到104位，然后砍一半，前52位作基础数值，后52位作补偿精度。这样修改就可
+        // 以使得输入0.5时能够正确返回30。
+        // double asinr5625 =
+        //     34.2288663278125780154415065607771622253521534461856151101724932205845765801418179349873510969541267L;
+        double 
+            asinr5625hi = 0x1.11d4b7de88e29p+5L, // 0x1.11d4b7de88e296114f8b7f684fp+5L,
+            asinr5625lo = 0x0.6114f8b7f684fp-47L; // 0x0.1dacb43b08b7409e899af01cf2p-104L;
+
+        t = a - 0.5625;
+        p = ((((((((((rS10 * t
+                      + rS9) * t
+                     + rS8) * t
+                    + rS7) * t
+                   + rS6) * t
+                  + rS5) * t
+                 + rS4) * t
+                + rS3) * t
+               + rS2) * t
+              + rS1) * t
+             + rS0) * t;
+
+        q = (((((((((sS10 * t
+                     + sS9) * t
+                    + sS8) * t
+                   + sS7) * t
+                  + sS6) * t
+                 + sS5) * t
+                + sS4) * t
+               + sS3) * t
+              + sS2) * t
+             + sS1) * t
+            + sS0;
+
+        t = asinr5625hi + (p / q + asinr5625lo);
+        if (x > 0.0L) {return t;}
+        else {return -t;}
+    }
+    else
+    {
+        // 1 > |x| >= 0.625
+        w = 1.0L - a;
+        t = w * 0.5;
+    }
+
+    // asin(x) = x + x^3 pS(x^2) / qS(x^2)
+    // 0 <= x <= 0.5
+    // peak relative error 1.9e-35
+    // converted to degrees by StellarDX
+    static const double
+        /*pS0 = -8.358099012470680544198472400254596543711E2L,
+        pS1 =  3.674973957689619490312782828051860366493E3L,
+        pS2 = -6.730729094812979665807581609853656623219E3L,
+        pS3 =  6.643843795209060298375552684423454077633E3L,
+        pS4 = -3.817341990928606692235481812252049415993E3L,
+        pS5 =  1.284635388402653715636722822195716476156E3L,
+        pS6 = -2.410736125231549204856567737329112037867E2L,
+        pS7 =  2.219191969382402856557594215833622156220E1L,
+        pS8 = -7.249056260830627156600112195061001036533E-1L,
+        pS9 =  1.055923570937755300061509030361395604448E-3L,*/
+        pS0 = -150445.782224472249795572503204582737786798L,
+        pS1 = +661495.31238413150825630090904933486596874L,
+        pS2 = -1211531.23706633633984536468977365819217942L,
+        pS3 = +1195891.88313763085370759948319622173397394L,
+        pS4 = -687121.55836714920460238672620536889487874L,
+        pS5 = +231234.36991247766881461010799522896570808L,
+        pS6 = -43393.250254167885687418219271924016681606L,
+        pS7 = +3994.545544888325141803669588500519881196L,
+        pS8 = -130.483012694951288818802019511098018657594L,
+        pS9 = +0.19006624276879595401107162546505120880064L,
+
+        /*qS0 = -5.014859407482408326519083440151745519205E3L,
+        qS1 =  2.430653047950480068881028451580393430537E4L,
+        qS2 = -4.997904737193653607449250593976069726962E4L,
+        qS3 =  5.675712336110456923807959930107347511086E4L,
+        qS4 = -3.881523118339661268482937768522572588022E4L,
+        qS5 =  1.634202194895541569749717032234510811216E4L,
+        qS6 = -4.151452662440709301601820849901296953752E3L,
+        qS7 =  5.956050864057192019085175976175695342168E2L,
+        qS8 = -4.175375777334867025769346564600396877176E1L,
+        qs9 =  1.000000000000000000000000000000000000000E0;*/
+        qS0 = -15754.6454733323973957122801577592449886221741L,
+        qS1 = +76361.2175886686762494938136773118090037822340L,
+        qS2 = -157013.8080570920843186674328750290776060290209L,
+        qS3 = +178307.7617901357482760502917179520524022049450L,
+        qS4 = -121941.6451331482548970782474055473506041747737L,
+        qS5 = +51339.9760996414890281199944389245470587138627L,
+        qS6 = -13042.1731860495201001263105407568565718105918L,
+        qS7 = +1871.1485638929214746528741248821897077028979L,
+        qS8 = -131.1732986805199057040174904947681623872928L,
+        qS9 = +3.14159265358979323846264338327950288419717L;
+
+    p = (((((((((pS9 * t
+                 + pS8) * t
+                + pS7) * t
+               + pS6) * t
+              + pS5) * t
+             + pS4) * t
+            + pS3) * t
+           + pS2) * t
+          + pS1) * t
+         + pS0) * t;
+
+    q = ((((((((qS9 * t
+                + qS8) * t
+               + qS7) * t
+              + qS6) * t
+             + qS5) * t
+            + qS4) * t
+           + qS3) * t
+          + qS2) * t
+         + qS1) * t
+        + qS0;
+
+    if (flag) // 2^-57 < |x| < 0.5
+    {
+        w = p / q;
+        return R2D * x + x * w;
+    }
+
+    s = ::sqrt(t);
+    if (a > 0.975L)
+    {
+        w = p / q;
+        t = 90 - (2.0 * (R2D * s + s * w));
+    }
+    else
+    {
+        // 丹霞：这里确实是有些回天乏术了，试了各种办法还是没法在
+        // 输入sqrt(3)/2时正确返回60，所以直接放弃这里的修正了，
+        // 毕竟sqrt(3)/2本身就没法用浮点精确表示。
+        w = s;
+        uint64_t wi = std::bit_cast<uint64_t>(w);
+        wi &= uint64_t(~(uint32_t(0))) << 32;
+        w = std::bit_cast<double>(wi);
+        c = ((t - w * w) * 180) / ((s + w) * M_PI);
+        r = p / q;
+        p = 2.0 * s * r + (2.0 * c);
+        q = 45 - R2DM2 * w;
+        t = 45 - (p - q);
+    }
+
+    if (x > 0.0L) {return t;}
+    else {return -t;}
+}
+
+double __cdecl arcsind(double x) {return __IEEE854_ASIN128F_C64F(x);}
+double __cdecl arccscd(double x) {return __IEEE854_ASIN128F_C64F(1. / x);}
+
+}
+
+#if 0 // Test program for arcsin generated by Deepseek
+#include <iostream>
+#include <iomanip>
+
+// 比较自定义asin和标准库asin的结果
+void compare_asin(double x)
+{
+    double custom_result = __IEEE854_ASIN128F_C64F(x);
+    double std_result = asin(x) * (180.0 / M_PI); // 转换为角度
+
+    std::cout << "x = " << std::scientific << std::setprecision(16) << x << "\n";
+    std::cout << "  Custom asin: " << std::fixed << std::setprecision(16) << custom_result << " degrees\n";
+    std::cout << "  Stdlib asin: " << std::fixed << std::setprecision(16) << std_result << " degrees\n";
+
+    double diff = abs(custom_result - std_result);
+    std::cout << "  Difference: " << std::scientific << std::setprecision(3) << diff << " degrees\n";
+    std::cout << "  Relative diff: " << diff/abs(std_result) << "\n\n";
+}
+
+int main() 
+{
+    // 测试各种边界条件
+    std::cout << "=== ASIN Precision Comparison ===\n\n";
+
+    // 特殊值和边界条件
+    compare_asin(0.0);
+    compare_asin(-0.0);
+    compare_asin(1.0);
+    compare_asin(-1.0);
+    compare_asin(0.5);  // 30度
+    compare_asin(-0.5); // -30度
+    compare_asin(::sqrt(3.0)/2.0); // 60度
+    compare_asin(-::sqrt(3.0)/2.0); // -60度
+    compare_asin(::sqrt(2.0)/2.0); // 45度
+    compare_asin(-::sqrt(2.0)/2.0); // -45度
+
+    // 0.5625附近的值（特殊处理区间）
+    compare_asin(0.5625);
+    compare_asin(0.5625 + 0.01);
+    compare_asin(0.5625 - 0.01);
+
+    // 接近1的值
+    compare_asin(0.98);
+    compare_asin(0.99);
+    compare_asin(0.999);
+
+    // 接近0的值
+    compare_asin(1e-10);
+    compare_asin(1e-20);
+    compare_asin(1e-30);
+
+    // 小值
+    compare_asin(0.1);
+    compare_asin(0.2);
+    compare_asin(0.3);
+    compare_asin(0.4);
+
+    // 中值
+    compare_asin(0.6);
+    compare_asin(0.7);
+    compare_asin(0.8);
+    compare_asin(0.9);
+
+    // 非法值
+    double nan_value = std::numeric_limits<double>::quiet_NaN();
+    double inf_value = std::numeric_limits<double>::infinity();
+
+    std::cout << "Testing NaN:\n";
+    double custom_nan = __IEEE854_ASIN128F_C64F(nan_value);
+    std::cout << "  Custom asin(NaN): " << custom_nan << " (isnan: " << std::isnan(custom_nan) << ")\n\n";
+
+    std::cout << "Testing x > 1.0:\n";
+    double custom_inf = __IEEE854_ASIN128F_C64F(1.1);
+    std::cout << "  Custom asin(1.1): " << custom_inf << " (isnan: " << std::isnan(custom_inf) << ")\n\n";
+
+    std::cout << "Testing x < -1.0:\n";
+    double custom_neg_inf = __IEEE854_ASIN128F_C64F(-1.1);
+    std::cout << "  Custom asin(-1.1): " << custom_neg_inf << " (isnan: " << std::isnan(custom_neg_inf) << ")\n";
+
+    return 0;
+}
+#endif
