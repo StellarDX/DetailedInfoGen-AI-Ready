@@ -52,7 +52,7 @@ find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
 # ----------------------------------------------------------------------------
 # 自动查找第三方依赖（InfoGen_Data/3rdParty）
 # 每个包含 CMakeLists.txt 的子目录都会作为子工程加入构建。
-# 当前内置：fmtlib（格式化库）、pybind（pybind11 绑定框架）、antlr（占位）。
+# 当前内置：fmtlib（格式化库，spdlog 已配置复用其 fmt）、pybind（pybind11 绑定框架）、antlr（占位）、spdlog（日志库）。
 # 新增依赖时只需把目录放进 3rdParty 即可，无需修改本脚本。
 #
 # add_subdirectory 使用 EXCLUDE_FROM_ALL：
@@ -72,6 +72,25 @@ find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
 # ----------------------------------------------------------------------------
 set(INFOGEN_ADDED_3RDPARTY_DIRS "")
 file(GLOB THIRD_PARTY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/InfoGen_Data/3rdParty/*")
+
+# ----------------------------------------------------------------------------
+# 第三方共存特化配置：统一 spdlog 与外部 fmtlib 使用同一份 fmt
+# 工程同时内置 fmtlib（独立 fmt 12.x）与 spdlog。spdlog 默认会编译一份
+# "自带捆绑 fmt"（src/bundled_fmtlib_format.cpp，fmt 12.1.0），与外部
+# fmtlib 12.2.1 各自导出一套 fmt::v12 符号，链接时报
+#   "multiple definition of fmt::v12::..."
+#   "duplicate section `.rdata$...dragonbox...pow10_significands' has different size"
+# 解法：SPDLOG_FMT_EXTERNAL_HO=ON 强制 spdlog 使用外部 fmtlib 的 header-only
+# 目标 fmt::fmt-header-only —— spdlog 不再编译 bundled_fmtlib_format.cpp，
+# 编译期/链接期全工程只存在同一份 fmt（与 InfoGen 源码中的 fmt 用法一致）。
+# ----------------------------------------------------------------------------
+set(SPDLOG_FMT_EXTERNAL_HO ON
+    CACHE BOOL "spdlog 使用外部 fmt(header-only) 而非捆绑 fmt" FORCE)
+
+# 依赖目录按名称排序，确保 fmtlib 先于 spdlog 被 add_subdirectory：
+# spdlog 配置阶段要求 fmt::fmt-header-only / fmt::fmt 目标已存在。
+list(SORT THIRD_PARTY_DIRS)
+
 foreach(_dir ${THIRD_PARTY_DIRS})
     if(IS_DIRECTORY "${_dir}" AND EXISTS "${_dir}/CMakeLists.txt")
         message(STATUS "[${PROJECT_NAME}] 引入第三方依赖: ${_dir}")

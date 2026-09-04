@@ -22,7 +22,7 @@ Tp GetArgFromPy(const py::kwargs& args, char const* Key, Tp Default)
 void LoadArguments(const py::kwargs& args)
 {
     InputFile = GetArgFromPy(args, "file", std::string());
-    uint16_t IFCodePage = GetArgFromPy(args, "code_page", 65001);
+    IFCodePage = GetArgFromPy(args, "code_page", 65001);
 }
 
 ReturnType InfoGen_Main(const py::kwargs& args)

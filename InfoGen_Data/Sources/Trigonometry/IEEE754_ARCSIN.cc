@@ -24,6 +24,8 @@
     <https://www.gnu.org/licenses/>.  
 */
 
+#define _USE_MATH_DEFINES
+
 #include <bit>
 #include <cmath>
 #include <cstdint>
