@@ -5,9 +5,10 @@
 #include "final.h"
 
 std::string InputFile;
-uint16_t IFCodePage;
+uint16_t    IFCodePage;
+bool        IsAbsoluteOrbitParams;
 
-SETable RawData;
+SETable     RawData;
 
 template<typename Tp>
 Tp GetArgFromPy(const py::kwargs& args, char const* Key, Tp Default)
@@ -23,6 +24,7 @@ void LoadArguments(const py::kwargs& args)
 {
     InputFile = GetArgFromPy(args, "file", std::string());
     IFCodePage = GetArgFromPy(args, "code_page", 65001);
+    IsAbsoluteOrbitParams = GetArgFromPy(args, "absolute_orbit", false);
 }
 
 ReturnType InfoGen_Main(const py::kwargs& args)

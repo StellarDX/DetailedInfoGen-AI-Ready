@@ -25,18 +25,18 @@ using SEReal    = double_t;
 using SEBoolean = bool;
 using SEString  = std::string;
 
-using SEVec2    = Eigen::Array<SEReal, 2, 1>;
-using SEVec3    = Eigen::Array<SEReal, 2, 1>;
-using SEVec4    = Eigen::Array<SEReal, 2, 1>;
-using SEIVec2   = Eigen::Array<SEInteger, 2, 1>;
-using SEIVec3   = Eigen::Array<SEInteger, 3, 1>;
-using SEIVec4   = Eigen::Array<SEInteger, 4, 1>;
-using SEUVec2   = Eigen::Array<SEUInt, 2, 1>;
-using SEUVec3   = Eigen::Array<SEUInt, 3, 1>;
-using SEUVec4   = Eigen::Array<SEUInt, 4, 1>;
-using SEBVec2   = Eigen::Array<SEBoolean, 2, 1>;
-using SEBVec3   = Eigen::Array<SEBoolean, 3, 1>;
-using SEBVec4   = Eigen::Array<SEBoolean, 4, 1>;
+using SEVec2    = Eigen::Matrix<SEReal, 2, 1>;
+using SEVec3    = Eigen::Matrix<SEReal, 3, 1>;
+using SEVec4    = Eigen::Matrix<SEReal, 4, 1>;
+using SEIVec2   = Eigen::Matrix<SEInteger, 2, 1>;
+using SEIVec3   = Eigen::Matrix<SEInteger, 3, 1>;
+using SEIVec4   = Eigen::Matrix<SEInteger, 4, 1>;
+using SEUVec2   = Eigen::Matrix<SEUInt, 2, 1>;
+using SEUVec3   = Eigen::Matrix<SEUInt, 3, 1>;
+using SEUVec4   = Eigen::Matrix<SEUInt, 4, 1>;
+using SEBVec2   = Eigen::Matrix<SEBoolean, 2, 1>;
+using SEBVec3   = Eigen::Matrix<SEBoolean, 3, 1>;
+using SEBVec4   = Eigen::Matrix<SEBoolean, 4, 1>;
 
 using SEArray   = Eigen::Array<SEReal, Eigen::Dynamic, 1>;
 using SEIArray  = Eigen::Array<SEInteger, Eigen::Dynamic, 1>;
@@ -255,5 +255,18 @@ std::string ANTLRReportTableToString(const std::vector<ANTLRReportRowType>& Data
 std::string GenerateParseReport(antlr4::Parser& Parser);
 
 ISCStream ParseFile(std::filesystem::path Path, std::string* Report = nullptr);
+
+template<typename Ty>
+Ty GetObjectS(const SETable& Table, const SEKey& Key, size_t Offset, Ty Default)
+{
+    auto it = Table.find(Key);
+    if (it == Table.end()) {return Default;}
+    try
+    {
+        if (it->second.size() < Offset) {return Default;}
+        return it->second[Offset].As<Ty>();
+    }
+    catch (...) {return Default;}
+}
 
 #endif

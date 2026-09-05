@@ -8,12 +8,16 @@
 
 #include "Mini-NeoCSE/ISCStream.h"
 
-namespace py = pybind11;
+namespace py     = pybind11;
 
-using ArgsType = py::kwargs;
+using ArgsType   = py::kwargs;
 using ReturnType = py::dict;
 
-extern SETable RawData;
+extern std::string InputFile;
+extern uint16_t    IFCodePage;
+extern bool        IsAbsoluteOrbitParams;
+
+extern SETable     RawData;
 
 ReturnType InfoGen_Main(const py::kwargs& args);
 

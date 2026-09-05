@@ -1,5 +1,6 @@
 #include "composite.h"
 #include "final.h"
+#include "gbuffers_orbit.h"
 
 #include <queue>
 #include <stdexcept>
@@ -8,10 +9,12 @@
 
 #include <spdlog/spdlog.h>
 
-BasicTableType BASIC;
-IdentTableType IDENT;
-OIDType BarycenterID;
-SystemType SystemTable;
+BasicTableType      BASIC;
+IdentTableType      IDENT;
+OIDType             BarycenterID;
+SystemType          SystemTable;
+
+OrbitCharTableType  OrbitCharacteristicsTable;
 
 void AllocateObjectID(const SETable& RootTable, BasicTableType* Output)
 {
@@ -129,4 +132,6 @@ void Composite()
     AllocateObjectID(RawData, &BASIC);
     InitObjectNames(BASIC, &IDENT);
     RebuildSystem(BASIC, IDENT, &BarycenterID, &SystemTable);
+
+    OrbitCharacteristicsTable = gbuffer_orbit();
 }

@@ -6,16 +6,18 @@ def Register(MainArgParser):
     ParserCreate.add_argument("-S", "--file", type = str, required = True, help = "输入的文件")
     ParserCreate.add_argument("-B", "--output", type = str, default = "./Export", help = "输出目录")
     ParserCreate.add_argument("--code-page", type = int, default = 65001, help = "输入的文件的编码（防止烫屯锟斤拷）")
+    ParserCreate.add_argument("--absolute-orbit", type = bool, default = False, help = "轨道是否为绝对参照系（如黄道，天球这些，默认为相对参照系，如赤道）")
     ParserCreate.add_argument("--store", action='store_true', help = "将输出的文档向量化后保存到ChromaDB（需要模型支持）")
     ParserCreate.add_argument("--model-config", type = str, help = "向量化文本模型的配置文件")
 
 def PrintArgs(args):
     print(f"配置: ")
-    print(f"--file:         {args.file}")
-    print(f"--output:       {args.output}")
-    print(f"--code-page:    {args.code_page}")
-    print(f"--store:        {args.store}")
-    print(f"--model-config: {args.model_config}")
+    print(f"--file:           {args.file}")
+    print(f"--output:         {args.output}")
+    print(f"--code-page:      {args.code_page}")
+    print(f"--absolute-orbit: {args.absolute_orbit}")
+    print(f"--store:          {args.store}")
+    print(f"--model-config:   {args.model_config}")
 
 def LoadObjectsFromSC(args):
     PrintArgs(args)
