@@ -16,6 +16,7 @@ using ReturnType = py::dict;
 extern std::string InputFile;
 extern uint16_t    IFCodePage;
 extern bool        IsAbsoluteOrbitParams;
+extern double      CommonPlaneThreshold;
 
 extern SETable     RawData;
 

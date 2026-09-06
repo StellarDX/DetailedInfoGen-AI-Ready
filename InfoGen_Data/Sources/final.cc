@@ -7,6 +7,7 @@
 std::string InputFile;
 uint16_t    IFCodePage;
 bool        IsAbsoluteOrbitParams;
+double      CommonPlaneThreshold;
 
 SETable     RawData;
 
@@ -25,6 +26,7 @@ void LoadArguments(const py::kwargs& args)
     InputFile = GetArgFromPy(args, "file", std::string());
     IFCodePage = GetArgFromPy(args, "code_page", 65001);
     IsAbsoluteOrbitParams = GetArgFromPy(args, "absolute_orbit", false);
+    CommonPlaneThreshold = GetArgFromPy(args, "common_plane_threshold", 9.);
 }
 
 ReturnType InfoGen_Main(const py::kwargs& args)
