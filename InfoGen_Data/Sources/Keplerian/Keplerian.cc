@@ -538,3 +538,86 @@ double __SDGH_Equacion_Inversa_de_Keplerh::operator()
 }
 
 _KE_END
+
+double KeplerianEquation(double Eccentricity, double EccentricAnomaly)
+{
+    if (Eccentricity == 0) {return EccentricAnomaly;}
+    EccentricAnomaly *= KE::__DEG2RAD;
+    if (Eccentricity > 0 && Eccentricity < 1)
+    {
+        return (EccentricAnomaly - Eccentricity * sin(EccentricAnomaly)) * KE::__RAD2DEG;
+    }
+    else if (Eccentricity == 1)
+    {
+        return (EccentricAnomaly / 2. + EccentricAnomaly * EccentricAnomaly * EccentricAnomaly / 6.) * KE::__RAD2DEG;
+    }
+    else
+    {
+        return (Eccentricity * sinh(EccentricAnomaly) - EccentricAnomaly) * KE::__RAD2DEG;
+    }
+}
+
+double InverseKeplerianEquation(double Eccentricity, double MeanAnomaly)
+{
+    if (Eccentricity == 0) {return MeanAnomaly;}
+    else if (Eccentricity > 0 && Eccentricity < 1)
+    {
+        return KE::__Newton_Inverse_Keplerian_Equation(Eccentricity)(MeanAnomaly);
+    }
+    else if (Eccentricity == 1)
+    {
+        return KE::__Polynomial_Parabolic_Inverse_Keplerian_Equation()(MeanAnomaly);
+    }
+    else
+    {
+        return KE::__SDGH_Equacion_Inversa_de_Keplerh(Eccentricity)(MeanAnomaly);
+    }
+}
+
+double GetTrueAnomalyFromEccentricAnomaly(double Eccentricity, double EccentricAnomaly)
+{
+    if (Eccentricity == 0) {return EccentricAnomaly;}
+    else if (Eccentricity < 1)
+    {
+        double EDeg = EccentricAnomaly;
+        double bet = Eccentricity /
+            (1. + sqrt(1. - Eccentricity * Eccentricity));
+        return EDeg + 2. * arctand((bet * sind(EccentricAnomaly)) /
+            (1. - bet * cosd(EccentricAnomaly)));
+    }
+    else if (Eccentricity == 1)
+    {
+        double ERad = EccentricAnomaly * KE::__DEG2RAD;
+        return KE::__RAD2DEG * (2. * arctand(ERad));
+    }
+    else
+    {
+        double ERad = EccentricAnomaly * KE::__DEG2RAD;
+        double TanPhi = tanh(ERad / 2.) *
+            sqrt((Eccentricity + 1) / (Eccentricity - 1));
+        return KE::__RAD2DEG * (2. * arctand(TanPhi));
+    }
+}
+
+double GetEccentricAnomalyFromTrueAnomaly(double Eccentricity, double TrueAnomaly)
+{
+    if (Eccentricity == 0) {return TrueAnomaly;}
+    else if (Eccentricity < 1)
+    {
+        double y = sqrt(1. - Eccentricity * Eccentricity) * sind(TrueAnomaly);
+        double x = Eccentricity + cosd(TrueAnomaly);
+        double r = arctan2d(y, x);
+        return r + ((r < 0) ? 360 : 0);
+    }
+    else if (Eccentricity == 1)
+    {
+        double TDeg = TrueAnomaly / 2.;
+        return KE::__RAD2DEG * (tand(TDeg));
+    }
+    else
+    {
+        double y = sqrt(Eccentricity * Eccentricity - 1) * sind(TrueAnomaly);
+        double x = Eccentricity + cosd(TrueAnomaly);
+        return KE::__RAD2DEG * (atanh(y / x));
+    }
+}

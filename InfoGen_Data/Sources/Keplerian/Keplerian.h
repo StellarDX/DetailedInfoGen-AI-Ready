@@ -252,4 +252,7 @@ _KE_END
 double KeplerianEquation(double Eccentricity, double EccentricAnomaly);
 double InverseKeplerianEquation(double Eccentricity, double MeanAnomaly);
 
+double GetTrueAnomalyFromEccentricAnomaly(double Eccentricity, double EccentricAnomaly);
+double GetEccentricAnomalyFromTrueAnomaly(double Eccentricity, double TrueAnomaly);
+
 #endif

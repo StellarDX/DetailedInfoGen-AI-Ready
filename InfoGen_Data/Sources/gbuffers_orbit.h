@@ -15,7 +15,7 @@ struct OrbitCharacteristics
     SEString RefPlane;
 
     // 当前状态向量
-    SEReal   GravParams;
+    SEReal   GravParam;
     SEReal   Time;
     SEVec3   Position;
     SEVec3   Velocity;
