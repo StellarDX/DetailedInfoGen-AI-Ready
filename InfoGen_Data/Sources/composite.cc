@@ -1,12 +1,13 @@
 #include "composite.h"
+#include "Mini-NeoCSE/ISCStream.h"
 #include "final.h"
-#include "gbuffers_orbit.h"
 
 #include <queue>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include <pybind11/stl.h>
 #include <spdlog/spdlog.h>
 
 BasicTableType      BASIC;
@@ -14,7 +15,13 @@ IdentTableType      IDENT;
 OIDType             BarycenterID;
 SystemType          SystemTable;
 
-OrbitCharTableType  OrbitCharacteristicsTable;
+ObjectListType      BaryenterList;
+ObjectListType      StarList;
+ObjectListType      PlanetList;
+ObjectListType      DwarfPlanetList;
+ObjectListType      SatelliteList;
+ObjectListType      MinorPlanetList;
+ObjectListType      CometList;
 
 void AllocateObjectID(const SETable& RootTable, BasicTableType* Output)
 {
@@ -127,11 +134,42 @@ void RebuildSystem(const BasicTableType& BasicTable, const IdentTableType& Ident
     __BFS_Build(BasicTable, IdentTable, *Barycenter, Output);
 }
 
-void Composite()
+void Composite(ReturnType* Result)
 {
     AllocateObjectID(RawData, &BASIC);
     InitObjectNames(BASIC, &IDENT);
     RebuildSystem(BASIC, IDENT, &BarycenterID, &SystemTable);
 
-    OrbitCharacteristicsTable = gbuffer_orbit();
+    spdlog::info("整理系统...");
+
+    for (auto [OID, Data] : BASIC)
+    {
+        if (Data.first == "Barycenter") {BaryenterList.insert(OID);}
+        else if (Data.first == "Star") {StarList.insert(OID);}
+        else if (Data.first == "Planet") {PlanetList.insert(OID);}
+        else if (Data.first == "DwarfPlanet") {DwarfPlanetList.insert(OID);}
+        else if (Data.first == "Moon" || Data.first == "DwarfMoon") {SatelliteList.insert(OID);}
+        else if (Data.first == "Asteroid") {MinorPlanetList.insert(OID);}
+        else if (Data.first == "Comet") {CometList.insert(OID);}
+        else {spdlog::warn("物体{}:{}被声明为了未知的类型\"{}\"", IDENT[OID][0], OID, Data.first);}
+    }
+
+    spdlog::info("系统包含{}个质心，{}个恒星，{}个行星，{}个卫星，{}个小型物体",
+        BaryenterList.size(), StarList.size(), PlanetList.size() + DwarfPlanetList.size(), 
+        SatelliteList.size(), MinorPlanetList.size() + CometList.size());
+
+    (*Result)["MainID"] = IDENT[BarycenterID][0];
+    (*Result)["NStars"] = StarList.size();
+    (*Result)["NPlanets"] = PlanetList.size();
+    (*Result)["NDwarfPlanets"] = DwarfPlanetList.size();
+    (*Result)["NSatellites"] = SatelliteList.size();
+    (*Result)["NMinorPlanets"] = SatelliteList.size();
+    (*Result)["NComets"] = CometList.size();
+
+    std::vector<std::string> SpTypes;
+    for (auto i : StarList)
+    {
+        SpTypes.push_back(GetObjectS(BASIC[i].second[1].As<SETable>(), "Class", 0, std::string("?")));
+    }
+    (*Result)["StarSpectralType"] = SpTypes;
 }

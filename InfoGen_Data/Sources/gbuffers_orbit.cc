@@ -11,6 +11,7 @@
 #include <queue>
 
 #include <pybind11/pytypes.h>
+#include <pybind11/eigen.h>
 #include <spdlog/spdlog.h>
 #include <stdexcept>
 

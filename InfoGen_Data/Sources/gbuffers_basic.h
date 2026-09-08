@@ -3,12 +3,41 @@
 #ifndef __GBUF_BASIC__
 #define __GBUF_BASIC__
 
+#include <flat_map>
+
 #include <pybind11/pybind11.h>
 
 #include "Mini-NeoCSE/ISCStream.h"
+#include "composite1.h"
 
 namespace py = pybind11;
 
-py::dict gbuffer_basic(const SETable& Table);
+struct PhysicalCharacteristics
+{
+    std::string Class;
+    double MeanRadius;
+    SEVec3 Dimensions;
+    SEVec3 Flattening;
+    SEVec2 Circumference; // {Equatorial, Meridional}
+    double SurfaceArea;
+    double Volume;
+    double Mass;
+    double MeanDensity;
+    double SurfaceGravity;
+    double MomentOfInertiaFactor;
+    double EscapeVelocity;
+    double SynodicRotationPeriod;
+    double SiderealRotationPeriod;
+    double EquatorialRotationVelocity;
+    double AxialTilt;
+    SEVec2 Albedo;
+    double Temperature;
+};
+
+using PhysicalTableType = std::flat_map<OIDType, PhysicalCharacteristics>;
+
+extern PhysicalTableType PhysicalTable;
+
+PhysicalCharTableType gbuffer_basic();
 
 #endif

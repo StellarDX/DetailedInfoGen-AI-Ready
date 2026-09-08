@@ -2,6 +2,7 @@
 #include <spdlog/spdlog.h>
 
 #include "composite.h"
+#include "composite1.h"
 #include "final.h"
 
 std::string InputFile;
@@ -57,9 +58,11 @@ ReturnType InfoGen_Main(const py::kwargs& args)
     spdlog::info("分析已完成，读取了 {} 个物体，延迟：{} ms\n{}", 
         RawData.size(), ParseDelay.count(), ParserReport);
 
+    ReturnType Result;
     try
     {
-        Composite();
+        Composite(&Result);
+        Composite1(&Result);
     }
     catch(const std::exception& e)
     {
@@ -67,7 +70,7 @@ ReturnType InfoGen_Main(const py::kwargs& args)
         return ReturnType();
     }
 
-    return ReturnType();
+    return ReturnType(); // 调试阶段先不返回数据
 }
 
 PYBIND11_MODULE(InfoGen, InfoGenPythonExport)
