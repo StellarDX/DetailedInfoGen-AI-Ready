@@ -113,8 +113,6 @@ int SolveCubic(Eigen::Matrix<double, 4, 1> Coeffs, Eigen::Matrix<std::complex<do
     return -1;
 }
 
-template <typename T> int sgn(T val) {return (T(0) < val) - (val < T(0));}
-
 int SolveQuartic(Eigen::Matrix<double, 5, 1> Coeffs, Eigen::Matrix<std::complex<double>, 4, 1>& Roots, double Tolerence)
 {
     /***************************************************************************

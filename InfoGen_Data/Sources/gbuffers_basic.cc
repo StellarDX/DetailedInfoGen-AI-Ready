@@ -26,19 +26,19 @@ void LoadRadiuses(const SETable& Data, OIDType CurrentID, PhysicalCharacteristic
         std::numeric_limits<double>::quiet_NaN());
     if (isnan(Table->Flattening.y()))
     {
-        Table->Flattening = GetObjectS(Data, "Oblateness", 0, SEVec3::Zero());
+        Table->Flattening = GetObjectS(Data, "Oblateness", 0, SEVec3(SEVec3::Zero()));
     }
 
-    Table->Dimensions = Table->Dimensions - Table->Dimensions * Table->Flattening;
+    Table->Dimensions = Table->Dimensions.array() - Table->Dimensions.array() * Table->Flattening.array();
 
     if (isnan(Table->Dimensions.x()))[[unlikely]]
     {
         Table->Dimensions = GetObjectS(Data, "Dimensions", 0, 
-            SEVec3::Constant(std::numeric_limits<double>::quiet_NaN())) * Km;
+            SEVec3(SEVec3::Constant(std::numeric_limits<double>::quiet_NaN()))) * Km;
         if (isnan(Table->Dimensions.x()))
         {
             Table->Dimensions = GetObjectS(Data, "DimensionsSol", 0, 
-                SEVec3::Constant(std::numeric_limits<double>::quiet_NaN())) * SolarRadius;
+                SEVec3(SEVec3::Constant(std::numeric_limits<double>::quiet_NaN()))) * SolarRadius;
         }
 
         Table->Flattening = 1. - (Table->Dimensions / Table->Dimensions.maxCoeff()).array();
@@ -119,7 +119,7 @@ void ComputeRadiusesRelativeParams(PhysicalCharacteristics* Table)
 void LoadStar(const BasicTableType& BasicTable, const SystemType& System, OIDType CurrentID, PhysicalCharacteristics* Table)
 {
     auto RawData = BasicTable.at(CurrentID).second[1].As<SETable>();
-    Table->Class = GetObjectS(RawData, "Class", 0, "None");
+    Table->Class = GetObjectS(RawData, "Class", 0, std::string("None"));
     LoadRadiuses(RawData, CurrentID, Table);
     ComputeRadiusesRelativeParams(Table);
 }

@@ -19,6 +19,8 @@
 
 using std::literals::operator""i;
 
+template <typename T> int sgn(T val) {return (T(0) < val) - (val < T(0));}
+
 /**
  * @brief 求解线性方程，如 ax + b = 0
  * @param Coeffs 参数，按x的降幂排序

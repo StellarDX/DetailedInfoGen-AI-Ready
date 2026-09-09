@@ -12,29 +12,49 @@ namespace py = pybind11;
 
 struct OrbitCharacteristics
 {
-    SEString RefPlane;
+    SEString  RefPlane;
 
     // 当前状态向量
-    SEReal   GravParam;
-    SEReal   Time;
-    SEVec3   Position;
-    SEVec3   Velocity;
+    SEReal    GravParam;
+    SEReal    Time;
+    SEVec3    Position;
+    SEVec3    Velocity;
 
     // 从原始数据读取的轨道根数
-    SEReal   Period; // sec
-    SEReal   PericenterDist; // m (不用半长轴的原因是抛物线轨道半长轴为inf，而近日点距离始终有值)
-    SEReal   Eccentricity;
-    SEReal   Inclination;
-    SEReal   AscendingNode;
-    SEReal   ArgOfPericenter;
-    SEReal   MeanAnomaly;
+    SEReal    Period; // sec
+    SEReal    PericenterDist; // m
+    SEReal    AphelionDist;
+    SEReal    SemiMajorAxis;
+    SEReal    Eccentricity;
+    SEReal    Inclination;
+    SEReal    AscendingNode;
+    SEReal    ArgOfPericenter;
+    SEReal    MeanAnomaly;
 
     // 相对于黄道面的轨道面
-    SEReal   AxialTilt;
-    SEReal   Equinox;
-    SEReal   InclinationEcliptic;
-    SEReal   AscNodeEcliptic;
-    SEReal   ArgOfPeriEcliptic;
+    SEReal    AxialTilt;
+    SEReal    Equinox;
+    SEReal    InclinationEcliptic;
+    SEReal    AscNodeEcliptic;
+    SEReal    ArgOfPeriEcliptic;
+
+    // 双星轨道根数
+    SEBoolean BinaryOrbit;
+    SEBoolean IsPrimary;
+    SEString  Primary;
+    SEString  Companion;
+    SEReal    BPeriod; // sec
+    SEReal    BPericenterDist; // m
+    SEReal    BAphelionDist;
+    SEReal    BSemiMajorAxis;
+    SEReal    BEccentricity;
+    SEReal    BInclination;
+    SEReal    BAscendingNode;
+    SEReal    BArgOfPericenter;
+    SEReal    BMeanAnomaly;
+    SEReal    BInclinationEcliptic;
+    SEReal    BAscNodeEcliptic;
+    SEReal    BArgOfPeriEcliptic;
 };
 
 using OrbitTableType = std::flat_map<OIDType, OrbitCharacteristics>;

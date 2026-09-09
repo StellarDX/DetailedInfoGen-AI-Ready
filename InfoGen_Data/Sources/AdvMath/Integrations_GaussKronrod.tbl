@@ -1,10 +1,10 @@
-#if defined __GNUG__ && !defined(__clang__)
-#define __Tbl_FpType __float128 // GCC已经支持四倍精度(15+112)
-#define __Tbl_Fp(X) X ## Q
-#else
+//#if defined __GNUG__ && !defined(__clang__)
+//#define __Tbl_FpType __float128 // GCC已经支持四倍精度(15+112)
+//#define __Tbl_Fp(X) X ## Q
+//#else
 #define __Tbl_FpType long double // 设置为当前编译器最大可支持精度(一般为15+64长精度)
 #define __Tbl_Fp(X) X ## L
-#endif
+//#endif
 
 // 0和偶数下标为节点，奇数下标为权重 (我的妈呀~~~)
 

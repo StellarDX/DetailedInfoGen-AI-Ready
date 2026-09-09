@@ -38,10 +38,10 @@ using SEBVec2   = Eigen::Matrix<SEBoolean, 2, 1>;
 using SEBVec3   = Eigen::Matrix<SEBoolean, 3, 1>;
 using SEBVec4   = Eigen::Matrix<SEBoolean, 4, 1>;
 
-using SEArray   = Eigen::Array<SEReal, Eigen::Dynamic, 1>;
-using SEIArray  = Eigen::Array<SEInteger, Eigen::Dynamic, 1>;
-using SEUArray  = Eigen::Array<SEUInt, Eigen::Dynamic, 1>;
-using SEBArray  = Eigen::Array<SEBoolean, Eigen::Dynamic, 1>;
+using SEArray   = Eigen::Matrix<SEReal, Eigen::Dynamic, 1>;
+using SEIArray  = Eigen::Matrix<SEInteger, Eigen::Dynamic, 1>;
+using SEUArray  = Eigen::Matrix<SEUInt, Eigen::Dynamic, 1>;
+using SEBArray  = Eigen::Matrix<SEBoolean, Eigen::Dynamic, 1>;
 
 using SEMat2    = Eigen::Matrix<SEReal, 2, 2>;
 using SEMat3    = Eigen::Matrix<SEReal, 3, 3>;
@@ -86,6 +86,12 @@ struct SEVarOperation
     std::shared_ptr<class SEObject> Value;
 };
 
+template<typename Tp>
+concept SEFixedMatrix =
+    std::is_base_of_v<Eigen::MatrixBase<Tp>, Tp> &&
+    (Tp::RowsAtCompileTime != Eigen::Dynamic) &&
+    (Tp::ColsAtCompileTime != Eigen::Dynamic);
+
 class SEObject
 {
 public:
@@ -115,7 +121,7 @@ public:
     SEObject(const std::string& Str) : Elem(Str) {}
     SEObject(bool B) : Elem(B) {}
     template<typename Tp>
-    SEObject(Eigen::Array<Tp, Eigen::Dynamic, 1> Arr) : Elem(Arr) {}
+    SEObject(Eigen::Matrix<Tp, Eigen::Dynamic, 1> Arr) : Elem(Arr) {}
     SEObject(std::vector<std::string> Arr) : Elem(Arr) {}
     SEObject(SETuple M) : Elem(M) {}
     SEObject(SETable T) : Elem(T) {}
@@ -140,7 +146,7 @@ public:
     }
 
     template<typename Tp>
-    Eigen::Array<Tp, Eigen::Dynamic, 1> As(std::type_identity<Eigen::Array<Tp, Eigen::Dynamic, 1>>)const
+    Eigen::Matrix<Tp, Eigen::Dynamic, 1> As(std::type_identity<Eigen::Matrix<Tp, Eigen::Dynamic, 1>>)const
     {
         return std::visit([](auto&& v) -> Eigen::Array<Tp, Eigen::Dynamic, 1>
         {
@@ -150,10 +156,30 @@ public:
                 std::is_same_v<T, SEUArray> ||
                 std::is_same_v<T, SEBArray>)
             {
-                return Eigen::Array<Tp, Eigen::Dynamic, 1>(v);
+                return v.template cast<Tp>();
             }
             else {throw std::bad_variant_access();}
         }, Elem);
+    }
+
+    // 从存储的动态 SEArray 转换回固定尺寸的 Eigen 向量/矩阵（如 SEVec3）
+    template<typename Tp> requires SEFixedMatrix<Tp>
+    Tp As()const
+    {
+        using Scalar    = typename Tp::Scalar;
+        using RawArray  = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>;
+
+        constexpr int ElemCount = Tp::RowsAtCompileTime * Tp::ColsAtCompileTime;
+
+        RawArray Raw = As<RawArray>();
+        if (Raw.size() != ElemCount) {throw std::bad_variant_access();}
+
+        Tp Result;
+        for (Eigen::Index i = 0; i < ElemCount; ++i)
+        {
+            Result.data()[i] = static_cast<Scalar>(Raw[i]);
+        }
+        return Result;
     }
 
     template<typename Tp>

@@ -4,6 +4,65 @@
 #include <limits>
 #include <stdexcept>
 
+double DefiniteIntegratingFunction::operator()(Function1D f, double a, double b)const
+{
+    if (a == b) {return 0;}
+
+    // 此处由于积分上下限可以是无穷，所以需要一些准备工作。
+    Function1D F;
+    double A, B;
+    double Scale = 1;
+
+    if (b < a)
+    {
+        std::swap(b, a);
+        Scale = -1;
+    }
+
+    // 无穷积分转化为-1到1的积分
+    if (std::isinf(a) && std::isinf(b))
+    {
+        if (sgn(a) > 0 || sgn(b) < 0){throw std::logic_error("Invalid limits");}
+        A = -1;
+        B = 1;
+        F = [&f](double t)
+        {
+            return f(t / (1. - t * t)) * ((1. + t * t) / pow((1. - t * t), 2));
+        };
+    }
+
+    // 单边无穷积分转化为0到1的积分
+    else if (!std::isinf(a) && std::isinf(b))
+    {
+        if (sgn(b) < 0) {throw std::logic_error("Invalid limits");}
+        A = 0;
+        B = 1;
+        F = [a, &f](double t)
+        {
+            return f(a + t / (1. - t)) / pow(1. - t, 2);
+        };
+    }
+    else if (std::isinf(a) && !std::isinf(b))
+    {
+        if (sgn(a) > 0) {throw std::logic_error("Invalid limits");}
+        A = 0;
+        B = 1;
+        F = [b, &f](double t)
+        {
+            return f(b - (1. - t) / t) / (t * t);
+        };
+    }
+
+    else
+    {
+        F = f;
+        A = a;
+        B = b;
+    }
+
+    return Scale * Run(F, A, B);
+}
+
 //////////////////////////////// 高斯-克朗罗德积分 ///////////////////////////////
 
 #include "Integrations_GaussKronrod.tbl"

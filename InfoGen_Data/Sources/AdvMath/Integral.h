@@ -23,11 +23,11 @@ public:
     double operator()(Function1D f, double a, double b)const;
 }IntegralFunction;
 
-#if defined __GNUG__ && !defined(__clang__)
-#define __Tbl_FpType __float128 // GCC已经支持四倍精度(15+112)
-#else
+//#if defined __GNUG__ && !defined(__clang__)
+//#define __Tbl_FpType __float128 // GCC已经支持四倍精度(15+112)
+//#else
 #define __Tbl_FpType long double // 设置为当前编译器最大可支持精度(一般为15+64长精度)
-#endif
+//#endif
 
 extern const __Tbl_FpType __Gaussian07_Table[8];
 extern const __Tbl_FpType __Kronrod15_Table[16];

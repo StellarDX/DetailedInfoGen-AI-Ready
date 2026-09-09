@@ -17,82 +17,6 @@
 
 OrbitTableType OrbitTable;
 
-void __CompleteOrbitalParams_Backtrack(OIDType OID, OrbitCharacteristics* Orbit, const SystemType& System, const BasicTableType& BasicTable)
-{
-    auto Parent = std::find_if(System.begin(), System.end(), [OID](SystemType::value_type v)
-    {
-        return std::find(v.second.begin(), v.second.end(), OID) != v.second.end();
-    });
-    if (Parent == System.end())[[unlikely]] {return;}
-
-    if (BasicTable.at(Parent->first).first == "Barycenter")
-    {
-        // 如果上级物体是Barycenter，说明这个物体位于一个多星系统中，
-        // 此时需要在同级物体中找到两个相互绕行的主物体
-        // TODO...
-    }
-}
-
-// 这个功能目前依然有一点问题，就是物体位于一个多星系统时，直接用相对于质心的轨道不能得到正确的结果
-void CompleteOrbitalParams(OIDType OID, OrbitCharacteristics* Orbit, const SystemType& System, const BasicTableType& BasicTable)
-{
-    int ProvidedParams = 0;
-    bool Has_a = 0, Has_T = 0, Has_Mu = 0;
-    if (!isnan(Orbit->PericenterDist))
-    {
-        ProvidedParams++;
-        Has_a = 1;
-    }
-    if (!isnan(Orbit->Period))
-    {
-        ProvidedParams++;
-        Has_T = 1;
-    }
-    if (!isnan(Orbit->GravParam))
-    {
-        ProvidedParams++;
-        Has_Mu = 1;
-    }
-
-    if (ProvidedParams < 2)
-    {
-        // if (Has_Mu)
-        // {
-            throw std::invalid_argument("有物体提供了不完整的轨道参数");
-        // }
-        // 如果仅知道一个半长轴或周期，可以试着通过上级物体的质量来反推
-        // __CompleteOrbitalParams_Backtrack(OID, Orbit, System, BasicTable);
-    }
-
-    double a = Orbit->PericenterDist, e = Orbit->Eccentricity;
-    if (Has_a) { a /= (1.0 - e); }
-
-    if (!Has_Mu && Has_T && Has_a)[[likely]]
-    {
-        Orbit->GravParam = (4.0 * M_PI * M_PI * a * a * a) / (Orbit->Period * Orbit->Period);
-    }
-
-    else if (!Has_T && Has_Mu && Has_a)
-    {
-        Orbit->Period = 2.0 * M_PI * sqrt(a * a * a / Orbit->GravParam);
-    }
-
-    else if (!Has_a && Has_T && Has_Mu)
-    {
-        // 先计算半长轴
-        a = cbrt(Orbit->GravParam * Orbit->Period * Orbit->Period / (4.0 * M_PI * M_PI));
-        // 然后计算近地点距离
-        Orbit->PericenterDist = a - a * e;
-    }
-
-    if (!(isfinite(Orbit->PericenterDist) &&
-        isfinite(Orbit->Period) &&
-        isfinite(Orbit->GravParam)))
-    {
-        throw std::invalid_argument("无法补全轨道参数，有物体提供了不完整的轨道参数？");
-    }
-}
-
 void LoadOrbitParamsFromRawData(const BasicTableType& BasicTable, const SystemType& System, OIDType Barycenter, OrbitTableType* Output)
 {
     spdlog::info("提取轨道数据（此步骤预计耗时较长，请耐心等待）...");
@@ -136,37 +60,45 @@ void LoadOrbitParamsFromRawData(const BasicTableType& BasicTable, const SystemTy
         }
         else {Table.Period = std::numeric_limits<SEReal>::quiet_NaN();}
 
-        enum{AAU, AKm} SemuMajorAxisUnit;
+        enum{AAU, AKm} SemiMajorAxisUnit;
         static const double SemiMajorAxisScales[](AU, Km);
-        SEReal SemiMajorAxis = std::numeric_limits<SEReal>::quiet_NaN();
+        Table.SemiMajorAxis = std::numeric_limits<SEReal>::quiet_NaN();
         it = OrbitRawData.find("SemiMajorAxis");
-        SemuMajorAxisUnit = AAU;
+        SemiMajorAxisUnit = AAU;
         if (it == OrbitRawData.end())
         {
             it = OrbitRawData.find("SemiMajorAxisKm");
-            SemuMajorAxisUnit = AKm;
+            SemiMajorAxisUnit = AKm;
         }
         if (it != OrbitRawData.end())
         {
-            SemiMajorAxis = it->second[0].As<SEReal>() * SemiMajorAxisScales[SemuMajorAxisUnit];
+            Table.SemiMajorAxis = it->second[0].As<SEReal>() * SemiMajorAxisScales[SemiMajorAxisUnit];
         }
-        Table.PericenterDist = SemiMajorAxis - SemiMajorAxis * Table.Eccentricity;
+        Table.PericenterDist = Table.SemiMajorAxis - Table.SemiMajorAxis * Table.Eccentricity;
+        if (Table.Eccentricity < 1)
+        {
+            Table.AphelionDist = 2. * Table.SemiMajorAxis - Table.PericenterDist;
+        }
 
         if (std::isnan(Table.PericenterDist))
         {
             it = OrbitRawData.find("PericenterDist");
-            SemuMajorAxisUnit = AAU;
+            SemiMajorAxisUnit = AAU;
             if (it == OrbitRawData.end())
             {
                 it = OrbitRawData.find("PericenterDistKm");
-                SemuMajorAxisUnit = AKm;
+                SemiMajorAxisUnit = AKm;
             }
             if (it != OrbitRawData.end())
             {
-                Table.PericenterDist = it->second[0].As<SEReal>() * SemiMajorAxisScales[SemuMajorAxisUnit];
+                Table.PericenterDist = it->second[0].As<SEReal>() * SemiMajorAxisScales[SemiMajorAxisUnit];
+            }
+            Table.SemiMajorAxis = Table.PericenterDist / (1. - Table.Eccentricity);
+            if (Table.Eccentricity < 1)
+            {
+                Table.AphelionDist = 2. * Table.SemiMajorAxis - Table.PericenterDist;
             }
         }
-        // if (OID != Barycenter) {CompleteOrbitalParams(OID, &Table, System, BasicTable);} // FIXME
 
         Table.Inclination = GetObjectS<SEReal>(OrbitRawData, "Inclination", 0, 0);
         Table.AscendingNode = GetObjectS<SEReal>(OrbitRawData, "AscendingNode", 0, 0);
@@ -326,6 +258,91 @@ void OrbitParamsToStateVectors(OrbitTableType* Table, const SystemType& SysTable
     }
 }
 
+void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDType CurrentID, const BasicTableType& BasicTable)
+{
+    if (!SysTable.at(CurrentID).empty())
+    {
+        for (auto OID : SysTable.at(CurrentID))
+        {
+            TransferBarycenter(Table, SysTable, OID, BasicTable);
+        }
+    }
+
+    if (BasicTable.at(CurrentID).first == "Barycenter")
+    {
+        auto SubSystems = SysTable.at(CurrentID);
+        std::sort(SubSystems.begin(), SubSystems.end(), 
+            [Table](OIDType L, OIDType R)
+        {
+            // 这三个条件比对下来，多星系统里面必然会出现一组三个值全部相等的物体且位于相邻位置
+            // 到时只需要检验两个近日点幅角是否相差180就行
+            return (*Table)[L].PericenterDist < (*Table)[R].PericenterDist &&
+                (*Table)[L].Inclination < (*Table)[R].Inclination &&
+                (*Table)[L].AscendingNode < (*Table)[R].AscendingNode &&
+                (*Table)[L].MeanAnomaly < (*Table)[R].MeanAnomaly;
+        });
+
+        uint64_t i = 1;
+        for (; i < SubSystems.size(); ++i)
+        {
+            if (((*Table)[SubSystems[i]].Inclination - (*Table)[SubSystems[i - 1]].Inclination < 1E-12) &&
+                ((*Table)[SubSystems[i]].AscendingNode - (*Table)[SubSystems[i - 1]].AscendingNode < 1E-12) &&
+                ((*Table)[SubSystems[i]].MeanAnomaly - (*Table)[SubSystems[i - 1]].MeanAnomaly < 1E-12))
+            {
+                break;
+            }
+        }
+        if (i == SubSystems.size())
+        {
+            spdlog::warn("质心 {}:{} 下一级没有找到两个互相绕行的物体",
+                BasicTable.at(CurrentID).second[0].As<SEString>(), CurrentID);
+            return;
+        }
+
+        auto& Barycen = (*Table)[CurrentID], 
+            &Primary = (*Table)[SubSystems[i - 1]], &Companion = (*Table)[SubSystems[i]];
+        if (std::abs(Primary.ArgOfPericenter - Companion.ArgOfPericenter) - 180 < 1E-5) // 文件->数字这一过程发生了3次精度丢失，因此不能设的太高
+        {
+            Companion.BinaryOrbit = 1;
+            Companion.IsPrimary = 0;
+            Companion.Primary = BasicTable.at(SubSystems[i - 1]).second[0].As<SEString>();
+            Companion.Companion = BasicTable.at(SubSystems[i]).second[0].As<SEString>();
+            Companion.BPeriod = Primary.Period;
+            Companion.BPericenterDist = Primary.PericenterDist + Companion.PericenterDist;
+            Companion.BAphelionDist = Primary.AphelionDist + Companion.AphelionDist;
+            Companion.BSemiMajorAxis = Primary.SemiMajorAxis + Companion.SemiMajorAxis;
+            Companion.BEccentricity = Companion.Eccentricity;
+            Companion.BInclination = Companion.Inclination;
+            Companion.BInclinationEcliptic = Companion.InclinationEcliptic;
+            Companion.BAscendingNode = Companion.AscendingNode;
+            Companion.BAscNodeEcliptic = Companion.AscNodeEcliptic;
+            Companion.BArgOfPericenter = Companion.ArgOfPericenter;
+            Companion.BArgOfPeriEcliptic = Companion.ArgOfPeriEcliptic;
+            Companion.BMeanAnomaly = Companion.MeanAnomaly;
+
+            Primary.BinaryOrbit = 1;
+            Primary.IsPrimary = 1;
+            Primary.BPeriod = Barycen.Period;
+            Primary.BPericenterDist = Barycen.PericenterDist;
+            Primary.BAphelionDist = Barycen.AphelionDist;
+            Primary.BSemiMajorAxis = Barycen.SemiMajorAxis;
+            Primary.BEccentricity = Barycen.Eccentricity;
+            Primary.BInclination = Barycen.Inclination;
+            Primary.BInclinationEcliptic = Barycen.InclinationEcliptic;
+            Primary.BAscendingNode = Barycen.AscendingNode;
+            Primary.BAscNodeEcliptic = Barycen.AscNodeEcliptic;
+            Primary.BArgOfPericenter = Barycen.ArgOfPericenter;
+            Primary.BArgOfPeriEcliptic = Barycen.ArgOfPeriEcliptic;
+            Primary.BMeanAnomaly = Barycen.MeanAnomaly;
+        }
+        else
+        {
+            spdlog::warn("质心 {}:{} 下一级没有找到两个互相绕行的物体",
+                BasicTable.at(CurrentID).second[0].As<SEString>(), CurrentID);
+        }
+    }
+}
+
 OrbitCharTableType gbuffer_orbit()
 {
     LoadOrbitParamsFromRawData(BASIC, SystemTable, BarycenterID, &OrbitTable);
@@ -337,6 +354,8 @@ OrbitCharTableType gbuffer_orbit()
 
     OrbitParamsToStateVectors(&OrbitTable, SystemTable, BarycenterID);
 
+    TransferBarycenter(&OrbitTable, SystemTable, BarycenterID, BASIC);
+
     OrbitCharTableType Value;
     for (auto [OID, Table] : OrbitTable)
     {
@@ -345,6 +364,8 @@ OrbitCharTableType gbuffer_orbit()
         Dst["Position"] = Table.Position; // Eigen向量扔到py::dict里，Python侧会得到一个numpy数组
         Dst["Period"] = Table.Period;
         Dst["PericenterDist"] = Table.PericenterDist;
+        Dst["AphelionDist"] = Table.AphelionDist;
+        Dst["SemiMajorAxis"] = Table.SemiMajorAxis;
         Dst["Eccentricity"] = Table.Eccentricity;
         Dst["Inclination"] = Table.Inclination;
         if (!IsAbsoluteOrbitParams) {Dst["InclEcliptic"] = Table.InclinationEcliptic;}
@@ -353,6 +374,30 @@ OrbitCharTableType gbuffer_orbit()
         Dst["ArgOfPericenter"] = Table.ArgOfPericenter;
         if (!IsAbsoluteOrbitParams) {Dst["ArgOfPeriEcliptic"] = Table.ArgOfPeriEcliptic;}
         Dst["MeanAnomaly"] = Table.MeanAnomaly;
+
+        Dst["BinaryOrbit"] = Table.BinaryOrbit;
+        if (Table.BinaryOrbit)
+        {
+            Dst["IsPrimary"] = Table.IsPrimary;
+            if (!Table.IsPrimary)
+            {
+                Dst["Primary"] = Table.Primary;
+                Dst["Companion"] = Table.Companion;
+            }
+            Dst["BPeriod"] = Table.BPeriod;
+            Dst["BPericenterDist"] = Table.BPericenterDist;
+            Dst["BAphelionDist"] = Table.BAphelionDist;
+            Dst["BSemiMajorAxis"] = Table.BSemiMajorAxis;
+            Dst["BEccentricity"] = Table.BEccentricity;
+            Dst["BInclination"] = Table.BInclination;
+            Dst["BInclinationEcliptic"] = Table.BInclinationEcliptic;
+            Dst["BAscendingNode"] = Table.BAscendingNode;
+            Dst["BAscNodeEcliptic"] = Table.BAscNodeEcliptic;
+            Dst["BArgOfPericenter"] = Table.BArgOfPericenter;
+            Dst["BArgOfPeriEcliptic"] = Table.BArgOfPeriEcliptic;
+            Dst["BMeanAnomaly"] = Table.BMeanAnomaly;
+        }
+
         Value.insert({OID, Dst});
     }
 
