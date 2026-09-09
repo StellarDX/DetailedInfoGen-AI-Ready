@@ -38,6 +38,9 @@ struct OrbitCharacteristics
     SEReal    AscNodeEcliptic;
     SEReal    ArgOfPeriEcliptic;
 
+    // 会合周期
+    SEReal    SynodicOrbitalPeriod;
+
     // 双星轨道根数
     SEBoolean BinaryOrbit;
     SEBoolean IsPrimary;

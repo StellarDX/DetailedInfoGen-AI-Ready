@@ -158,6 +158,8 @@ void Composite(ReturnType* Result)
         BaryenterList.size(), StarList.size(), PlanetList.size() + DwarfPlanetList.size(), 
         SatelliteList.size(), MinorPlanetList.size() + CometList.size());
 
+    spdlog::info("生成系统信息总表...");
+
     (*Result)["MainID"] = IDENT[BarycenterID][0];
     (*Result)["NStars"] = StarList.size();
     (*Result)["NPlanets"] = PlanetList.size();
@@ -172,4 +174,6 @@ void Composite(ReturnType* Result)
         SpTypes.push_back(GetObjectS(BASIC[i].second[1].As<SETable>(), "Class", 0, std::string("?")));
     }
     (*Result)["StarSpectralType"] = SpTypes;
+
+    spdlog::info("完成");
 }

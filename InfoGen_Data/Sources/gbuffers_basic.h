@@ -14,6 +14,7 @@ namespace py = pybind11;
 
 struct PhysicalCharacteristics
 {
+    std::string ObjType;
     std::string Class;
     double MeanRadius;
     SEVec3 Dimensions;
@@ -23,6 +24,7 @@ struct PhysicalCharacteristics
     double Volume;
     double Mass;
     double MeanDensity;
+    double Age;
     double SurfaceGravity;
     double MomentOfInertiaFactor;
     double EscapeVelocity;
@@ -31,6 +33,7 @@ struct PhysicalCharacteristics
     double EquatorialRotationVelocity;
     double AxialTilt;
     SEVec2 Albedo;
+    double Luminosity;
     double Temperature;
 };
 

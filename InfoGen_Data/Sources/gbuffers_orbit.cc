@@ -216,6 +216,8 @@ void MakeEclipticalReferencedOrbit(OrbitTableType* OrbitTable, const SystemType&
 
 void OrbitParamsToStateVectors(OrbitTableType* Table, const SystemType& SysTable, OIDType Barycenter)
 {
+    spdlog::info("计算位置...");
+
     for (auto [OID, Table] : *Table)
     {
         double Inclin, AscNode, ArgOfPeri;
@@ -256,6 +258,8 @@ void OrbitParamsToStateVectors(OrbitTableType* Table, const SystemType& SysTable
             SinArgOfLatitude * SinInclination);
         Table.Position = CurrentPos;
     }
+
+    spdlog::info("完成");
 }
 
 void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDType CurrentID, const BasicTableType& BasicTable)
@@ -343,6 +347,24 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
     }
 }
 
+void ComputeSynodicMonth(OrbitTableType* Table, const SystemType& SysTable, OIDType ParentID, OIDType CurrentID, const BasicTableType& BasicTable)
+{
+    if (!SysTable.at(CurrentID).empty())
+    {
+        for (auto OID : SysTable.at(CurrentID))
+        {
+            ComputeSynodicMonth(Table, SysTable, CurrentID, OID, BasicTable);
+        }
+    }
+
+    if (BasicTable.at(CurrentID).first == "Moon")
+    {
+        double m = (*Table)[CurrentID].Period;
+        double y = (*Table)[ParentID].Period;
+        (*Table)[CurrentID].SynodicOrbitalPeriod = (m * y) / std::abs(m - y);
+    }
+}
+
 OrbitCharTableType gbuffer_orbit()
 {
     LoadOrbitParamsFromRawData(BASIC, SystemTable, BarycenterID, &OrbitTable);
@@ -354,7 +376,15 @@ OrbitCharTableType gbuffer_orbit()
 
     OrbitParamsToStateVectors(&OrbitTable, SystemTable, BarycenterID);
 
+    spdlog::info("迁移多星系统轨道...");
     TransferBarycenter(&OrbitTable, SystemTable, BarycenterID, BASIC);
+    spdlog::info("完成");
+
+    spdlog::info("计算会合周期...");
+    ComputeSynodicMonth(&OrbitTable, SystemTable, BarycenterID, BarycenterID, BASIC);
+    spdlog::info("完成");
+
+    spdlog::info("生成轨道数据表...");
 
     OrbitCharTableType Value;
     for (auto [OID, Table] : OrbitTable)
@@ -374,6 +404,11 @@ OrbitCharTableType gbuffer_orbit()
         Dst["ArgOfPericenter"] = Table.ArgOfPericenter;
         if (!IsAbsoluteOrbitParams) {Dst["ArgOfPeriEcliptic"] = Table.ArgOfPeriEcliptic;}
         Dst["MeanAnomaly"] = Table.MeanAnomaly;
+
+        if (BASIC.at(OID).first == "Moon")
+        {
+            Dst["SynodicMonth"] = Table.SynodicOrbitalPeriod;
+        }
 
         Dst["BinaryOrbit"] = Table.BinaryOrbit;
         if (Table.BinaryOrbit)
@@ -400,6 +435,8 @@ OrbitCharTableType gbuffer_orbit()
 
         Value.insert({OID, Dst});
     }
+
+    spdlog::info("完成");
 
     return Value;
 }
