@@ -101,6 +101,12 @@ void LoadOrbitParamsFromRawData(const BasicTableType& BasicTable, const SystemTy
         }
 
         Table.Inclination = GetObjectS<SEReal>(OrbitRawData, "Inclination", 0, 0);
+        if ((Table.Inclination > 90 && Table.Inclination < 270) || 
+            (Table.Inclination < -90 && Table.Inclination > -270))
+        {
+            Table.Period = -Table.Period; // 逆行轨道周期为负
+        }
+
         Table.AscendingNode = GetObjectS<SEReal>(OrbitRawData, "AscendingNode", 0, 0);
         Table.ArgOfPericenter = GetObjectS<SEReal>(OrbitRawData, "ArgOfPericenter", 0, 0);
 

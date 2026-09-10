@@ -24,17 +24,19 @@ struct PhysicalCharacteristics
     double Volume;
     double Mass;
     double MeanDensity;
-    double Age;
+    double Age; // 仅Star启用
     double SurfaceGravity;
     double MomentOfInertiaFactor;
     double EscapeVelocity;
-    double SynodicRotationPeriod;
+    double SynodicRotationPeriod; // 除Star外的其他物体启用
     double SiderealRotationPeriod;
     double EquatorialRotationVelocity;
     double AxialTilt;
-    SEVec2 Albedo;
-    double Luminosity;
+    SEVec2 Albedo; // 除Star外的其他物体启用
+    double Luminosity; // 仅Star启用
     double Temperature;
+
+    std::vector<std::string> SubSystemsList; // 仅Planet和DwarfPlanet启用
 };
 
 using PhysicalTableType = std::flat_map<OIDType, PhysicalCharacteristics>;

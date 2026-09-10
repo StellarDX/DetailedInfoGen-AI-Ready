@@ -1,6 +1,7 @@
 #include "composite1.h"
 #include "Mini-NeoCSE/ISCStream.h"
 #include "composite.h"
+#include "gbuffers_basic.h"
 #include "gbuffers_orbit.h"
 
 #include <queue>
@@ -20,7 +21,7 @@ void ComputeStaticPos(const SystemType& System, OIDType Barycenter, const OrbitT
         OIDQueue.pop();
         for (auto i : System.at(CurrentOID))
         {
-            (*Output)[i] = (*Output)[CurrentOID] + Orbit.at(i).Position;
+            (*Output)[i] = SEVec3((*Output)[CurrentOID] + Orbit.at(i).Position);
             OIDQueue.push(i);
         }
     }
@@ -32,5 +33,5 @@ void Composite1(ReturnType* Result)
 
     ComputeStaticPos(SystemTable, BarycenterID, OrbitTable, &StaticPosTable);
 
-    PhysicalCharTableType PhysicalCharacteristicsTable;
+    PhysicalCharTableType PhysicalCharacteristicsTable = gbuffer_basic();
 }

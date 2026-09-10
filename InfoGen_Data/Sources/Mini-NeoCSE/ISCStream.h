@@ -129,7 +129,8 @@ public:
     SEObject(SEVarOperation V) : Elem(V) {}
 
     template<typename Tp> 
-    requires (std::is_integral_v<Tp> || std::is_floating_point_v<Tp>)
+    requires ((std::is_integral_v<Tp> || std::is_floating_point_v<Tp>)
+        && !std::is_same_v<std::remove_cv_t<Tp>, bool>)
     Tp As()const
     {
         return std::visit([](auto&& v) -> Tp 
@@ -289,7 +290,7 @@ Ty GetObjectS(const SETable& Table, const SEKey& Key, size_t Offset, Ty Default)
     if (it == Table.end()) {return Default;}
     try
     {
-        if (it->second.size() < Offset) {return Default;}
+        if (it->second.size() <= Offset) {return Default;}
         return it->second[Offset].As<Ty>();
     }
     catch (...) {return Default;}
