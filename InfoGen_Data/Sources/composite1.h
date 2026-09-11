@@ -15,9 +15,15 @@ using AtmosphereTableType   = std::flat_map<OIDType, py::dict>;
 using HydrosphereTableType  = std::flat_map<OIDType, py::dict>;
 using BiosphereTableType    = std::flat_map<OIDType, py::dict>;
 
-extern StaticPosTableType     StaticPosTable;
+extern StaticPosTableType          StaticPosTable;
 
 extern std::unordered_set<OIDType> MinorObjectList;
+
+extern OrbitCharTableType          OrbitalCharacteristicsTable;
+extern PhysicalCharTableType       PhysicalCharacteristicsTable;
+extern AtmosphereTableType         AtmosphereTable;
+extern HydrosphereTableType        HydrosphereTable;
+extern BiosphereTableType          BiosphereTable;
 
 void Composite1(ReturnType* Result);
 

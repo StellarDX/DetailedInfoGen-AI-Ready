@@ -1,5 +1,6 @@
 #include "composite2.h"
 #include "composite.h"
+#include "composite1.h"
 #include "gbuffers_basic.h"
 #include "gbuffers_orbit.h"
 #include "minobjs.h"
@@ -16,8 +17,8 @@ void Composite2(ReturnType* Result)
     {
         ReturnType CurrentObject;
         CurrentObject["Identifiers"] = IDENT.at(i);
-        if (OrbitTable.contains(i)) {CurrentObject["OrbitalCharacteristics"] = OrbitTable.at(i);}
-        if (PhysicalTable.contains(i)) {CurrentObject["PhysicalCharacteristics"] = PhysicalTable.at(i);}
+        if (OrbitalCharacteristicsTable.contains(i)) {CurrentObject["OrbitalCharacteristics"] = OrbitalCharacteristicsTable.at(i);}
+        if (PhysicalCharacteristicsTable.contains(i)) {CurrentObject["PhysicalCharacteristics"] = PhysicalCharacteristicsTable.at(i);}
         MinorObjectsTable[IDENT.at(i).front().c_str()] = CurrentObject;
     }
     (*Result)["MinorObjects"] = MinorObjectsTable;

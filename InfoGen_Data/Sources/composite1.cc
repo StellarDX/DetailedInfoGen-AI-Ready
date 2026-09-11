@@ -12,6 +12,12 @@
 #include <pybind11/stl.h>
 #include <spdlog/spdlog.h>
 
+OrbitCharTableType    OrbitalCharacteristicsTable;
+PhysicalCharTableType PhysicalCharacteristicsTable;
+AtmosphereTableType   AtmosphereTable;
+HydrosphereTableType  HydrosphereTable;
+BiosphereTableType    BiosphereTable;
+
 StaticPosTableType    StaticPosTable;
 
 std::unordered_set<OIDType> MinorObjectList;
@@ -79,14 +85,14 @@ void __DFS_Iterate(ReturnType* Result, const SystemType* System, const IdentTabl
 
 void Composite1(ReturnType* Result)
 {
-    OrbitCharTableType OrbitalCharacteristicsTable = gbuffer_orbit();
+    OrbitalCharacteristicsTable = gbuffer_orbit();
 
     ComputeStaticPos(SystemTable, BarycenterID, OrbitTable, &StaticPosTable);
 
-    PhysicalCharTableType PhysicalCharacteristicsTable = gbuffer_basic();
-    AtmosphereTableType AtmosphereTable = gbuffer_atmosphere();
-    HydrosphereTableType HydrosphereTable = gbuffers_hydrosphere();
-    BiosphereTableType BiosphereTable = gbuffers_biosphere();
+    PhysicalCharacteristicsTable = gbuffer_basic();
+    AtmosphereTable = gbuffer_atmosphere();
+    HydrosphereTable = gbuffers_hydrosphere();
+    BiosphereTable = gbuffers_biosphere();
 
     spdlog::info("生成物体列表...");
 

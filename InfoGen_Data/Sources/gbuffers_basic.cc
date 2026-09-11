@@ -189,6 +189,7 @@ void LoadStar(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTa
 {
     auto RawData = BasicTable.at(CurrentID).second[1].As<SETable>();
     LoadBasicData(RawData, CurrentID, Orbit, Table);
+    Table->Age = GetObjectS(RawData, "Age", 0, std::numeric_limits<double>::quiet_NaN()) * 1000000000;
     LoadLuminosity(RawData, Table);
     Table->Temperature = GetObjectS(RawData, "Temperature", 0, std::numeric_limits<double>::quiet_NaN());
     if (isnan(Table->Temperature)) [[likely]]
