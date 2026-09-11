@@ -25,4 +25,6 @@ static const double SolarMass       = 1.988475E+30; // IAU2025
 
 static const double SolarLuminosity = 3.828E+26; // Mamajek E E , Prsa A , Torres G ,et al.IAU 2015 Resolution B3 on Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties[J].Physics, 2015.DOI:10.48550/arXiv.1510.07674.
 
+static const double StandardAtm     = 101325; // 定义值，为地球海平面平均压强
+
 #endif

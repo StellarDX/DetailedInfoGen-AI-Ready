@@ -1,7 +1,10 @@
 #include "composite1.h"
 #include "Mini-NeoCSE/ISCStream.h"
 #include "composite.h"
+#include "gbuffers_atmosphere.h"
 #include "gbuffers_basic.h"
+#include "gbuffers_biosphere.h"
+#include "gbuffers_hydrosphere.h"
 #include "gbuffers_orbit.h"
 
 #include <queue>
@@ -34,4 +37,7 @@ void Composite1(ReturnType* Result)
     ComputeStaticPos(SystemTable, BarycenterID, OrbitTable, &StaticPosTable);
 
     PhysicalCharTableType PhysicalCharacteristicsTable = gbuffer_basic();
+    AtmosphereTableType AtmosphereTable = gbuffer_atmosphere();
+    HydrosphereTableType HydrosphereTable = gbuffers_hydrosphere();
+    BiosphereTableType BiosphereTable = gbuffers_biosphere();
 }

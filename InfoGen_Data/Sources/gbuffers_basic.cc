@@ -201,10 +201,14 @@ void ComputePlanetTemperature(const SETable& RawData, OIDType CurrentID, const O
     double BaseTemperature = GetObjectS(RawData, "Teff", 0, 0); // 把Rogue planet考虑进去
     double EndogenousHeating = GetObjectS(RawData, "EndogenousHeating", 0, 0);
     double GreenHouse = 0;
-    if (!GetObjectS(RawData, "NoAtmosphere", 0, true))
+    if (!GetObjectS(RawData, "NoAtmosphere", 0, false))
     {
-        SETable AtmTable = RawData.find("Atmosphere")->second[0].As<SETable>();
-        GreenHouse = GetObjectS(RawData, "GreenHouse", 0, 0);
+        auto it = RawData.find("Atmosphere");
+        bool HasTable = it != RawData.end();
+        SETable AtmData;
+        try {if (HasTable) {AtmData = it->second[0].As<SETable>();}}
+        catch (...) {HasTable = 0;}
+        if (HasTable) {GreenHouse = GetObjectS(RawData, "GreenHouse", 0, 0);}
     }
 
     Table->Albedo = 

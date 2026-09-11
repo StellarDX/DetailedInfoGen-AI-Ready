@@ -8,10 +8,14 @@
 
 #include <flat_set>
 
-using StaticPosTableType = std::flat_map<OIDType, SEVec3>;
-using PhysicalCharTableType = std::flat_map<OIDType, py::dict>;
+using StaticPosTableType    = std::flat_map<OIDType, SEVec3>;
 
-extern StaticPosTableType StaticPosTable;
+using PhysicalCharTableType = std::flat_map<OIDType, py::dict>;
+using AtmosphereTableType   = std::flat_map<OIDType, py::dict>;
+using HydrosphereTableType  = std::flat_map<OIDType, py::dict>;
+using BiosphereTableType    = std::flat_map<OIDType, py::dict>;
+
+extern StaticPosTableType     StaticPosTable;
 
 void Composite1(ReturnType* Result);
 
