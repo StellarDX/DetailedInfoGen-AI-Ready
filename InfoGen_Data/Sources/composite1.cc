@@ -14,6 +14,8 @@
 
 StaticPosTableType    StaticPosTable;
 
+std::unordered_set<OIDType> MinorObjectList;
+
 void ComputeStaticPos(const SystemType& System, OIDType Barycenter, const OrbitTableType& Orbit, StaticPosTableType* Output)
 {
     std::queue<OIDType> OIDQueue;
@@ -31,7 +33,7 @@ void ComputeStaticPos(const SystemType& System, OIDType Barycenter, const OrbitT
     }
 }
 
-void __DFS_Iterate(ReturnType* Result, const SystemType* System, const IdentTableType* Idt, const OrbitCharTableType* Obt, const PhysicalCharTableType* Phy, const AtmosphereTableType* Atm, const HydrosphereTableType* Hyd, const BiosphereTableType* Bio, OIDType CurrentID)
+void __DFS_Iterate(ReturnType* Result, const SystemType* System, const IdentTableType* Idt, const OrbitCharTableType* Obt, const PhysicalCharTableType* Phy, const AtmosphereTableType* Atm, const HydrosphereTableType* Hyd, const BiosphereTableType* Bio, const std::unordered_set<OIDType>* MinObj, OIDType CurrentID)
 {
     py::dict CurrentObject;
     CurrentObject["Identifiers"] = Idt->at(CurrentID);
@@ -45,6 +47,10 @@ void __DFS_Iterate(ReturnType* Result, const SystemType* System, const IdentTabl
     if (!System->at(CurrentID).empty())
     {
         SubSystemsFinalSeq.assign(System->at(CurrentID).begin(), System->at(CurrentID).end());
+        std::erase_if(SubSystemsFinalSeq, [MinObj](OIDType v)
+        {
+            return MinObj->contains(v);
+        });
         if (SortSystem)
         {
             std::sort(SubSystemsFinalSeq.begin(), SubSystemsFinalSeq.end(), [](OIDType L, OIDType R)
@@ -66,7 +72,7 @@ void __DFS_Iterate(ReturnType* Result, const SystemType* System, const IdentTabl
     {
         for (auto i : SubSystemsFinalSeq)
         {
-            __DFS_Iterate(Result, System, Idt, Obt, Phy, Atm, Hyd, Bio, i);
+            __DFS_Iterate(Result, System, Idt, Obt, Phy, Atm, Hyd, Bio, MinObj, i);
         }
     }
 }
@@ -82,5 +88,7 @@ void Composite1(ReturnType* Result)
     HydrosphereTableType HydrosphereTable = gbuffers_hydrosphere();
     BiosphereTableType BiosphereTable = gbuffers_biosphere();
 
-    __DFS_Iterate(Result, &SystemTable, &IDENT, &OrbitalCharacteristicsTable, &PhysicalCharacteristicsTable, &AtmosphereTable, &HydrosphereTable, &BiosphereTable, BarycenterID);
+    auto MinorObjs = std::ranges::views::concat(MinorPlanetList, CometList);
+    MinorObjectList.insert(MinorObjs.begin(), MinorObjs.end());
+    __DFS_Iterate(Result, &SystemTable, &IDENT, &OrbitalCharacteristicsTable, &PhysicalCharacteristicsTable, &AtmosphereTable, &HydrosphereTable, &BiosphereTable, &MinorObjectList, BarycenterID);
 }

@@ -253,7 +253,21 @@ void LoadPlanet(const BasicTableType& BasicTable, OIDType CurrentID, const Orbit
 
 PhysicalCharTableType gbuffer_basic()
 {
-    spdlog::info("整理物理数据...");
+    spdlog::info("整理物理数据（此步骤预计耗时较长，请耐心等待）...");
+
+    auto gbuffer_basic_Start = std::chrono::high_resolution_clock::now();
+
+    int WaitSecond = 3;
+    std::jthread LoadOrbitParamsFromRawData_Timer([WaitSecond](std::stop_token Stoken) 
+    {
+        while (!Stoken.stop_requested()) 
+        {
+            // 使用 stop_token 实现可中断的睡眠
+            std::this_thread::sleep_for(std::chrono::seconds(WaitSecond));
+            if (Stoken.stop_requested()) break;
+            spdlog::info("整理物理数据（{}%）...", (100 * PhysicalTable.size()) / BASIC.size());
+        }
+    });
 
     for (auto i : StarList)
     {
@@ -301,7 +315,10 @@ PhysicalCharTableType gbuffer_basic()
         PhysicalTable.insert({i, Table});
     }
 
-    spdlog::info("完成");
+    auto gbuffer_basic_End = std::chrono::high_resolution_clock::now();
+    auto gbuffer_basic_Delay = std::chrono::duration_cast<std::chrono::seconds>(gbuffer_basic_End - gbuffer_basic_Start);
+    
+    spdlog::info("完成（已处理 {} 个物体，延迟：{} s）", PhysicalTable.size(), gbuffer_basic_Delay.count());
 
     spdlog::info("生成物理数据表...");
 
