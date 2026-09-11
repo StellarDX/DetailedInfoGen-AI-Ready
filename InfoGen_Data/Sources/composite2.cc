@@ -16,6 +16,7 @@ void Composite2(ReturnType* Result)
     for (auto i : ListedMinorObjects)
     {
         ReturnType CurrentObject;
+        CurrentObject["OType"] = BASIC.at(i).first;
         CurrentObject["Identifiers"] = IDENT.at(i);
         if (OrbitalCharacteristicsTable.contains(i)) {CurrentObject["OrbitalCharacteristics"] = OrbitalCharacteristicsTable.at(i);}
         if (PhysicalCharacteristicsTable.contains(i)) {CurrentObject["PhysicalCharacteristics"] = PhysicalCharacteristicsTable.at(i);}

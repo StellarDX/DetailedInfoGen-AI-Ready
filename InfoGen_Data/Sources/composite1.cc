@@ -39,9 +39,10 @@ void ComputeStaticPos(const SystemType& System, OIDType Barycenter, const OrbitT
     }
 }
 
-void __DFS_Iterate(ReturnType* Result, const SystemType* System, const IdentTableType* Idt, const OrbitCharTableType* Obt, const PhysicalCharTableType* Phy, const AtmosphereTableType* Atm, const HydrosphereTableType* Hyd, const BiosphereTableType* Bio, const std::unordered_set<OIDType>* MinObj, OIDType CurrentID)
+void __DFS_Iterate(ReturnType* Result, const BasicTableType* BasicTable, const SystemType* System, const IdentTableType* Idt, const OrbitCharTableType* Obt, const PhysicalCharTableType* Phy, const AtmosphereTableType* Atm, const HydrosphereTableType* Hyd, const BiosphereTableType* Bio, const std::unordered_set<OIDType>* MinObj, OIDType CurrentID)
 {
     py::dict CurrentObject;
+    CurrentObject["OType"] = BasicTable->at(CurrentID).first;
     CurrentObject["Identifiers"] = Idt->at(CurrentID);
     if (Obt->contains(CurrentID)) {CurrentObject["OrbitalCharacteristics"] = Obt->at(CurrentID);}
     if (Phy->contains(CurrentID)) {CurrentObject["PhysicalCharacteristics"] = Phy->at(CurrentID);}
@@ -78,7 +79,7 @@ void __DFS_Iterate(ReturnType* Result, const SystemType* System, const IdentTabl
     {
         for (auto i : SubSystemsFinalSeq)
         {
-            __DFS_Iterate(Result, System, Idt, Obt, Phy, Atm, Hyd, Bio, MinObj, i);
+            __DFS_Iterate(Result, BasicTable, System, Idt, Obt, Phy, Atm, Hyd, Bio, MinObj, i);
         }
     }
 }
@@ -99,7 +100,7 @@ void Composite1(ReturnType* Result)
     auto MinorObjs = std::ranges::views::concat(MinorPlanetList, CometList);
     MinorObjectList.insert(MinorObjs.begin(), MinorObjs.end());
     ReturnType ObjectList;
-    __DFS_Iterate(&ObjectList, &SystemTable, &IDENT, &OrbitalCharacteristicsTable, &PhysicalCharacteristicsTable, &AtmosphereTable, &HydrosphereTable, &BiosphereTable, &MinorObjectList, BarycenterID);
+    __DFS_Iterate(&ObjectList, &BASIC, &SystemTable, &IDENT, &OrbitalCharacteristicsTable, &PhysicalCharacteristicsTable, &AtmosphereTable, &HydrosphereTable, &BiosphereTable, &MinorObjectList, BarycenterID);
     (*Result)["Objects"] = ObjectList;
 
     spdlog::info("完成");

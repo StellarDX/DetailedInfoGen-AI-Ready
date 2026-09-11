@@ -306,7 +306,6 @@ PhysicalCharTableType gbuffer_basic()
     for (auto i : StarList)
     {
         PhysicalCharacteristics Table;
-        Table.ObjType = BASIC[i].first;
         LoadStar(BASIC, i, OrbitTable, &Table);
         PhysicalTable.insert({i, Table});
     }
@@ -314,7 +313,6 @@ PhysicalCharTableType gbuffer_basic()
     for (auto i : std::views::concat(PlanetList, DwarfPlanetList))
     {
         PhysicalCharacteristics Table;
-        Table.ObjType = BASIC[i].first;
         LoadPlanet(BASIC, i, OrbitTable, StarList, StaticPosTable, PhysicalTable, &Table);
         auto ParentBody = std::find_if(SystemTable.begin(), SystemTable.end(), 
             [i](SystemType::value_type v)
@@ -344,7 +342,6 @@ PhysicalCharTableType gbuffer_basic()
     for (auto i : std::views::concat(SatelliteList, MinorPlanetList, CometList))
     {
         PhysicalCharacteristics Table;
-        Table.ObjType = BASIC[i].first;
         LoadPlanet(BASIC, i, OrbitTable, StarList, StaticPosTable, PhysicalTable, &Table);
         PhysicalTable.insert({i, Table});
     }
@@ -360,7 +357,6 @@ PhysicalCharTableType gbuffer_basic()
     for (auto i : StarList)
     {
         PhysicalCharTableType::mapped_type Dst;
-        Dst["Type"] = PhysicalTable[i].ObjType;
         Dst["Class"] = PhysicalTable[i].Class;
         Dst["MeanRadius"] = PhysicalTable[i].MeanRadius;
         Dst["Dimensions"] = PhysicalTable[i].Dimensions;
@@ -385,7 +381,6 @@ PhysicalCharTableType gbuffer_basic()
     for (auto i : std::views::concat(PlanetList, DwarfPlanetList))
     {
         PhysicalCharTableType::mapped_type Dst;
-        Dst["Type"] = PhysicalTable[i].ObjType;
         Dst["Class"] = PhysicalTable[i].Class;
         Dst["MeanRadius"] = PhysicalTable[i].MeanRadius;
         Dst["Dimensions"] = PhysicalTable[i].Dimensions;
@@ -413,7 +408,6 @@ PhysicalCharTableType gbuffer_basic()
     for (auto i : std::views::concat(SatelliteList, MinorPlanetList, CometList))
     {
         PhysicalCharTableType::mapped_type Dst;
-        Dst["Type"] = PhysicalTable[i].ObjType;
         Dst["Class"] = PhysicalTable[i].Class;
         Dst["MeanRadius"] = PhysicalTable[i].MeanRadius;
         Dst["Dimensions"] = PhysicalTable[i].Dimensions;
