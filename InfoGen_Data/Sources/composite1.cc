@@ -9,6 +9,7 @@
 
 #include <queue>
 
+#include <pybind11/stl.h>
 #include <spdlog/spdlog.h>
 
 StaticPosTableType    StaticPosTable;
@@ -30,6 +31,46 @@ void ComputeStaticPos(const SystemType& System, OIDType Barycenter, const OrbitT
     }
 }
 
+void __DFS_Iterate(ReturnType* Result, const SystemType* System, const IdentTableType* Idt, const OrbitCharTableType* Obt, const PhysicalCharTableType* Phy, const AtmosphereTableType* Atm, const HydrosphereTableType* Hyd, const BiosphereTableType* Bio, OIDType CurrentID)
+{
+    py::dict CurrentObject;
+    CurrentObject["Identifiers"] = Idt->at(CurrentID);
+    if (Obt->contains(CurrentID)) {CurrentObject["OrbitalCharacteristics"] = Obt->at(CurrentID);}
+    if (Phy->contains(CurrentID)) {CurrentObject["PhysicalCharacteristics"] = Phy->at(CurrentID);}
+    if (Atm->contains(CurrentID)) {CurrentObject["Atmosphere"] = Atm->at(CurrentID);}
+    if (Hyd->contains(CurrentID)) {CurrentObject["Hydrosphere"] = Hyd->at(CurrentID);}
+    if (Bio->contains(CurrentID)) {CurrentObject["Biosphere"] = Bio->at(CurrentID);}
+
+    std::vector<OIDType> SubSystemsFinalSeq;
+    if (!System->at(CurrentID).empty())
+    {
+        SubSystemsFinalSeq.assign(System->at(CurrentID).begin(), System->at(CurrentID).end());
+        if (SortSystem)
+        {
+            std::sort(SubSystemsFinalSeq.begin(), SubSystemsFinalSeq.end(), [](OIDType L, OIDType R)
+            {
+                return std::abs(OrbitTable.at(L).SemiMajorAxis) < std::abs(OrbitTable.at(R).SemiMajorAxis);
+            });
+        }
+        std::vector<std::string> SubSystemIdents;
+        for (auto i : SubSystemsFinalSeq)
+        {
+            SubSystemIdents.push_back(Idt->at(i).front());
+        }
+        CurrentObject["SubSystems"] = SubSystemIdents;
+    }
+
+    (*Result)[Idt->at(CurrentID).front().c_str()] = CurrentObject;
+
+    if (!System->at(CurrentID).empty())
+    {
+        for (auto i : SubSystemsFinalSeq)
+        {
+            __DFS_Iterate(Result, System, Idt, Obt, Phy, Atm, Hyd, Bio, i);
+        }
+    }
+}
+
 void Composite1(ReturnType* Result)
 {
     OrbitCharTableType OrbitalCharacteristicsTable = gbuffer_orbit();
@@ -40,4 +81,6 @@ void Composite1(ReturnType* Result)
     AtmosphereTableType AtmosphereTable = gbuffer_atmosphere();
     HydrosphereTableType HydrosphereTable = gbuffers_hydrosphere();
     BiosphereTableType BiosphereTable = gbuffers_biosphere();
+
+    __DFS_Iterate(Result, &SystemTable, &IDENT, &OrbitalCharacteristicsTable, &PhysicalCharacteristicsTable, &AtmosphereTable, &HydrosphereTable, &BiosphereTable, BarycenterID);
 }

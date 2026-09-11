@@ -165,7 +165,7 @@ void Composite(ReturnType* Result)
     (*Result)["NPlanets"] = PlanetList.size();
     (*Result)["NDwarfPlanets"] = DwarfPlanetList.size();
     (*Result)["NSatellites"] = SatelliteList.size();
-    (*Result)["NMinorPlanets"] = SatelliteList.size();
+    (*Result)["NMinorPlanets"] = MinorPlanetList.size();
     (*Result)["NComets"] = CometList.size();
 
     std::vector<std::string> SpTypes;

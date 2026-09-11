@@ -17,6 +17,7 @@ extern std::string InputFile;
 extern uint16_t    IFCodePage;
 extern bool        IsAbsoluteOrbitParams;
 extern double      CommonPlaneThreshold;
+extern bool        SortSystem;
 
 extern SETable     RawData;
 

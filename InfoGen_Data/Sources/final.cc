@@ -9,6 +9,7 @@ std::string InputFile;
 uint16_t    IFCodePage;
 bool        IsAbsoluteOrbitParams;
 double      CommonPlaneThreshold;
+bool        SortSystem;
 
 SETable     RawData;
 
@@ -28,6 +29,7 @@ void LoadArguments(const py::kwargs& args)
     IFCodePage = GetArgFromPy(args, "code_page", 65001);
     IsAbsoluteOrbitParams = GetArgFromPy(args, "absolute_orbit", false);
     CommonPlaneThreshold = GetArgFromPy(args, "common_plane_threshold", 9.);
+    SortSystem = GetArgFromPy(args, "sort_system", false);
 }
 
 ReturnType InfoGen_Main(const py::kwargs& args)
@@ -70,7 +72,7 @@ ReturnType InfoGen_Main(const py::kwargs& args)
         return ReturnType();
     }
 
-    return ReturnType(); // 调试阶段先不返回数据
+    return Result;
 }
 
 PYBIND11_MODULE(InfoGen, InfoGenPythonExport)
