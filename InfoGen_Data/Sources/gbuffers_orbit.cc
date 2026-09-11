@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "gbuffers_orbit.h"
 #include "Mini-NeoCSE/ISCStream.h"
 #include "MathFuncs/Trigonometry.h"

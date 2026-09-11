@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "gbuffers_basic.h"
 #include "AdvMath/Integral.h"
 #include "CONSTANTS.INC"
