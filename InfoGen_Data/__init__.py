@@ -18,5 +18,6 @@ for _stream in (sys.stdout, sys.stderr):
         pass
 
 from InfoGen_Data import InfoGen
+from InfoGen_Data.Modules.ChineseHelpFormatter import InfoGenHelpFormatter
 
 from InfoGen_Data.Modules import Create

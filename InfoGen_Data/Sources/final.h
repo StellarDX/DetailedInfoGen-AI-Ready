@@ -19,6 +19,8 @@ extern bool        IsAbsoluteOrbitParams;
 extern double      CommonPlaneThreshold;
 extern std::string ESIEstimator;
 extern bool        SortSystem;
+extern std::string AsteroidsTablePred;
+extern uint64_t    AsteroidsTableLimit;
 
 extern SETable     RawData;
 

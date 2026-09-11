@@ -1,4 +1,5 @@
 from InfoGen_Data import Create
+from InfoGen_Data import InfoGenHelpFormatter
 import sys
 import os
 from argparse import ArgumentParser
@@ -7,7 +8,7 @@ ModuleList = {
     "create": {"Register": Create.Register, "Invoke": Create.LoadObjectsFromSC}
 }
 
-MainArgParser = ArgumentParser(prog = 'InfoGen', description='SpaceEngine详细信息生成器 (AI-Ready)')
+MainArgParser = ArgumentParser(prog = 'InfoGen', description='SpaceEngine详细信息生成器 (AI-Ready)', formatter_class = InfoGenHelpFormatter)
 ModuleParsers = MainArgParser.add_subparsers(dest='command', help='可用模块')
 
 def main():

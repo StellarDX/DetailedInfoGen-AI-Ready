@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
@@ -12,6 +13,8 @@ bool        IsAbsoluteOrbitParams;
 double      CommonPlaneThreshold;
 std::string ESIEstimator;
 bool        SortSystem;
+std::string AsteroidsTablePred;
+uint64_t    AsteroidsTableLimit;
 
 SETable     RawData;
 
@@ -27,12 +30,14 @@ Tp GetArgFromPy(const py::kwargs& args, char const* Key, Tp Default)
 
 void LoadArguments(const py::kwargs& args)
 {
-    InputFile = GetArgFromPy(args, "file", std::string());
+    InputFile = GetArgFromPy(args, "input", std::string());
     IFCodePage = GetArgFromPy(args, "code_page", 65001);
     IsAbsoluteOrbitParams = GetArgFromPy(args, "absolute_orbit", false);
     CommonPlaneThreshold = GetArgFromPy(args, "common_plane_threshold", 9.);
     ESIEstimator = GetArgFromPy(args, "esi_estimator", std::string("SolarSys"));
     SortSystem = GetArgFromPy(args, "sort_system", false);
+    AsteroidsTablePred = GetArgFromPy(args, "exceptional_asteroids_pred", std::string("LargestByDiameter"));
+    AsteroidsTableLimit = GetArgFromPy(args, "exceptional_asteroids_limit", 50);
 }
 
 ReturnType InfoGen_Main(const py::kwargs& args)

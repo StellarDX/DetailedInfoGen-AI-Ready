@@ -88,7 +88,13 @@ void Composite1(ReturnType* Result)
     HydrosphereTableType HydrosphereTable = gbuffers_hydrosphere();
     BiosphereTableType BiosphereTable = gbuffers_biosphere();
 
+    spdlog::info("生成物体列表...");
+
     auto MinorObjs = std::ranges::views::concat(MinorPlanetList, CometList);
     MinorObjectList.insert(MinorObjs.begin(), MinorObjs.end());
-    __DFS_Iterate(Result, &SystemTable, &IDENT, &OrbitalCharacteristicsTable, &PhysicalCharacteristicsTable, &AtmosphereTable, &HydrosphereTable, &BiosphereTable, &MinorObjectList, BarycenterID);
+    ReturnType ObjectList;
+    __DFS_Iterate(&ObjectList, &SystemTable, &IDENT, &OrbitalCharacteristicsTable, &PhysicalCharacteristicsTable, &AtmosphereTable, &HydrosphereTable, &BiosphereTable, &MinorObjectList, BarycenterID);
+    (*Result)["Objects"] = ObjectList;
+
+    spdlog::info("完成");
 }
