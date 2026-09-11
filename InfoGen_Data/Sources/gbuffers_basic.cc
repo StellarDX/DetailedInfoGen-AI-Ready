@@ -223,16 +223,20 @@ void ComputePlanetTemperature(const SETable& RawData, OIDType CurrentID, const O
 
     SEVec3 CurrentPos = StaticPos.at(CurrentID);
     double Equilibrium = 0;
+    double Fluxes = 0;
     for (auto i : Stars)
     {
         double StarLuminosity = PhysTable.at(i).Luminosity;
         double Distance = (CurrentPos - StaticPos.at(i)).lpNorm<2>();
         double AlbedoBond = Table->Albedo.x();
-        Equilibrium += pow(StarLuminosity * (1. - AlbedoBond) / (16. * StefanBoltzmann * M_PI * Distance * Distance), 1. / 4.);
+        double Flux = StarLuminosity / (4. * M_PI * Distance * Distance);
+        Fluxes += Flux;
+        Equilibrium += pow((Flux * (1. - AlbedoBond)) / (4. * StefanBoltzmann), 1. / 4.);
     }
 
     // 暂时只统计这四个热源，如果是卫星还有个潮汐加热，那个要用热力学模型才能计算，这里先不计了
     // （奈何热力学水实在太深了）
+    Table->RadiantFlux = Fluxes;
     Table->Temperature = BaseTemperature + Equilibrium + EndogenousHeating + GreenHouse;
 }
 
@@ -243,12 +247,40 @@ void ComputeSynodicRotationPeriod(OIDType CurrentID, const OrbitTableType& Orbit
     Table->SynodicRotationPeriod = (Y * D) / std::abs(Y - D);
 }
 
+double SolarSysESI(double MeanRadius, double BulkDensity, double EscapeVelocity, double Temperature)
+{
+    double RadiusSim = pow(1. - abs((MeanRadius - EarthRadius) / (MeanRadius + EarthRadius)), 0.57 / 4.);
+    double DensitySim = pow(1. - abs((BulkDensity - EarthDensity) / (BulkDensity + EarthDensity)), 1.07 / 4.);
+    double EVelSim = pow(1. - abs((EscapeVelocity - EarthEscapeVel) / (EscapeVelocity + EarthEscapeVel)), 0.70 / 4.);
+    double TempSim = pow(1. - abs((Temperature - EarthTemperature) / (Temperature + EarthTemperature)), 5.58 / 4.);
+    return RadiusSim * DensitySim * EVelSim * TempSim;
+}
+
+double ExtrasolarESI(double RadiantFlux, double MeanRadius)
+{
+    double FluxSim = pow(abs((RadiantFlux - SolarConstant) / (RadiantFlux + SolarConstant)), 2);
+    double RadiusSim = pow(abs((MeanRadius - EarthRadius) / (MeanRadius + EarthRadius)), 2);
+    return 1. - sqrt((FluxSim + RadiusSim) / 2.);
+}
+
+void ComputeESI(OIDType CurrentID, PhysicalCharacteristics* Table)
+{
+    if (ESIEstimator == "Extrasolar") {ExtrasolarESI(Table->RadiantFlux, Table->MeanRadius);}
+    else {Table->ESI = SolarSysESI(Table->MeanRadius, Table->MeanDensity, Table->EscapeVelocity, Table->Temperature);}
+}
+
 void LoadPlanet(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTableType& Orbit, const ObjectListType& Stars, const StaticPosTableType& StaticPos, const PhysicalTableType& PhysTable, PhysicalCharacteristics* Table)
 {
     auto RawData = BasicTable.at(CurrentID).second[1].As<SETable>();
     LoadBasicData(RawData, CurrentID, Orbit, Table);
     ComputeSynodicRotationPeriod(CurrentID, Orbit, Table);
     ComputePlanetTemperature(RawData, CurrentID, Stars, StaticPos, PhysTable, Table);
+    if (BasicTable.at(CurrentID).first == "Planet" ||
+        BasicTable.at(CurrentID).first == "Moon" ||
+        BasicTable.at(CurrentID).first == "DwarfPlanet")
+    {
+        ComputeESI(CurrentID, Table);
+    }
 }
 
 PhysicalCharTableType gbuffer_basic()
@@ -370,6 +402,8 @@ PhysicalCharTableType gbuffer_basic()
         Dst["AxialTilt"] = PhysicalTable[i].AxialTilt;
         Dst["Albedo"] = PhysicalTable[i].Albedo;
         Dst["Temperature"] = PhysicalTable[i].Temperature;
+        Dst["RadiantFlux"] = PhysicalTable[i].RadiantFlux;
+        Dst["ESI"] = PhysicalTable[i].ESI;
         Dst["SubSystemsList"] = PhysicalTable[i].SubSystemsList;
         Result.insert({i, Dst});
     }
@@ -396,6 +430,11 @@ PhysicalCharTableType gbuffer_basic()
         Dst["AxialTilt"] = PhysicalTable[i].AxialTilt;
         Dst["Albedo"] = PhysicalTable[i].Albedo;
         Dst["Temperature"] = PhysicalTable[i].Temperature;
+        Dst["RadiantFlux"] = PhysicalTable[i].RadiantFlux;
+        if (BASIC.at(i).first == "Moon")
+        {
+            Dst["ESI"] = PhysicalTable[i].ESI;
+        }
         Result.insert({i, Dst});
     }
 

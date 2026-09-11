@@ -3,12 +3,14 @@
 
 #include "composite.h"
 #include "composite1.h"
+#include "composite2.h"
 #include "final.h"
 
 std::string InputFile;
 uint16_t    IFCodePage;
 bool        IsAbsoluteOrbitParams;
 double      CommonPlaneThreshold;
+std::string ESIEstimator;
 bool        SortSystem;
 
 SETable     RawData;
@@ -29,6 +31,7 @@ void LoadArguments(const py::kwargs& args)
     IFCodePage = GetArgFromPy(args, "code_page", 65001);
     IsAbsoluteOrbitParams = GetArgFromPy(args, "absolute_orbit", false);
     CommonPlaneThreshold = GetArgFromPy(args, "common_plane_threshold", 9.);
+    ESIEstimator = GetArgFromPy(args, "esi_estimator", std::string("SolarSys"));
     SortSystem = GetArgFromPy(args, "sort_system", false);
 }
 
@@ -65,6 +68,7 @@ ReturnType InfoGen_Main(const py::kwargs& args)
     {
         Composite(&Result);
         Composite1(&Result);
+        Composite2(&Result);
     }
     catch(const std::exception& e)
     {

@@ -17,6 +17,8 @@ using BiosphereTableType    = std::flat_map<OIDType, py::dict>;
 
 extern StaticPosTableType     StaticPosTable;
 
+extern std::unordered_set<OIDType> MinorObjectList;
+
 void Composite1(ReturnType* Result);
 
 #endif

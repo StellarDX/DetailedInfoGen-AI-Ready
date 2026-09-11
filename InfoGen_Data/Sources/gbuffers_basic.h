@@ -35,6 +35,9 @@ struct PhysicalCharacteristics
     SEVec2 Albedo; // 除Star外的其他物体启用
     double Luminosity; // 仅Star启用
     double Temperature;
+    double RadiantFlux; // 除Star外的其他物体启用
+
+    double ESI; // 仅Planet，DwarfPlanet，Moon启用
 
     std::vector<std::string> SubSystemsList; // 仅Planet和DwarfPlanet启用
 };
