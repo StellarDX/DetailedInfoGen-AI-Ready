@@ -18,6 +18,12 @@ for _stream in (sys.stdout, sys.stderr):
         pass
 
 from InfoGen_Data import InfoGen
+
 from InfoGen_Data.Modules.ChineseHelpFormatter import InfoGenHelpFormatter
 
-from InfoGen_Data.Modules import Create
+from InfoGen_Data.Modules.I18NAdmin import LoadLocale
+from InfoGen_Data.Modules.I18NAdmin import Register as LCAdminRegister
+from InfoGen_Data.Modules.I18NAdmin import LocaleAdmin
+
+from InfoGen_Data.Modules.Create import Register as CreateRegister
+from InfoGen_Data.Modules.Create import LoadObjectsFromSC

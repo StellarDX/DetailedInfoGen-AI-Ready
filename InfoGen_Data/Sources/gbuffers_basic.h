@@ -36,6 +36,9 @@ struct PhysicalCharacteristics
     double Temperature;
     double RadiantFlux; // 除Star外的其他物体启用
 
+    double KerrSpin; // 仅黑洞启用
+    double KerrCharge; // 仅黑洞启用
+
     double ESI; // 仅Planet，DwarfPlanet，Moon启用
 
     std::vector<std::string> SubSystemsList; // 仅Planet和DwarfPlanet启用

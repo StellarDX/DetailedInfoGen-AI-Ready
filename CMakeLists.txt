@@ -264,3 +264,18 @@ endforeach()
 
 list(LENGTH PYTHON_INSTALL_FILES _pycount)
 message(STATUS "[${PROJECT_NAME}] 将安装 Python 文件 ${_pycount} 个（已排除 3rdParty）")
+
+# ----------------------------------------------------------------------------
+# 安装 StreamingAssets 资源目录（按原目录结构）
+#   将 ./InfoGen_Data/StreamingAssets 整个目录安装到
+#   CMAKE_INSTALL_PREFIX/InfoGen_Data/StreamingAssets 下，保留其内部目录层级。
+# ----------------------------------------------------------------------------
+set(INFOGEN_STREAMING_ASSETS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/InfoGen_Data/StreamingAssets")
+if(IS_DIRECTORY "${INFOGEN_STREAMING_ASSETS_DIR}")
+    install(DIRECTORY "${INFOGEN_STREAMING_ASSETS_DIR}"
+        DESTINATION "InfoGen_Data"
+    )
+    message(STATUS "[${PROJECT_NAME}] 将安装资源目录: ${INFOGEN_STREAMING_ASSETS_DIR} -> InfoGen_Data/StreamingAssets")
+else()
+    message(WARNING "[${PROJECT_NAME}] 未找到 StreamingAssets 目录: ${INFOGEN_STREAMING_ASSETS_DIR}")
+endif()

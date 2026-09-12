@@ -185,17 +185,35 @@ void LoadLuminosity(const SETable& Data, PhysicalCharacteristics* Table)
     Table->Luminosity *= SolarLuminosity;
 }
 
+double SchwarzschildRadius(double Mass)
+{
+    return (2. * GravConstant * Mass) / (SpeedOfLight * SpeedOfLight);
+}
+
 void LoadStar(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTableType& Orbit, PhysicalCharacteristics* Table)
 {
     auto RawData = BasicTable.at(CurrentID).second[1].As<SETable>();
-    LoadBasicData(RawData, CurrentID, Orbit, Table);
-    Table->Age = GetObjectS(RawData, "Age", 0, std::numeric_limits<double>::quiet_NaN()) * 1000000000;
-    LoadLuminosity(RawData, Table);
-    Table->Temperature = GetObjectS(RawData, "Temperature", 0, std::numeric_limits<double>::quiet_NaN());
-    if (isnan(Table->Temperature)) [[likely]]
+    auto Class = GetObjectS(RawData, "Class", 0, std::string("None"));
+    if (Class == "X" || Class == "BlackHole")
     {
-        Table->Temperature = GetObjectS(RawData, "Teff", 0, std::numeric_limits<double>::quiet_NaN());
+        // 黑洞要特殊处理
+        LoadMass(RawData, Table);
+        Table->MeanRadius = SchwarzschildRadius(Table->Mass);
+        Table->KerrSpin = GetObjectS(RawData, "KerrSpin", 0, 0);
+        Table->KerrCharge = GetObjectS(RawData, "KerrCharge", 0, 0);
     }
+    else
+    {
+        LoadBasicData(RawData, CurrentID, Orbit, Table);
+        Table->Age = GetObjectS(RawData, "Age", 0, std::numeric_limits<double>::quiet_NaN()) * 1000000000;
+        LoadLuminosity(RawData, Table);
+        Table->Temperature = GetObjectS(RawData, "Temperature", 0, std::numeric_limits<double>::quiet_NaN());
+        if (isnan(Table->Temperature)) [[likely]]
+        {
+            Table->Temperature = GetObjectS(RawData, "Teff", 0, std::numeric_limits<double>::quiet_NaN());
+        }
+    }
+
 }
 
 void ComputePlanetTemperature(const SETable& RawData, OIDType CurrentID, const ObjectListType& Stars, const StaticPosTableType& StaticPos, const PhysicalTableType& PhysTable, PhysicalCharacteristics* Table)
@@ -358,23 +376,33 @@ PhysicalCharTableType gbuffer_basic()
     {
         PhysicalCharTableType::mapped_type Dst;
         Dst["Class"] = PhysicalTable[i].Class;
-        Dst["MeanRadius"] = PhysicalTable[i].MeanRadius;
-        Dst["Dimensions"] = PhysicalTable[i].Dimensions;
-        Dst["Flattening"] = PhysicalTable[i].Flattening;
-        Dst["Circumference"] = PhysicalTable[i].Circumference;
-        Dst["SurfaceArea"] = PhysicalTable[i].SurfaceArea;
-        Dst["Volume"] = PhysicalTable[i].Volume;
-        Dst["Mass"] = PhysicalTable[i].Mass;
-        Dst["MeanDensity"] = PhysicalTable[i].MeanDensity;
-        Dst["Age"] = PhysicalTable[i].Age;
-        Dst["SurfaceGravity"] = PhysicalTable[i].SurfaceGravity;
-        Dst["MomentOfInertiaFactor"] = PhysicalTable[i].MomentOfInertiaFactor;
-        Dst["EscapeVelocity"] = PhysicalTable[i].EscapeVelocity;
-        Dst["SiderealRotationPeriod"] = PhysicalTable[i].SiderealRotationPeriod;
-        Dst["EquatorialRotationVelocity"] = PhysicalTable[i].EquatorialRotationVelocity;
-        Dst["AxialTilt"] = PhysicalTable[i].AxialTilt;
-        Dst["Luminosity"] = PhysicalTable[i].Luminosity;
-        Dst["Temperature"] = PhysicalTable[i].Temperature;
+        if (PhysicalTable[i].Class == "X" || PhysicalTable[i].Class == "BlackHole")
+        {
+            Dst["Mass"] = PhysicalTable[i].Mass;
+            Dst["MeanRadius"] = PhysicalTable[i].MeanRadius;
+            Dst["KerrSpin"] = PhysicalTable[i].KerrSpin;
+            Dst["KerrCharge"] = PhysicalTable[i].KerrCharge;
+        }
+        else
+        {
+            Dst["MeanRadius"] = PhysicalTable[i].MeanRadius;
+            Dst["Dimensions"] = PhysicalTable[i].Dimensions;
+            Dst["Flattening"] = PhysicalTable[i].Flattening;
+            Dst["Circumference"] = PhysicalTable[i].Circumference;
+            Dst["SurfaceArea"] = PhysicalTable[i].SurfaceArea;
+            Dst["Volume"] = PhysicalTable[i].Volume;
+            Dst["Mass"] = PhysicalTable[i].Mass;
+            Dst["MeanDensity"] = PhysicalTable[i].MeanDensity;
+            Dst["Age"] = PhysicalTable[i].Age;
+            Dst["SurfaceGravity"] = PhysicalTable[i].SurfaceGravity;
+            Dst["MomentOfInertiaFactor"] = PhysicalTable[i].MomentOfInertiaFactor;
+            Dst["EscapeVelocity"] = PhysicalTable[i].EscapeVelocity;
+            Dst["SiderealRotationPeriod"] = PhysicalTable[i].SiderealRotationPeriod;
+            Dst["EquatorialRotationVelocity"] = PhysicalTable[i].EquatorialRotationVelocity;
+            Dst["AxialTilt"] = PhysicalTable[i].AxialTilt;
+            Dst["Luminosity"] = PhysicalTable[i].Luminosity;
+            Dst["Temperature"] = PhysicalTable[i].Temperature;
+        }
         Result.insert({i, Dst});
     }
 
