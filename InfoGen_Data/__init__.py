@@ -21,6 +21,8 @@ from InfoGen_Data import InfoGen
 
 from InfoGen_Data.Modules.ChineseHelpFormatter import InfoGenHelpFormatter
 
+from InfoGen_Data.Modules import Classifications
+
 from InfoGen_Data.Modules.I18NAdmin import LoadLocale
 from InfoGen_Data.Modules.I18NAdmin import Register as LCAdminRegister
 from InfoGen_Data.Modules.I18NAdmin import LocaleAdmin

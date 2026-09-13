@@ -15,6 +15,7 @@ namespace py = pybind11;
 struct PhysicalCharacteristics
 {
     std::string Class;
+    double AbsMagnBol;
     double MeanRadius;
     SEVec3 Dimensions;
     SEVec3 Flattening;

@@ -53,7 +53,7 @@ HydrosphereTableType gbuffers_hydrosphere()
     for (auto [OID, Data] : OceanPrevTable)
     {
         HydrosphereTableType::mapped_type Dst;
-        Dst["Height"] = Data.Height;
+        Dst["Height"] = Data.Height * Km;
         Dst["CompositionByVolume"] = Data.CompositionByVolume;
         Result.insert({OID, Dst});
     }

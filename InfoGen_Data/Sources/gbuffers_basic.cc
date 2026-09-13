@@ -182,6 +182,7 @@ void LoadLuminosity(const SETable& Data, PhysicalCharacteristics* Table)
         if (isnan(Table->Luminosity)) {Table->Luminosity = 0;}
         Table->Luminosity += GetObjectS(AccDiskTable, "LuminosityBol", 0, std::numeric_limits<double>::quiet_NaN());
     }
+    Table->AbsMagnBol = -2.5 * log10(Table->Luminosity);
     Table->Luminosity *= SolarLuminosity;
 }
 
@@ -213,7 +214,6 @@ void LoadStar(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTa
             Table->Temperature = GetObjectS(RawData, "Teff", 0, std::numeric_limits<double>::quiet_NaN());
         }
     }
-
 }
 
 void ComputePlanetTemperature(const SETable& RawData, OIDType CurrentID, const ObjectListType& Stars, const StaticPosTableType& StaticPos, const PhysicalTableType& PhysTable, PhysicalCharacteristics* Table)
@@ -262,7 +262,17 @@ void ComputePlanetTemperature(const SETable& RawData, OIDType CurrentID, const O
 
 void ComputeSynodicRotationPeriod(OIDType CurrentID, const OrbitTableType& Orbit, PhysicalCharacteristics* Table)
 {
-    double Y = Orbit.at(CurrentID).Period;
+    double Y;
+    if (SatelliteList.contains(CurrentID))
+    {
+        auto ParentBody = std::find_if(SystemTable.begin(), SystemTable.end(), 
+            [CurrentID](SystemType::value_type v)
+        {
+            return std::find(v.second.begin(), v.second.end(), CurrentID) != v.second.end();
+        })->first;
+        Y = Orbit.at(ParentBody).Period;
+    }
+    else {Y = Orbit.at(CurrentID).Period;}
     double D = Table->SiderealRotationPeriod;
     Table->SynodicRotationPeriod = (Y * D) / std::abs(Y - D);
 }
@@ -385,6 +395,7 @@ PhysicalCharTableType gbuffer_basic()
         }
         else
         {
+            Dst["AbsMagnBol"] = PhysicalTable[i].AbsMagnBol;
             Dst["MeanRadius"] = PhysicalTable[i].MeanRadius;
             Dst["Dimensions"] = PhysicalTable[i].Dimensions;
             Dst["Flattening"] = PhysicalTable[i].Flattening;

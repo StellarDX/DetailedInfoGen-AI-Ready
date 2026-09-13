@@ -1,6 +1,7 @@
 from InfoGen_Data import InfoGen
 from InfoGen_Data import InfoGenHelpFormatter
 from InfoGen_Data import LoadLocale
+from InfoGen_Data import Classifications
 
 import argparse
 
@@ -41,15 +42,269 @@ def PrintArgs(args):
     print(f"--store:                       {args.store}")
     print(f"--model-config:                {args.model_config}")
 
-def Classification(OType:str, OClass:str, Mass:float, Radius:float, Temperature:float):
-    if OType == "Star":
-        return OClass # 恒星光谱字符串非常复杂，因此返回原始类型，后续可以拿AI解析
-    
-
 class Generator(ABC):
     def __init__(self, System:dict):
         self._Src = System
         self._Texts = {}
+
+    def _Subsystem_To_DataFrame(self, SubSystem:list, ParentBody:dict):
+        RawData = []
+        for i in SubSystem:
+            Table = self._Src["Objects"][i]
+            Row = {}
+            Row[LOC("卫星名")] = i
+            MeanDiameter = Table["PhysicalCharacteristics"]["MeanRadius"] * 2
+            Dimensions = Table["PhysicalCharacteristics"]["Dimensions"]
+            DimOutput = ""
+            if Dimensions[0] == Dimensions[2]:
+                DimOutput = " × ".join([f"{Dimensions[0]}", f"{Dimensions[1]}"])
+            elif Dimensions[0] == Dimensions[2] and Dimensions[0] == Dimensions[1]:
+                DimOutput = ""
+            else:
+                DimOutput = " × ".join([f"{i}" for i in Dimensions])
+            DimOutput = " (" + DimOutput + ")" if DimOutput != "" else ""
+            Row[LOC("直径")] = f"{MeanDiameter} m{DimOutput}"
+            Row[LOC("质量")] = f"{Table["PhysicalCharacteristics"]["Mass"]} Kg"
+            if ParentBody["OType"] == "Barycenter" and Table["OrbitalCharacteristics"]["BinaryOrbit"] and not Table["OrbitalCharacteristics"]["IsPrimary"]:
+                Row[LOC("半长轴 (a)")] = f"{Table["OrbitalCharacteristics"]["BSemiMajorAxis"]} m"
+                Row[LOC("周期 (P)")] = f"{Table["OrbitalCharacteristics"]["BPeriod"]} s"
+                Row[LOC("轨道倾角 (i)")] = Table["OrbitalCharacteristics"]["BInclination"]
+                Row[LOC("离心率 (e)")] = Table["OrbitalCharacteristics"]["BEccentricity"]
+            else:
+                Row[LOC("半长轴 (a)")] = f"{Table["OrbitalCharacteristics"]["SemiMajorAxis"]} m"
+                Row[LOC("周期 (P)")] = f"{Table["OrbitalCharacteristics"]["Period"]} s"
+                Row[LOC("轨道倾角 (i)")] = Table["OrbitalCharacteristics"]["Inclination"]
+                Row[LOC("离心率 (e)")] = Table["OrbitalCharacteristics"]["Eccentricity"]
+            RawData.append(Row)
+        return DataFrame(RawData)
+
+    def _Object_To_Table(self, Object:dict, ParentBody:dict):
+        ObjectInfo = {}
+        match Object["OType"] :
+            case "Barycenter":
+                ObjectInfo[LOC("物体类型")] = LOC("质心")
+                # 质心默认情况下不输出任何数据，除非它是双星系统的伴星才会输出轨道
+                if ParentBody["OType"] == "Barycenter" and Object["OrbitalCharacteristics"]["BinaryOrbit"] and not Object["OrbitalCharacteristics"]["IsPrimary"]:
+                    OrbitalCharacteristics = {}
+                    OrbitalCharacteristics[LOC("参考系统")] = LOC(Object["OrbitalCharacteristics"]["RefPlane"])
+                    OrbitalCharacteristics[LOC("主星")] = Object["OrbitalCharacteristics"]["Primary"]
+                    OrbitalCharacteristics[LOC("伴星")] = Object["OrbitalCharacteristics"]["Companion"]
+                    OrbitalCharacteristics[LOC("周期 (P)")] = f"{Object["OrbitalCharacteristics"]["BPeriod"]} s"
+                    OrbitalCharacteristics[LOC("半长轴 (a)")] = f"{Object["OrbitalCharacteristics"]["BSemiMajorAxis"]} m"
+                    OrbitalCharacteristics[LOC("离心率 (e)")] = Object["OrbitalCharacteristics"]["BEccentricity"]
+                    OrbitalCharacteristics[LOC("轨道倾角 (i)")] = Object["OrbitalCharacteristics"]["BInclination"]
+                    OrbitalCharacteristics[LOC("升交点经度 (Ω)")] = Object["OrbitalCharacteristics"]["BAscendingNode"]
+                    OrbitalCharacteristics[LOC("历元 (T)")] = f"{Object["OrbitalCharacteristics"]["BEpoch"]} JD"
+                    OrbitalCharacteristics[LOC("近心点辐角 (ω)")] = Object["OrbitalCharacteristics"]["BArgOfPericenter"]
+                    OrbitalCharacteristics[LOC("平近点角 (M0)")] = Object["OrbitalCharacteristics"]["BMeanAnomaly"]
+                    ObjectInfo[LOC("轨道数据")] = DataFrame([OrbitalCharacteristics])
+            case "Star":
+                OClass = Object["PhysicalCharacteristics"]["Class"]
+                if OClass == "X" or OClass == "BlackHole":
+                    ObjectInfo[LOC("物体类型")] = LOC(Classifications.RegexStellarClassification(OClass))
+                    PhysicalCharacteristics = {}
+                    PhysicalCharacteristics[LOC("质量")] = f"{Object["PhysicalCharacteristics"]["Mass"]} Kg"
+                    PhysicalCharacteristics[LOC("史瓦西半径")] = f"{Object["PhysicalCharacteristics"]["MeanRadius"]} m"
+                    PhysicalCharacteristics[LOC("自旋")] = Object["PhysicalCharacteristics"]["KerrSpin"]
+                    PhysicalCharacteristics[LOC("电荷量")] = Object["PhysicalCharacteristics"]["KerrCharge"]
+                    ObjectInfo[LOC("物理数据")] = DataFrame([PhysicalCharacteristics])
+                else:
+                    ObjectInfo[LOC("物体类型")] = LOC(Classifications.RegexStellarClassification(OClass))
+                    # 恒星默认情况下不输出轨道，除非它是双星系统的伴星
+                    if ParentBody["OType"] == "Barycenter" and Object["OrbitalCharacteristics"]["BinaryOrbit"] and not Object["OrbitalCharacteristics"]["IsPrimary"]:
+                        OrbitalCharacteristics = {}
+                        OrbitalCharacteristics[LOC("参考系统")] = LOC(Object["OrbitalCharacteristics"]["RefPlane"])
+                        OrbitalCharacteristics[LOC("主星")] = Object["OrbitalCharacteristics"]["Primary"]
+                        OrbitalCharacteristics[LOC("伴星")] = Object["OrbitalCharacteristics"]["Companion"]
+                        OrbitalCharacteristics[LOC("周期 (P)")] = f"{Object["OrbitalCharacteristics"]["BPeriod"]} s"
+                        OrbitalCharacteristics[LOC("半长轴 (a)")] = f"{Object["OrbitalCharacteristics"]["BSemiMajorAxis"]} m"
+                        OrbitalCharacteristics[LOC("离心率 (e)")] = Object["OrbitalCharacteristics"]["BEccentricity"]
+                        OrbitalCharacteristics[LOC("轨道倾角 (i)")] = Object["OrbitalCharacteristics"]["BInclination"]
+                        OrbitalCharacteristics[LOC("升交点经度 (Ω)")] = Object["OrbitalCharacteristics"]["BAscendingNode"]
+                        OrbitalCharacteristics[LOC("历元 (T)")] = f"{Object["OrbitalCharacteristics"]["BEpoch"]} JD"
+                        OrbitalCharacteristics[LOC("近心点辐角 (ω)")] = Object["OrbitalCharacteristics"]["BArgOfPericenter"]
+                        OrbitalCharacteristics[LOC("平近点角 (M0)")] = Object["OrbitalCharacteristics"]["BMeanAnomaly"]
+                        ObjectInfo[LOC("轨道数据")] = DataFrame([OrbitalCharacteristics])
+                    PhysicalCharacteristics = {}
+                    PhysicalCharacteristics[LOC("绝对热星等")] = Object["PhysicalCharacteristics"]["AbsMagnBol"]
+                    PhysicalCharacteristics[LOC("光谱类型")] = Object["PhysicalCharacteristics"]["Class"]
+                    PhysicalCharacteristics[LOC("黄赤交角")] = Object["PhysicalCharacteristics"]["AxialTilt"]
+                    PhysicalCharacteristics[LOC("自转周期")] = f"{Object["PhysicalCharacteristics"]["SiderealRotationPeriod"]} s"
+                    PhysicalCharacteristics[LOC("自转线速度")] = f"{Object["PhysicalCharacteristics"]["EquatorialRotationVelocity"]} m/s"
+                    Dimensions = Object["PhysicalCharacteristics"]["Dimensions"] / 2.
+                    XRadius, ZRadius = Dimensions[0], Dimensions[2]
+                    PhysicalCharacteristics[LOC("赤道半径")] = f"{XRadius if max(XRadius, ZRadius) == XRadius else ZRadius} m"
+                    Flattening = Object["PhysicalCharacteristics"]["Flattening"]
+                    PhysicalCharacteristics[LOC("扁率")] = Flattening if Flattening[0] != 0 or Flattening[2] != 0 else Flattening[1]
+                    PhysicalCharacteristics[LOC("表面积")] = f"{Object["PhysicalCharacteristics"]["SurfaceArea"]} m^2"
+                    PhysicalCharacteristics[LOC("体积")] = f"{Object["PhysicalCharacteristics"]["Volume"]} m^3"
+                    PhysicalCharacteristics[LOC("质量")] = f"{Object["PhysicalCharacteristics"]["Mass"]} Kg"
+                    PhysicalCharacteristics[LOC("平均密度")] = f"{Object["PhysicalCharacteristics"]["MeanDensity"]} Kg/m^3"
+                    PhysicalCharacteristics[LOC("年龄")] = f"{Object["PhysicalCharacteristics"]["Age"]} Yr"
+                    PhysicalCharacteristics[LOC("表面重力")] = f"{Object["PhysicalCharacteristics"]["SurfaceGravity"]} m/s^2"
+                    PhysicalCharacteristics[LOC("转动惯量")] = Object["PhysicalCharacteristics"]["MomentOfInertiaFactor"]
+                    PhysicalCharacteristics[LOC("逃逸速度")] = f"{Object["PhysicalCharacteristics"]["EscapeVelocity"]} m/s"
+                    PhysicalCharacteristics[LOC("温度")] = f"{Object["PhysicalCharacteristics"]["Temperature"]} °K"
+                    PhysicalCharacteristics[LOC("光度")] = f"{Object["PhysicalCharacteristics"]["Luminosity"]} W"
+                    ObjectInfo[LOC("物理数据")] = DataFrame([PhysicalCharacteristics])
+            case "Planet" | "DwarfPlanet":
+                ObjectInfo[LOC("物体类型")] = LOC(Classifications.PlanetClassification(
+                    Object["PhysicalCharacteristics"]["Class"],
+                    Object["PhysicalCharacteristics"],
+                    None if "Hydrosphere" not in Object.keys() else Object["Hydrosphere"]
+                ))
+                OrbitalCharacteristics = {}
+                if ParentBody["OType"] == "Barycenter" and Object["OrbitalCharacteristics"]["BinaryOrbit"] and not Object["OrbitalCharacteristics"]["IsPrimary"]:
+                    OrbitalCharacteristics[LOC("参考系统")] = LOC(Object["OrbitalCharacteristics"]["RefPlane"])
+                    OrbitalCharacteristics[LOC("主星")] = Object["OrbitalCharacteristics"]["Primary"]
+                    OrbitalCharacteristics[LOC("伴星")] = Object["OrbitalCharacteristics"]["Companion"]
+                    OrbitalCharacteristics[LOC("远地点")] = f"{Object["OrbitalCharacteristics"]["BAphelionDist"]} m"
+                    OrbitalCharacteristics[LOC("近地点")] = f"{Object["OrbitalCharacteristics"]["BPericenterDist"]} m"
+                    OrbitalCharacteristics[LOC("半长轴 (a)")] = f"{Object["OrbitalCharacteristics"]["BSemiMajorAxis"]} m"
+                    OrbitalCharacteristics[LOC("离心率 (e)")] = Object["OrbitalCharacteristics"]["BEccentricity"]
+                    OrbitalCharacteristics[LOC("恒星年 (P)")] = f"{Object["OrbitalCharacteristics"]["BPeriod"]} s"
+                    OrbitalCharacteristics[LOC("平近点角 (M0)")] = Object["OrbitalCharacteristics"]["BMeanAnomaly"]
+                    OrbitalCharacteristics[LOC("轨道倾角 (i)")] = Object["OrbitalCharacteristics"]["BInclination"]
+                    OrbitalCharacteristics[LOC("升交点经度 (Ω)")] = Object["OrbitalCharacteristics"]["BAscendingNode"]
+                    OrbitalCharacteristics[LOC("历元 (T)")] = f"{Object["OrbitalCharacteristics"]["BEpoch"]} JD"
+                    OrbitalCharacteristics[LOC("近心点辐角 (ω)")] = Object["OrbitalCharacteristics"]["BArgOfPericenter"]
+                else:
+                    OrbitalCharacteristics[LOC("参考系统")] = LOC(Object["OrbitalCharacteristics"]["RefPlane"])
+                    OrbitalCharacteristics[LOC("远日点")] = f"{Object["OrbitalCharacteristics"]["AphelionDist"]} m"
+                    OrbitalCharacteristics[LOC("近日点")] = f"{Object["OrbitalCharacteristics"]["PericenterDist"]} m"
+                    OrbitalCharacteristics[LOC("半长轴 (a)")] = f"{Object["OrbitalCharacteristics"]["SemiMajorAxis"]} m"
+                    OrbitalCharacteristics[LOC("离心率 (e)")] = Object["OrbitalCharacteristics"]["Eccentricity"]
+                    OrbitalCharacteristics[LOC("恒星年 (P)")] = f"{Object["OrbitalCharacteristics"]["Period"]} s"
+                    OrbitalCharacteristics[LOC("平近点角 (M0)")] = Object["OrbitalCharacteristics"]["MeanAnomaly"]
+                    OrbitalCharacteristics[LOC("轨道倾角 (i)")] = Object["OrbitalCharacteristics"]["Inclination"]
+                    OrbitalCharacteristics[LOC("升交点经度 (Ω)")] = Object["OrbitalCharacteristics"]["AscendingNode"]
+                    OrbitalCharacteristics[LOC("历元 (T)")] = f"{Object["OrbitalCharacteristics"]["Epoch"]} JD"
+                    OrbitalCharacteristics[LOC("近日点辐角 (ω)")] = Object["OrbitalCharacteristics"]["ArgOfPericenter"]
+                ObjectInfo[LOC("轨道数据")] = DataFrame([OrbitalCharacteristics])
+                PhysicalCharacteristics = {}
+                PhysicalCharacteristics[LOC("平均半径")] = f"{Object["PhysicalCharacteristics"]["MeanRadius"]} m"
+                Dimensions = Object["PhysicalCharacteristics"]["Dimensions"] / 2.
+                XRadius, ZRadius = Dimensions[0], Dimensions[2]
+                PhysicalCharacteristics[LOC("赤道半径")] = f"{XRadius if max(XRadius, ZRadius) == XRadius else ZRadius} m"
+                PhysicalCharacteristics[LOC("极半径")] = f"{Dimensions[1]} m"
+                Flattening = Object["PhysicalCharacteristics"]["Flattening"]
+                PhysicalCharacteristics[LOC("扁率")] = Flattening if Flattening[0] != 0 or Flattening[2] != 0 else Flattening[1]
+                PhysicalCharacteristics[LOC("赤道周长")] = f"{Object["PhysicalCharacteristics"]["Circumference"][0]} m"
+                PhysicalCharacteristics[LOC("极周长")] = f"{Object["PhysicalCharacteristics"]["Circumference"][1]} m"
+                PhysicalCharacteristics[LOC("表面积")] = f"{Object["PhysicalCharacteristics"]["SurfaceArea"]} m^2"
+                PhysicalCharacteristics[LOC("体积")] = f"{Object["PhysicalCharacteristics"]["Volume"]} m^3"
+                PhysicalCharacteristics[LOC("质量")] = f"{Object["PhysicalCharacteristics"]["Mass"]} Kg"
+                PhysicalCharacteristics[LOC("平均密度")] = f"{Object["PhysicalCharacteristics"]["MeanDensity"]} Kg/m^3"
+                PhysicalCharacteristics[LOC("表面重力")] = f"{Object["PhysicalCharacteristics"]["SurfaceGravity"]} m/s^2"
+                PhysicalCharacteristics[LOC("转动惯量")] = Object["PhysicalCharacteristics"]["MomentOfInertiaFactor"]
+                PhysicalCharacteristics[LOC("逃逸速度")] = f"{Object["PhysicalCharacteristics"]["EscapeVelocity"]} m/s"
+                PhysicalCharacteristics[LOC("会合日")] = f"{Object["PhysicalCharacteristics"]["SynodicRotationPeriod"]} s"
+                PhysicalCharacteristics[LOC("恒星日")] = f"{Object["PhysicalCharacteristics"]["SiderealRotationPeriod"]} s"
+                PhysicalCharacteristics[LOC("自转线速度")] = f"{Object["PhysicalCharacteristics"]["EquatorialRotationVelocity"]} m/s"
+                PhysicalCharacteristics[LOC("黄赤交角")] = Object["PhysicalCharacteristics"]["AxialTilt"]
+                PhysicalCharacteristics[LOC("球面反照率")] = Object["PhysicalCharacteristics"]["Albedo"][0]
+                PhysicalCharacteristics[LOC("几何反照率")] = Object["PhysicalCharacteristics"]["Albedo"][1]
+                PhysicalCharacteristics[LOC("温度")] = f"{Object["PhysicalCharacteristics"]["Temperature"]} °K"
+                ObjectInfo[LOC("物理数据")] = DataFrame([PhysicalCharacteristics])
+                if "Atmosphere" in Object.keys():
+                    Atmosphere = {}
+                    Atmosphere[LOC("大气压强")] = f"{Object["Atmosphere"]["SurfacePressure"]} Pa"
+                    Compositions = Object["Atmosphere"]["CompositionByVolume"]
+                    Atmosphere[LOC("大气成分")] = "\n".join([f"{v}% {k}" for k, v in Compositions.items()])
+                    ObjectInfo[LOC("大气")] = DataFrame([Atmosphere])
+                if "Hydrosphere" in Object.keys():
+                    Ocean = {}
+                    Ocean[LOC("海洋深度")] = f"{Object["Hydrosphere"]["Height"]} m"
+                    Compositions = Object["Hydrosphere"]["CompositionByVolume"]
+                    Ocean[LOC("海洋成分")] = "\n".join([f"{v}% {k}" for k, v in Compositions.items()])
+                    ObjectInfo[LOC("海洋")] = DataFrame([Ocean])
+                if "Biosphere" in Object.keys():
+                    Life = {}
+                    Life[LOC("生物形式")] = LOC(Object["Biosphere"]["Class"])
+                    Life[LOC("生物种类")] = LOC(Object["Biosphere"]["Type"])
+                    Life[LOC("生物群系")] = ", ".join([LOC(i) for i in Object["Biosphere"]["Biome"]])
+                    Life[LOC("生物圈")] = DataFrame([Life])
+                if "SubSystems" in Object.keys():
+                    ObjectInfo["卫星列表"] = self._Subsystem_To_DataFrame(Object["SubSystems"], ParentBody)
+            case "Moon":
+                ObjectInfo[LOC("物体类型")] = LOC(Classifications.PlanetClassification(
+                    Object["PhysicalCharacteristics"]["Class"],
+                    Object["PhysicalCharacteristics"],
+                    None if "Hydrosphere" not in Object.keys() else Object["Hydrosphere"]
+                ))
+                OrbitalCharacteristics = {}
+                if ParentBody["OType"] == "Barycenter" and Object["OrbitalCharacteristics"]["BinaryOrbit"] and not Object["OrbitalCharacteristics"]["IsPrimary"]:
+                    OrbitalCharacteristics[LOC("参考系统")] = LOC(Object["OrbitalCharacteristics"]["RefPlane"])
+                    OrbitalCharacteristics[LOC("主星")] = Object["OrbitalCharacteristics"]["Primary"]
+                    OrbitalCharacteristics[LOC("伴星")] = Object["OrbitalCharacteristics"]["Companion"]
+                    OrbitalCharacteristics[LOC("远地点")] = f"{Object["OrbitalCharacteristics"]["BAphelionDist"]} m"
+                    OrbitalCharacteristics[LOC("近地点")] = f"{Object["OrbitalCharacteristics"]["BPericenterDist"]} m"
+                    OrbitalCharacteristics[LOC("半长轴 (a)")] = f"{Object["OrbitalCharacteristics"]["BSemiMajorAxis"]} m"
+                    OrbitalCharacteristics[LOC("离心率 (e)")] = Object["OrbitalCharacteristics"]["BEccentricity"]
+                    OrbitalCharacteristics[LOC("恒星月 (P)")] = f"{Object["OrbitalCharacteristics"]["BPeriod"]} s"
+                    OrbitalCharacteristics[LOC("朔望月 (P)")] = f"{Object["OrbitalCharacteristics"]["SynodicMonth"]} s"
+                    OrbitalCharacteristics[LOC("平近点角 (M0)")] = Object["OrbitalCharacteristics"]["BMeanAnomaly"]
+                    OrbitalCharacteristics[LOC("轨道倾角 (i)")] = Object["OrbitalCharacteristics"]["BInclination"]
+                    OrbitalCharacteristics[LOC("升交点经度 (Ω)")] = Object["OrbitalCharacteristics"]["BAscendingNode"]
+                    OrbitalCharacteristics[LOC("历元 (T)")] = f"{Object["OrbitalCharacteristics"]["BEpoch"]} JD"
+                    OrbitalCharacteristics[LOC("近地点辐角 (ω)")] = Object["OrbitalCharacteristics"]["BArgOfPericenter"]
+                else:
+                    OrbitalCharacteristics[LOC("参考系统")] = LOC(Object["OrbitalCharacteristics"]["RefPlane"])
+                    OrbitalCharacteristics[LOC("远地点")] = f"{Object["OrbitalCharacteristics"]["AphelionDist"]} m"
+                    OrbitalCharacteristics[LOC("近地点")] = f"{Object["OrbitalCharacteristics"]["PericenterDist"]} m"
+                    OrbitalCharacteristics[LOC("半长轴 (a)")] = f"{Object["OrbitalCharacteristics"]["SemiMajorAxis"]} m"
+                    OrbitalCharacteristics[LOC("离心率 (e)")] = Object["OrbitalCharacteristics"]["Eccentricity"]
+                    OrbitalCharacteristics[LOC("恒星月 (P)")] = f"{Object["OrbitalCharacteristics"]["Period"]} s"
+                    OrbitalCharacteristics[LOC("朔望月 (P)")] = f"{Object["OrbitalCharacteristics"]["SynodicMonth"]} s"
+                    OrbitalCharacteristics[LOC("平近点角 (M0)")] = Object["OrbitalCharacteristics"]["MeanAnomaly"]
+                    OrbitalCharacteristics[LOC("轨道倾角 (i)")] = Object["OrbitalCharacteristics"]["Inclination"]
+                    OrbitalCharacteristics[LOC("升交点经度 (Ω)")] = Object["OrbitalCharacteristics"]["AscendingNode"]
+                    OrbitalCharacteristics[LOC("历元 (T)")] = f"{Object["OrbitalCharacteristics"]["Epoch"]} JD"
+                    OrbitalCharacteristics[LOC("近地点辐角 (ω)")] = Object["OrbitalCharacteristics"]["ArgOfPericenter"]
+                ObjectInfo[LOC("轨道数据")] = DataFrame([OrbitalCharacteristics])
+                PhysicalCharacteristics = {}
+                PhysicalCharacteristics[LOC("平均半径")] = f"{Object["PhysicalCharacteristics"]["MeanRadius"]} m"
+                Dimensions = Object["PhysicalCharacteristics"]["Dimensions"] / 2.
+                XRadius, ZRadius = Dimensions[0], Dimensions[2]
+                PhysicalCharacteristics[LOC("赤道半径")] = f"{XRadius if max(XRadius, ZRadius) == XRadius else ZRadius} m"
+                PhysicalCharacteristics[LOC("极半径")] = f"{Dimensions[1]} m"
+                Flattening = Object["PhysicalCharacteristics"]["Flattening"]
+                PhysicalCharacteristics[LOC("扁率")] = Flattening if Flattening[0] != 0 or Flattening[2] != 0 else Flattening[1]
+                PhysicalCharacteristics[LOC("赤道周长")] = f"{Object["PhysicalCharacteristics"]["Circumference"][0]} m"
+                PhysicalCharacteristics[LOC("表面积")] = f"{Object["PhysicalCharacteristics"]["SurfaceArea"]} m^2"
+                PhysicalCharacteristics[LOC("体积")] = f"{Object["PhysicalCharacteristics"]["Volume"]} m^3"
+                PhysicalCharacteristics[LOC("质量")] = f"{Object["PhysicalCharacteristics"]["Mass"]} Kg"
+                PhysicalCharacteristics[LOC("平均密度")] = f"{Object["PhysicalCharacteristics"]["MeanDensity"]} Kg/m^3"
+                PhysicalCharacteristics[LOC("表面重力")] = f"{Object["PhysicalCharacteristics"]["SurfaceGravity"]} m/s^2"
+                PhysicalCharacteristics[LOC("转动惯量")] = Object["PhysicalCharacteristics"]["MomentOfInertiaFactor"]
+                PhysicalCharacteristics[LOC("逃逸速度")] = f"{Object["PhysicalCharacteristics"]["EscapeVelocity"]} m/s"
+                PhysicalCharacteristics[LOC("会合日")] = f"{Object["PhysicalCharacteristics"]["SynodicRotationPeriod"]} s"
+                PhysicalCharacteristics[LOC("恒星日")] = f"{Object["PhysicalCharacteristics"]["SiderealRotationPeriod"]} s"
+                PhysicalCharacteristics[LOC("自转线速度")] = f"{Object["PhysicalCharacteristics"]["EquatorialRotationVelocity"]} m/s"
+                PhysicalCharacteristics[LOC("黄赤交角")] = Object["PhysicalCharacteristics"]["AxialTilt"]
+                PhysicalCharacteristics[LOC("球面反照率")] = Object["PhysicalCharacteristics"]["Albedo"][0]
+                PhysicalCharacteristics[LOC("几何反照率")] = Object["PhysicalCharacteristics"]["Albedo"][1]
+                PhysicalCharacteristics[LOC("温度")] = f"{Object["PhysicalCharacteristics"]["Temperature"]} °K"
+                ObjectInfo[LOC("物理数据")] = DataFrame([PhysicalCharacteristics])
+                if "Atmosphere" in Object.keys():
+                    Atmosphere = {}
+                    Atmosphere[LOC("大气压强")] = f"{Object["Atmosphere"]["SurfacePressure"]} Pa"
+                    Compositions = Object["Atmosphere"]["CompositionByVolume"]
+                    Atmosphere[LOC("大气成分")] = "\n".join([f"{v}% {k}" for k, v in Compositions.items()])
+                    ObjectInfo[LOC("大气")] = DataFrame([Atmosphere])
+                if "Hydrosphere" in Object.keys():
+                    Ocean = {}
+                    Ocean[LOC("海洋深度")] = f"{Object["Hydrosphere"]["Height"]} m"
+                    Compositions = Object["Hydrosphere"]["CompositionByVolume"]
+                    Ocean[LOC("海洋成分")] = "\n".join([f"{v}% {k}" for k, v in Compositions.items()])
+                    ObjectInfo[LOC("海洋")] = DataFrame([Ocean])
+                if "Biosphere" in Object.keys():
+                    Life = {}
+                    Life[LOC("生物形式")] = LOC(Object["Biosphere"]["Class"])
+                    Life[LOC("生物种类")] = LOC(Object["Biosphere"]["Type"])
+                    Life[LOC("生物群系")] = ", ".join([LOC(i) for i in Object["Biosphere"]["Biome"]])
+                    Life[LOC("生物圈")] = DataFrame([Life])
+        return ObjectInfo
 
     @abstractmethod
     def SystemInfo(self):
@@ -73,25 +328,9 @@ class Generator(ABC):
     def GetTexts(self):
         return self._Texts;
 
-class MarkdownGenerator(Generator):
+class MarkdownGenerator(Generator): # 大模型推荐使用，因为模型训练数据中Markdown格式占比很高，而且推理时相比JSON还有Html能省大概30%的Token
     def __init__(self, System:dict):
         super().__init__(System)
-
-    def _Object_To_Table(self, Object:dict, ParentBody:str):
-        ObjectInfo = {}
-        if Object["OType"] == "Star":
-            OClass = Object["PhysicalCharacteristics"]["Class"]
-            if OClass == "X" or OClass == "BlackHole":
-                pass
-            else:
-                ObjectInfo[LOC("物体类型")] = Classification(
-                    Object["OType"], OClass,
-                    Object["PhysicalCharacteristics"]["Mass"],
-                    Object["PhysicalCharacteristics"]["Radius"],
-                    Object["PhysicalCharacteristics"]["Temperature"]
-                # TODO
-            )
-        return ObjectInfo
 
     def SystemInfo(self):
         System = self._Src
@@ -119,7 +358,32 @@ class MarkdownGenerator(Generator):
             Store = False # 过滤小卫星
 
         if Store:
-            Objs[Ident] = self._Object_To_Table(self._Src["Objects"][Ident], ParentBody)
+            ObjData = self._Object_To_Table(self._Src["Objects"][Ident], self._Src["Objects"][ParentBody])
+            OrbitTable, PhysicalTable, AtmosphereTable, OceanTable, LifeTable, SubSystemTable = "", "", "", "", "", ""
+            if LOC("轨道数据") in ObjData.keys():
+                OrbitTable = f"#### {LOC("轨道数据")}\n\n"
+                OrbitVerticalLayout = ObjData[LOC("轨道数据")].iloc[0].to_frame(name=" ")
+                OrbitTable += OrbitVerticalLayout.to_markdown() + "\n\n"
+            if LOC("物理数据") in ObjData.keys():
+                PhysicalTable = f"#### {LOC("物理数据")}\n\n"
+                PhysicalVerticalLayout = ObjData[LOC("物理数据")].iloc[0].to_frame(name=" ")
+                PhysicalTable += PhysicalVerticalLayout.to_markdown() + "\n\n"
+            if LOC("大气") in ObjData.keys():
+                AtmosphereTable = f"#### {LOC("大气")}\n\n"
+                AtmosphereVerticalLayout = ObjData[LOC("大气")].iloc[0].to_frame(name=" ")
+                AtmosphereTable += AtmosphereVerticalLayout.to_markdown() + "\n\n"
+            if LOC("海洋") in ObjData.keys():
+                OceanTable = f"#### {LOC("海洋")}\n\n"
+                OceanVerticalLayout = ObjData[LOC("海洋")].iloc[0].to_frame(name=" ")
+                OceanTable += OceanVerticalLayout.to_markdown() + "\n\n"
+            if LOC("生物圈") in ObjData.keys():
+                LifeTable = f"#### {LOC("生物圈")}\n\n"
+                LifeVerticalLayout = ObjData[LOC("生物圈")].iloc[0].to_frame(name=" ")
+                LifeTable += LifeVerticalLayout.to_markdown() + "\n\n"
+            if LOC("卫星列表") in ObjData.keys():
+                SubSystemTable = f"#### {LOC("卫星列表")}\n\n"
+                SubSystemTable += ObjData[LOC("卫星列表")].to_markdown() + "\n\n"
+            Objs[Ident] = {"Type": ObjData[LOC("物体类型")], "Content": OrbitTable + PhysicalTable + AtmosphereTable + OceanTable + LifeTable + SubSystemTable}
 
         if "SubSystems" in self._Src["Objects"][Ident]:
             for i in self._Src["Objects"][Ident]["SubSystems"]:

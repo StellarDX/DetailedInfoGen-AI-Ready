@@ -3,6 +3,8 @@
 #ifndef __CONSTANTS__
 #define __CONSTANTS__
 
+static const double J2000            = 2451545; // 2000年1月1日对应的Julian Date
+
 static const double GravConstant     = 6.67430E-11; // 2022 CODATA
 static const double BoltzmannConst   = 1.380649E-23; // 2022 CODATA
 static const double PlanckConst      = 6.62607015E-34; // 2022 CODATA

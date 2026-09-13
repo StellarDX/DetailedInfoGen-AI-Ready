@@ -109,6 +109,7 @@ void LoadOrbitParamsFromRawData(const BasicTableType& BasicTable, const SystemTy
         }
 
         Table.AscendingNode = GetObjectS<SEReal>(OrbitRawData, "AscendingNode", 0, 0);
+        Table.Epoch = GetObjectS<SEReal>(OrbitRawData, "Epoch", 0, J2000);
         Table.ArgOfPericenter = GetObjectS<SEReal>(OrbitRawData, "ArgOfPericenter", 0, 0);
 
         Table.MeanAnomaly = GetObjectS<SEReal>(OrbitRawData, "MeanAnomaly", 0, 0);
@@ -327,6 +328,7 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
             Companion.BInclinationEcliptic = Companion.InclinationEcliptic;
             Companion.BAscendingNode = Companion.AscendingNode;
             Companion.BAscNodeEcliptic = Companion.AscNodeEcliptic;
+            Companion.BEpoch = Companion.Epoch;
             Companion.BArgOfPericenter = Companion.ArgOfPericenter;
             Companion.BArgOfPeriEcliptic = Companion.ArgOfPeriEcliptic;
             Companion.BMeanAnomaly = Companion.MeanAnomaly;
@@ -342,6 +344,7 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
             Primary.BInclinationEcliptic = Barycen.InclinationEcliptic;
             Primary.BAscendingNode = Barycen.AscendingNode;
             Primary.BAscNodeEcliptic = Barycen.AscNodeEcliptic;
+            Primary.BEpoch = Barycen.Epoch;
             Primary.BArgOfPericenter = Barycen.ArgOfPericenter;
             Primary.BArgOfPeriEcliptic = Barycen.ArgOfPeriEcliptic;
             Primary.BMeanAnomaly = Barycen.MeanAnomaly;
@@ -408,6 +411,7 @@ OrbitCharTableType gbuffer_orbit()
         if (!IsAbsoluteOrbitParams) {Dst["InclEcliptic"] = Table.InclinationEcliptic;}
         Dst["AscendingNode"] = Table.AscendingNode;
         if (!IsAbsoluteOrbitParams) {Dst["AscNodeEcliptic"] = Table.AscNodeEcliptic;}
+        Dst["Epoch"] = Table.Epoch;
         Dst["ArgOfPericenter"] = Table.ArgOfPericenter;
         if (!IsAbsoluteOrbitParams) {Dst["ArgOfPeriEcliptic"] = Table.ArgOfPeriEcliptic;}
         Dst["MeanAnomaly"] = Table.MeanAnomaly;
@@ -435,6 +439,7 @@ OrbitCharTableType gbuffer_orbit()
             Dst["BInclinationEcliptic"] = Table.BInclinationEcliptic;
             Dst["BAscendingNode"] = Table.BAscendingNode;
             Dst["BAscNodeEcliptic"] = Table.BAscNodeEcliptic;
+            Dst["BEpoch"] = Table.BEpoch;
             Dst["BArgOfPericenter"] = Table.BArgOfPericenter;
             Dst["BArgOfPeriEcliptic"] = Table.BArgOfPeriEcliptic;
             Dst["BMeanAnomaly"] = Table.BMeanAnomaly;

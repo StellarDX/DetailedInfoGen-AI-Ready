@@ -28,6 +28,7 @@ struct OrbitCharacteristics
     SEReal    Eccentricity;
     SEReal    Inclination;
     SEReal    AscendingNode;
+    SEReal    Epoch;
     SEReal    ArgOfPericenter;
     SEReal    MeanAnomaly;
 
@@ -53,6 +54,7 @@ struct OrbitCharacteristics
     SEReal    BEccentricity;
     SEReal    BInclination;
     SEReal    BAscendingNode;
+    SEReal    BEpoch;
     SEReal    BArgOfPericenter;
     SEReal    BMeanAnomaly;
     SEReal    BInclinationEcliptic;
