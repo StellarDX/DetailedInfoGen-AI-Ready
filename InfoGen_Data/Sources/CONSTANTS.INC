@@ -32,6 +32,7 @@ static const double EarthEscapeVel   = 11186; // NASA
 static const double EarthTemperature = 288; // 定义
 
 static const double SolarLuminosity  = 3.828E+26; // Mamajek E E , Prsa A , Torres G ,et al.IAU 2015 Resolution B3 on Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties[J].Physics, 2015.DOI:10.48550/arXiv.1510.07674.
+static const double LumBolZeroPoint  = 3.0128E+28; // 绝对热星等计算的零点
 
 static const double StandardAtm      = 101325; // 定义值，为地球海平面平均压强
 

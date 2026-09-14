@@ -288,37 +288,42 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
         {
             // 这三个条件比对下来，多星系统里面必然会出现一组三个值全部相等的物体且位于相邻位置
             // 到时只需要检验两个近日点幅角是否相差180就行
-            return (*Table)[L].PericenterDist < (*Table)[R].PericenterDist &&
-                (*Table)[L].Inclination < (*Table)[R].Inclination &&
-                (*Table)[L].AscendingNode < (*Table)[R].AscendingNode &&
-                (*Table)[L].MeanAnomaly < (*Table)[R].MeanAnomaly;
+            // 丹霞 2026.09.14：事实上不需要这么复杂的条件，因为长期稳定的多星系统有一个二级结论：
+            // 一个稳定多恒星行星系统中，每一级子系统中最靠近子系统质心的两个下级子系统必然是相互绕行的（需要证明）
+            return (*Table)[L].PericenterDist < (*Table)[R].PericenterDist;// &&
+                // (*Table)[L].Inclination < (*Table)[R].Inclination &&
+                // (*Table)[L].AscendingNode < (*Table)[R].AscendingNode &&
+                // (*Table)[L].MeanAnomaly < (*Table)[R].MeanAnomaly;
         });
 
-        uint64_t i = 1;
-        for (; i < SubSystems.size(); ++i)
+        // uint64_t i = 1;
+        // for (; i < SubSystems.size(); ++i)
+        // {
+        //     if (((*Table)[SubSystems[i]].Inclination - (*Table)[SubSystems[i - 1]].Inclination < 1E-12) &&
+        //         ((*Table)[SubSystems[i]].AscendingNode - (*Table)[SubSystems[i - 1]].AscendingNode < 1E-12) &&
+        //         ((*Table)[SubSystems[i]].MeanAnomaly - (*Table)[SubSystems[i - 1]].MeanAnomaly < 1E-12))
+        //     {
+        //         break;
+        //     }
+        // }
+        // if (i == SubSystems.size())
+        if (!(((*Table)[SubSystems[1]].Inclination - (*Table)[SubSystems[0]].Inclination < 1E-12) &&
+            ((*Table)[SubSystems[1]].AscendingNode - (*Table)[SubSystems[0]].AscendingNode < 1E-12) &&
+            ((*Table)[SubSystems[1]].MeanAnomaly - (*Table)[SubSystems[0]].MeanAnomaly < 1E-12)))
         {
-            if (((*Table)[SubSystems[i]].Inclination - (*Table)[SubSystems[i - 1]].Inclination < 1E-12) &&
-                ((*Table)[SubSystems[i]].AscendingNode - (*Table)[SubSystems[i - 1]].AscendingNode < 1E-12) &&
-                ((*Table)[SubSystems[i]].MeanAnomaly - (*Table)[SubSystems[i - 1]].MeanAnomaly < 1E-12))
-            {
-                break;
-            }
-        }
-        if (i == SubSystems.size())
-        {
-            spdlog::warn("质心 {}:{} 下一级没有找到两个互相绕行的物体",
+            spdlog::warn("质心 {}:{} 下一级没有找到两个互相绕行的物体（i，Ω和M0不相等）",
                 BasicTable.at(CurrentID).second[0].As<SEString>(), CurrentID);
             return;
         }
 
         auto& Barycen = (*Table)[CurrentID], 
-            &Primary = (*Table)[SubSystems[i - 1]], &Companion = (*Table)[SubSystems[i]];
+            &Primary = (*Table)[SubSystems[0]], &Companion = (*Table)[SubSystems[1]];
         if (std::abs(Primary.ArgOfPericenter - Companion.ArgOfPericenter) - 180 < 1E-5) // 文件->数字这一过程发生了3次精度丢失，因此不能设的太高
         {
             Companion.BinaryOrbit = 1;
             Companion.IsPrimary = 0;
-            Companion.Primary = BasicTable.at(SubSystems[i - 1]).second[0].As<SEString>();
-            Companion.Companion = BasicTable.at(SubSystems[i]).second[0].As<SEString>();
+            Companion.Primary = BasicTable.at(SubSystems[0]).second[0].As<SEString>();
+            Companion.Companion = BasicTable.at(SubSystems[1]).second[0].As<SEString>();
             Companion.BPeriod = Primary.Period;
             Companion.BPericenterDist = Primary.PericenterDist + Companion.PericenterDist;
             Companion.BAphelionDist = Primary.AphelionDist + Companion.AphelionDist;
@@ -351,7 +356,7 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
         }
         else
         {
-            spdlog::warn("质心 {}:{} 下一级没有找到两个互相绕行的物体",
+            spdlog::warn("质心 {}:{} 下一级没有找到两个互相绕行的物体（ω1-ω2!=180）",
                 BasicTable.at(CurrentID).second[0].As<SEString>(), CurrentID);
         }
     }
@@ -367,7 +372,8 @@ void ComputeSynodicMonth(OrbitTableType* Table, const SystemType& SysTable, OIDT
         }
     }
 
-    if (BasicTable.at(CurrentID).first == "Moon")
+    if (BasicTable.at(CurrentID).first == "Moon" ||
+        BasicTable.at(CurrentID).first == "Planet" && (*Table)[CurrentID].BinaryOrbit && !(*Table)[CurrentID].IsPrimary)
     {
         double m = (*Table)[CurrentID].Period;
         double y = (*Table)[ParentID].Period;
@@ -416,7 +422,8 @@ OrbitCharTableType gbuffer_orbit()
         if (!IsAbsoluteOrbitParams) {Dst["ArgOfPeriEcliptic"] = Table.ArgOfPeriEcliptic;}
         Dst["MeanAnomaly"] = Table.MeanAnomaly;
 
-        if (BASIC.at(OID).first == "Moon")
+        if (BASIC.at(OID).first == "Moon" ||
+            BASIC.at(OID).first == "Planet" && Table.BinaryOrbit && !Table.IsPrimary)
         {
             Dst["SynodicMonth"] = Table.SynodicOrbitalPeriod;
         }

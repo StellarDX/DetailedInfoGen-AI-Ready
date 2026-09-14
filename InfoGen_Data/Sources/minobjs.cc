@@ -18,7 +18,7 @@ struct Condition
 
 bool LargestByDiameterPred(OIDType L, OIDType R)
 {
-    return PhysicalTable.at(L).MeanRadius > PhysicalTable.at(R).MeanRadius;
+    return PhysicalTable.at(L).MeanRadius * 2. > PhysicalTable.at(R).MeanRadius * 2.;
 }
 
 bool LargestByDiameterFilter(OIDType V) {return 1;}
@@ -77,6 +77,6 @@ std::vector<OIDType> GetListedMinorObjects()
     auto FiltedObjectsView = std::ranges::views::filter(MinorObjects, ConditionList.at(AsteroidsTablePred).Filter);
     std::vector<OIDType> FiltedObjects(FiltedObjectsView.begin(), FiltedObjectsView.end());
     std::sort(FiltedObjects.begin(), FiltedObjects.end(), ConditionList.at(AsteroidsTablePred).Pred);
-    auto LimitedObjectsView = std::ranges::views::take(MinorObjects, AsteroidsTableLimit);
+    auto LimitedObjectsView = std::ranges::views::take(FiltedObjects, AsteroidsTableLimit);
     return std::vector<OIDType>(LimitedObjectsView.begin(), LimitedObjectsView.end());
 }

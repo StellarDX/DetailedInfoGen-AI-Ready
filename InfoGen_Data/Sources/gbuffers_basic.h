@@ -40,6 +40,9 @@ struct PhysicalCharacteristics
     double KerrSpin; // 仅黑洞启用
     double KerrCharge; // 仅黑洞启用
 
+    double CometTotalMagn; // 仅彗星启用
+    double CometTotalMagnSlope; // 仅彗星启用
+
     double ESI; // 仅Planet，DwarfPlanet，Moon启用
 
     std::vector<std::string> SubSystemsList; // 仅Planet和DwarfPlanet启用

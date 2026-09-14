@@ -182,8 +182,8 @@ void LoadLuminosity(const SETable& Data, PhysicalCharacteristics* Table)
         if (isnan(Table->Luminosity)) {Table->Luminosity = 0;}
         Table->Luminosity += GetObjectS(AccDiskTable, "LuminosityBol", 0, std::numeric_limits<double>::quiet_NaN());
     }
-    Table->AbsMagnBol = -2.5 * log10(Table->Luminosity);
     Table->Luminosity *= SolarLuminosity;
+    Table->AbsMagnBol = -2.5 * log10(Table->Luminosity / LumBolZeroPoint);
 }
 
 double SchwarzschildRadius(double Mass)
@@ -263,7 +263,8 @@ void ComputePlanetTemperature(const SETable& RawData, OIDType CurrentID, const O
 void ComputeSynodicRotationPeriod(OIDType CurrentID, const OrbitTableType& Orbit, PhysicalCharacteristics* Table)
 {
     double Y;
-    if (SatelliteList.contains(CurrentID))
+    if (SatelliteList.contains(CurrentID) ||
+        PlanetList.contains(CurrentID) && Orbit.at(CurrentID).BinaryOrbit)
     {
         auto ParentBody = std::find_if(SystemTable.begin(), SystemTable.end(), 
             [CurrentID](SystemType::value_type v)
@@ -310,6 +311,11 @@ void LoadPlanet(const BasicTableType& BasicTable, OIDType CurrentID, const Orbit
         BasicTable.at(CurrentID).first == "DwarfPlanet")
     {
         ComputeESI(CurrentID, Table);
+    }
+    if (BasicTable.at(CurrentID).first == "Comet")
+    {
+        Table->CometTotalMagn = GetObjectS(RawData, "AbsMagn", 0, std::numeric_limits<double>::quiet_NaN());
+        Table->CometTotalMagnSlope = GetObjectS(RawData, "SlopeParam", 0, std::numeric_limits<double>::quiet_NaN());
     }
 }
 
@@ -469,6 +475,11 @@ PhysicalCharTableType gbuffer_basic()
         if (BASIC.at(i).first == "Moon")
         {
             Dst["ESI"] = PhysicalTable[i].ESI;
+        }
+        else if (BASIC.at(i).first == "Comet")
+        {
+            Dst["CometTotalMagn"] = PhysicalTable[i].CometTotalMagn;
+            Dst["CometTotalMagnSlope"] = PhysicalTable[i].CometTotalMagnSlope;
         }
         Result.insert({i, Dst});
     }
