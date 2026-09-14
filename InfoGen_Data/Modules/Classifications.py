@@ -1,7 +1,21 @@
 import re
 
 def RegexStellarClassification(OClass:str):
-    if OClass[0] in "OBAFGKM" and OClass[0:1] != "MS":
+    if OClass[0] == "C" or OClass[0:1] == "SC":
+        return "碳星"
+    if OClass[0] == "S" or OClass[0:1] == "MS":
+        return "S型恒星"
+    if OClass[0] == "D" or OClass[0:1] == "WD":
+        return "白矮星"
+    if OClass[0] == "W":
+        return "沃尔夫-拉叶星"
+    if OClass == "Q" or OClass == "Pulsar" or OClass == "NeutronStar" or OClass == "Neutron":
+        return "中子星"
+    if OClass == "X" or OClass == "BlackHole":
+        return "黑洞"
+    if OClass == "Z" or OClass == "WormHole":
+        return "虫洞"
+    if OClass[0] in "OBAFGKM":
         # 此处使用SE的标准，兼容性非常低，真实光谱字符串会比这复杂的多
         SpectralRegex = r"^(?P<Sp>O|B|A|F|G|K|M)(?P<Sub>([0-9](\.[0-9])?)|10)? ?(?P<Lum>0|Ia|Iab|Ib|II|III|IV|V|VI)?$"
         SMatch = re.search(SpectralRegex, OClass).groupdict()
@@ -73,20 +87,6 @@ def RegexStellarClassification(OClass:str):
         return Color + Lum
     if OClass[0] in "LTY":
         return "褐矮星"
-    if OClass[0] == "W" and OClass[0:1] != "WD":
-        return "沃尔夫-拉叶星"
-    if OClass[0] == "C" or OClass[0:1] == "SC":
-        return "碳星"
-    if OClass[0] == "S" or OClass[0:1] == "MS":
-        return "S型恒星"
-    if OClass[0] == "D" or OClass[0:1] == "WD":
-        return "白矮星"
-    if OClass == "Q":
-        return "中子星"
-    if OClass == "X":
-        return "黑洞"
-    if OClass == "Z":
-        return "虫洞"
     return "特殊的恒星"
 
 def PlanetClassification(OClass:str, Physical:dict, Ocean:dict = None):

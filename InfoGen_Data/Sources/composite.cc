@@ -171,7 +171,11 @@ void Composite(ReturnType* Result)
     std::vector<std::string> SpTypes;
     for (auto i : StarList)
     {
-        SpTypes.push_back(GetObjectS(BASIC[i].second[1].As<SETable>(), "Class", 0, std::string("?")));
+        auto SpClass = GetObjectS(BASIC[i].second[1].As<SETable>(), "Class", 0, std::string("?"));
+        if (SpClass == "Q") {SpClass = "Pulsar";}
+        else if (SpClass == "X") {SpClass = "BlackHole";}
+        else if (SpClass == "Z") {SpClass = "WormHole";}
+        SpTypes.push_back(SpClass);
     }
     (*Result)["StarSpectralType"] = SpTypes;
 

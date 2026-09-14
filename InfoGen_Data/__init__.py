@@ -27,5 +27,5 @@ from InfoGen_Data.Modules.I18NAdmin import LoadLocale
 from InfoGen_Data.Modules.I18NAdmin import Register as LCAdminRegister
 from InfoGen_Data.Modules.I18NAdmin import LocaleAdmin
 
-from InfoGen_Data.Modules.Create import Register as CreateRegister
-from InfoGen_Data.Modules.Create import LoadObjectsFromSC
+from InfoGen_Data.Modules.SystemCreator import Register as SystemCreatorRegister
+from InfoGen_Data.Modules.SystemCreator import LoadObjectsFromSC

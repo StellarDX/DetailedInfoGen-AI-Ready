@@ -198,7 +198,7 @@ void LoadStar(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTa
     if (Class == "X" || Class == "BlackHole")
     {
         // 黑洞要特殊处理
-        Table->Class = GetObjectS(RawData, "Class", 0, std::string("None"));
+        Table->Class = "BlackHole";
         LoadMass(RawData, Table);
         Table->MeanRadius = SchwarzschildRadius(Table->Mass);
         Table->KerrSpin = GetObjectS(RawData, "KerrSpin", 0, 0.);
@@ -207,6 +207,9 @@ void LoadStar(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTa
     else
     {
         LoadBasicData(RawData, CurrentID, Orbit, Table);
+        if (Table->Class == "Q") {Table->Class = "Pulsar";}
+        else if (Table->Class == "X") {Table->Class = "BlackHole";}
+        else if (Table->Class == "Z") {Table->Class = "WormHole";}
         Table->Age = GetObjectS(RawData, "Age", 0, std::numeric_limits<double>::quiet_NaN()) * 1000000000;
         LoadLuminosity(RawData, Table);
         Table->Temperature = GetObjectS(RawData, "Temperature", 0, std::numeric_limits<double>::quiet_NaN());
