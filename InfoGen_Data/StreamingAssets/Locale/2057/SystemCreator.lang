@@ -1,0 +1,507 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: InfoGen SystemCreator\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2026-09-14 19:06+0800\n"
+"Last-Translator:  <1829934307@qq.com>\n"
+"Language-Team: English (British) <(nothing)>\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# ------------------------------行星系统信息------------------------------
+msgid "行星系统信息"
+msgstr "System Information"
+
+msgid "恒星数量"
+msgstr "Stars"
+
+msgid "行星数量"
+msgstr "Planets"
+
+msgid "矮行星数量"
+msgstr "Known dwarf planets"
+
+msgid "卫星数量"
+msgstr "Known natural satellites"
+
+msgid "小行星数量"
+msgstr "Known minor planets"
+
+msgid "彗星数量"
+msgstr "Known comets"
+
+msgid "光谱型"
+msgstr "Star spectral type"
+
+msgid "物体列表"
+msgstr "Population"
+
+msgid "小行星列表"
+msgstr "List of minor planets"
+
+# -------------------------------轨道数据--------------------------------
+msgid "轨道数据"
+msgstr "Orbital characteristics"
+
+msgid "参考系统"
+msgstr "Reference system"
+
+msgid "主星"
+msgstr "Primary"
+
+msgid "伴星"
+msgstr "Companion"
+
+msgid "远地点"
+msgstr "Apogee"
+
+msgid "近地点"
+msgstr "Perigee"
+
+msgid "远日点"
+msgstr "Aphelion"
+
+msgid "近日点"
+msgstr "Perihelion"
+
+msgid "周期 (P)"
+msgstr "Period (P)"
+
+msgid "恒星年 (P)"
+msgstr "Sidereal year (P)"
+
+msgid "恒星月 (P)"
+msgstr "Sidereal month (P)"
+
+msgid "朔望月 (P)"
+msgstr "Synodic month (P)"
+
+msgid "半长轴 (a)"
+msgstr "Semi-major axis (a)"
+
+msgid "离心率 (e)"
+msgstr "Eccentricity (e)"
+
+msgid "轨道倾角 (i)"
+msgstr "Inclination (i)"
+
+msgid "升交点经度 (Ω)"
+msgstr "Longitude of ascending node (Ω)"
+
+msgid "历元 (T)"
+msgstr "Epoch (T)"
+
+msgid "近心点辐角 (ω)"
+msgstr "Argument of periastron (ω)"
+
+msgid "近地点辐角 (ω)"
+msgstr "Argument of perigee (ω)"
+
+msgid "近日点辐角 (ω)"
+msgstr "Argument of perihelion (ω)"
+
+msgid "平近点角 (M0)"
+msgstr "Mean anomaly (M0)"
+
+# -------------------------------物理数据--------------------------------
+msgid "物理数据"
+msgstr "Physical characteristics"
+
+msgid "物体类型"
+msgstr "Classification"
+
+msgid "绝对热星等"
+msgstr "Absolute bolometric magnitude"
+
+msgid "光谱类型"
+msgstr "Spectral classification"
+
+msgid "黄赤交角"
+msgstr "Obliquity"
+
+msgid "自转周期"
+msgstr "Sidereal rotation period"
+
+msgid "会合日"
+msgstr "Synodic day"
+
+msgid "恒星日"
+msgstr "Sidereal day"
+
+msgid "自转线速度"
+msgstr "Equatorial rotation velocity"
+
+msgid "平均半径"
+msgstr "Mean radius"
+
+msgid "赤道半径"
+msgstr "Equatorial radius"
+
+msgid "极半径"
+msgstr "Polar radius"
+
+msgid "赤道周长"
+msgstr "Circumference (equatorial)"
+
+msgid "极周长"
+msgstr "Circumference (meridional)"
+
+msgid "平均直径"
+msgstr "Mean diameter"
+
+msgid "直径"
+msgstr "Dimensions"
+
+msgid "扁率"
+msgstr "Flattening"
+
+msgid "表面积"
+msgstr "Surface area"
+
+msgid "体积"
+msgstr "Volume"
+
+msgid "质量"
+msgstr "Mass"
+
+msgid "平均密度"
+msgstr "Mean density"
+
+msgid "年龄"
+msgstr "Age"
+
+msgid "表面重力"
+msgstr "Surface gravity"
+
+msgid "转动惯量"
+msgstr "Moment of inertia factor"
+
+msgid "逃逸速度"
+msgstr "Escape velocity"
+
+msgid "温度"
+msgstr "Temperature"
+
+msgid "光度"
+msgstr "Luminosity"
+
+msgid "球面反照率"
+msgstr "Albedo (Bond)"
+
+msgid "几何反照率"
+msgstr "Albedo (geometric)"
+
+msgid "史瓦西半径"
+msgstr "Schwarzschild radius"
+
+msgid "自旋"
+msgstr "Angular momentum"
+
+msgid "电荷量"
+msgstr "Electric charge"
+
+# -------------------------------大气数据--------------------------------
+msgid "大气"
+msgstr "Atmosphere"
+
+msgid "大气压强"
+msgstr "Surface pressure"
+
+msgid "大气成分"
+msgstr "Composition by volume"
+
+# -------------------------------海洋数据--------------------------------
+msgid "海洋"
+msgstr "Hydrosphere"
+
+msgid "海洋深度"
+msgstr "Depth"
+
+msgid "海洋成分"
+msgstr "Composition by volume"
+
+# -------------------------------生物圈数据-------------------------------
+msgid "生物圈"
+msgstr "Biosphere"
+
+msgid "生物形式"
+msgstr "Class"
+
+msgid "生物种类"
+msgstr "Type"
+
+msgid "生物群系"
+msgstr "Biome"
+
+# -------------------------------卫星列表--------------------------------
+msgid "卫星列表"
+msgstr "Satellites"
+
+msgid "卫星名"
+msgstr "Name"
+
+# ------------------------------小型物体列表------------------------------
+msgid "小行星/彗星"
+msgstr "Name"
+
+msgid "Comet total magnitude slope (K1)"
+msgstr "Comet total magnitude slope (K1)"
+
+msgid "彗星绝对星等 (M1)"
+msgstr "Comet total magnitude (M1)"
+
+# -----------------------动态字符串（变量取值）-----------------------------
+# 以下条目的 msgid 由变量拼装后传给 LOC，此处列举全部可能取值。
+# -------------------------------参考系统--------------------------------
+# LOC(Object["OrbitalCharacteristics"]["RefPlane"])
+msgid "Static"
+msgstr "Static"
+
+msgid "Fixed"
+msgstr "Fixed"
+
+msgid "Equator"
+msgstr "Equator"
+
+msgid "Ecliptic"
+msgstr "Ecliptic"
+
+msgid "Laplace"
+msgstr "Laplace"
+
+msgid "Extrasolar"
+msgstr "Extrasolar"
+
+# ---------------------物体类型：恒星分类（光谱型/光度型）--------------------
+# LOC(Classifications.RegexStellarClassification(OClass))
+msgid "质心"
+msgstr "Centre of mass"
+
+msgid "O型次矮星"
+msgstr "Subdwarf O star"
+
+msgid "O型主序星"
+msgstr "O-type main-sequence star"
+
+msgid "O型亚巨星"
+msgstr "O-type subgiant"
+
+msgid "B型次矮星"
+msgstr "Subdwarf B star"
+
+msgid "B型主序星"
+msgstr "B-type main-sequence star"
+
+msgid "B型亚巨星"
+msgstr "B-type subgiant"
+
+msgid "蓝巨星"
+msgstr "Blue giant"
+
+msgid "蓝亮巨星"
+msgstr "Blue bright giant"
+
+msgid "蓝超巨星"
+msgstr "Blue supergiant"
+
+msgid "蓝特超巨星"
+msgstr "Blue hypergiant"
+
+msgid "A型次矮星"
+msgstr "Subdwarf A star"
+
+msgid "A型主序星"
+msgstr "A-type main-sequence star"
+
+msgid "A型亚巨星"
+msgstr "A-type subgiant"
+
+msgid "F型次矮星"
+msgstr "Subdwarf F star"
+
+msgid "F型主序星"
+msgstr "F-type main-sequence star"
+# Yellow-white dwarf
+
+msgid "F型亚巨星"
+msgstr "F-type subgiant"
+
+msgid "G型次矮星"
+msgstr "Subdwarf G star"
+
+msgid "黄矮星"
+msgstr "G-type main-sequence star"
+
+msgid "G型亚巨星"
+msgstr "G-type subgiant"
+
+msgid "黄巨星"
+msgstr "Yellow giant"
+
+msgid "黄亮巨星"
+msgstr "Yellow bright giant"
+
+msgid "黄超巨星"
+msgstr "Yellow supergiant"
+
+msgid "黄特超巨星"
+msgstr "Yellow hypergiant"
+
+msgid "K型次矮星"
+msgstr "Subdwarf K star"
+
+msgid "橙矮星"
+msgstr "K-type main-sequence star"
+
+msgid "K型亚巨星"
+msgstr "K-type subgiant"
+
+msgid "M型次矮星"
+msgstr "Subdwarf M star"
+
+msgid "红矮星"
+msgstr "Red dwarf"
+
+msgid "M型亚巨星"
+msgstr "M-type subgiant"
+
+msgid "红巨星"
+msgstr "Red giant"
+
+msgid "红亮巨星"
+msgstr "Red bright giant"
+
+msgid "红超巨星"
+msgstr "Red supergiant"
+
+msgid "红特超巨星"
+msgstr "Red hypergiant"
+
+msgid "褐矮星"
+msgstr "Brown dwarf"
+
+msgid "碳星"
+msgstr "Carbon star"
+
+msgid "S型恒星"
+msgstr "S-type star"
+
+msgid "白矮星"
+msgstr "White dwarf"
+
+msgid "沃尔夫-拉叶星"
+msgstr "Wolf–Rayet star"
+
+msgid "中子星"
+msgstr "Pulsar"
+
+msgid "黑洞"
+msgstr "Black hole"
+
+msgid "虫洞"
+msgstr "Wormhole"
+
+msgid "特殊的恒星"
+msgstr "Pecular star"
+
+# ---------------------物体类型：行星分类（行星类型）------------------------
+# LOC(Classifications.PlanetClassification(...))
+msgid "铁质行星"
+msgstr "Iron planet"
+# Super-Mercury
+
+msgid "Mega Earth"
+msgstr "Mega-Earth"
+
+msgid "超级地球"
+msgstr "Super-Earth"
+
+msgid "Sub Earth"
+msgstr "Sub-Earth"
+
+msgid "岩质行星"
+msgstr "Terrestrial planet"
+# Rocky planet
+
+msgid "碳质行星"
+msgstr "Carbon planet"
+
+msgid "海洋行星"
+msgstr "Ocean world"
+
+msgid "水质行星"
+msgstr "Titan-like planet"
+# Titanic planet
+
+msgid "冰质行星"
+msgstr "Ice planet"
+# Icy planet
+
+msgid "Hoptune"
+msgstr "Hoptune"
+
+msgid "迷你海王星"
+msgstr "Mini-Neptune"
+# Gas dwarf
+
+msgid "冰巨星"
+msgstr "Ice giant"
+
+msgid "1类（氨云）气态行星"
+msgstr "Class I (Ammonia clouds) gas giant"
+
+msgid "2类（水云）气态行星"
+msgstr "Class II (Water clouds) gas giant"
+
+msgid "3类（无云）气态行星"
+msgstr "Class III (Cloudless) gas giant"
+
+msgid "4类（碱云）气态行星"
+msgstr "Class IV (Alkali metals) gas giant"
+
+msgid "5类（硅云）气态行星"
+msgstr "Class V (Silicate clouds) gas giant"
+
+msgid "氦行星"
+msgstr "Helium planet"
+
+msgid "未分类"
+msgstr "Planet"
+
+# ---------------------小行星列表：物体类型--------------------------------
+# LOC(Data["OType"])
+msgid "Asteroid"
+msgstr "Asteroid"
+
+msgid "Comet"
+msgstr "Comet"
+
+# -------------------------------生物圈--------------------------------
+# LOC(Object["Biosphere"]["Class" / "Type" / "Biome"])
+msgid "Organic"
+msgstr "Organic"
+
+msgid "Exotic"
+msgstr "Exotic"
+
+msgid "Unicellular"
+msgstr "Unicellular"
+
+msgid "Multicellular"
+msgstr "Multicellular"
+
+msgid "Terrestrial"
+msgstr "Terrestrial"
+
+msgid "Marine"
+msgstr "Marine"
+
+msgid "Aerial"
+msgstr "Aerial"
+
+msgid "Subglacial"
+msgstr "Subglacial"

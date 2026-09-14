@@ -1,0 +1,500 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: InfoGen SystemCreator\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2026-09-14 18:42+0800\n"
+"Last-Translator:  <1829934307@qq.com>\n"
+"Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# ------------------------------行星系统信息------------------------------
+msgid "行星系统信息"
+msgstr "行星系统信息"
+
+msgid "恒星数量"
+msgstr "恒星数量"
+
+msgid "行星数量"
+msgstr "行星数量"
+
+msgid "矮行星数量"
+msgstr "矮行星数量"
+
+msgid "卫星数量"
+msgstr "卫星数量"
+
+msgid "小行星数量"
+msgstr "小行星数量"
+
+msgid "彗星数量"
+msgstr "彗星数量"
+
+msgid "光谱型"
+msgstr "光谱型"
+
+msgid "物体列表"
+msgstr "物体列表"
+
+msgid "小行星列表"
+msgstr "小行星列表"
+
+# -------------------------------轨道数据--------------------------------
+msgid "轨道数据"
+msgstr "轨道数据"
+
+msgid "参考系统"
+msgstr "参考系统"
+
+msgid "主星"
+msgstr "主星"
+
+msgid "伴星"
+msgstr "伴星"
+
+msgid "远地点"
+msgstr "远地点"
+
+msgid "近地点"
+msgstr "近地点"
+
+msgid "远日点"
+msgstr "远日点"
+
+msgid "近日点"
+msgstr "近日点"
+
+msgid "周期 (P)"
+msgstr "周期 (P)"
+
+msgid "恒星年 (P)"
+msgstr "恒星年 (P)"
+
+msgid "恒星月 (P)"
+msgstr "恒星月 (P)"
+
+msgid "朔望月 (P)"
+msgstr "朔望月 (P)"
+
+msgid "半长轴 (a)"
+msgstr "半长轴 (a)"
+
+msgid "离心率 (e)"
+msgstr "离心率 (e)"
+
+msgid "轨道倾角 (i)"
+msgstr "轨道倾角 (i)"
+
+msgid "升交点经度 (Ω)"
+msgstr "升交点经度 (Ω)"
+
+msgid "历元 (T)"
+msgstr "历元 (T)"
+
+msgid "近心点辐角 (ω)"
+msgstr "近心点辐角 (ω)"
+
+msgid "近地点辐角 (ω)"
+msgstr "近地点辐角 (ω)"
+
+msgid "近日点辐角 (ω)"
+msgstr "近日点辐角 (ω)"
+
+msgid "平近点角 (M0)"
+msgstr "平近点角 (M0)"
+
+# -------------------------------物理数据--------------------------------
+msgid "物理数据"
+msgstr "物理数据"
+
+msgid "物体类型"
+msgstr "物体类型"
+
+msgid "绝对热星等"
+msgstr "绝对热星等"
+
+msgid "光谱类型"
+msgstr "光谱类型"
+
+msgid "黄赤交角"
+msgstr "黄赤交角"
+
+msgid "自转周期"
+msgstr "自转周期"
+
+msgid "会合日"
+msgstr "会合日"
+
+msgid "恒星日"
+msgstr "恒星日"
+
+msgid "自转线速度"
+msgstr "自转线速度"
+
+msgid "平均半径"
+msgstr "平均半径"
+
+msgid "赤道半径"
+msgstr "赤道半径"
+
+msgid "极半径"
+msgstr "极半径"
+
+msgid "赤道周长"
+msgstr "赤道周长"
+
+msgid "极周长"
+msgstr "极周长"
+
+msgid "平均直径"
+msgstr "平均直径"
+
+msgid "直径"
+msgstr "直径"
+
+msgid "扁率"
+msgstr "扁率"
+
+msgid "表面积"
+msgstr "表面积"
+
+msgid "体积"
+msgstr "体积"
+
+msgid "质量"
+msgstr "质量"
+
+msgid "平均密度"
+msgstr "平均密度"
+
+msgid "年龄"
+msgstr "年龄"
+
+msgid "表面重力"
+msgstr "表面重力"
+
+msgid "转动惯量"
+msgstr "转动惯量"
+
+msgid "逃逸速度"
+msgstr "逃逸速度"
+
+msgid "温度"
+msgstr "温度"
+
+msgid "光度"
+msgstr "光度"
+
+msgid "球面反照率"
+msgstr "球面反照率"
+
+msgid "几何反照率"
+msgstr "几何反照率"
+
+msgid "史瓦西半径"
+msgstr "史瓦西半径"
+
+msgid "自旋"
+msgstr "自旋"
+
+msgid "电荷量"
+msgstr "电荷量"
+
+# -------------------------------大气数据--------------------------------
+msgid "大气"
+msgstr "大气"
+
+msgid "大气压强"
+msgstr "大气压强"
+
+msgid "大气成分"
+msgstr "大气成分"
+
+# -------------------------------海洋数据--------------------------------
+msgid "海洋"
+msgstr "海洋"
+
+msgid "海洋深度"
+msgstr "海洋深度"
+
+msgid "海洋成分"
+msgstr "海洋成分"
+
+# -------------------------------生物圈数据-------------------------------
+msgid "生物圈"
+msgstr "生物圈"
+
+msgid "生物形式"
+msgstr "生物形式"
+
+msgid "生物种类"
+msgstr "生物种类"
+
+msgid "生物群系"
+msgstr "生物群系"
+
+# -------------------------------卫星列表--------------------------------
+msgid "卫星列表"
+msgstr "卫星列表"
+
+msgid "卫星名"
+msgstr "卫星名"
+
+# ------------------------------小型物体列表------------------------------
+msgid "小行星/彗星"
+msgstr "小行星/彗星"
+
+msgid "Comet total magnitude slope (K1)"
+msgstr "Comet total magnitude slope (K1)"
+
+msgid "彗星绝对星等 (M1)"
+msgstr "彗星绝对星等 (M1)"
+
+# -----------------------动态字符串（变量取值）-----------------------------
+# 以下条目的 msgid 由变量拼装后传给 LOC，此处列举全部可能取值。
+# -------------------------------参考系统--------------------------------
+# LOC(Object["OrbitalCharacteristics"]["RefPlane"])
+msgid "Static"
+msgstr "Static"
+
+msgid "Fixed"
+msgstr "Fixed"
+
+msgid "Equator"
+msgstr "Equator"
+
+msgid "Ecliptic"
+msgstr "Ecliptic"
+
+msgid "Laplace"
+msgstr "Laplace"
+
+msgid "Extrasolar"
+msgstr "Extrasolar"
+
+# ---------------------物体类型：恒星分类（光谱型/光度型）--------------------
+# LOC(Classifications.RegexStellarClassification(OClass))
+msgid "质心"
+msgstr "质心"
+
+msgid "O型次矮星"
+msgstr "O型次矮星"
+
+msgid "O型主序星"
+msgstr "O型主序星"
+
+msgid "O型亚巨星"
+msgstr "O型亚巨星"
+
+msgid "B型次矮星"
+msgstr "B型次矮星"
+
+msgid "B型主序星"
+msgstr "B型主序星"
+
+msgid "B型亚巨星"
+msgstr "B型亚巨星"
+
+msgid "蓝巨星"
+msgstr "蓝巨星"
+
+msgid "蓝亮巨星"
+msgstr "蓝亮巨星"
+
+msgid "蓝超巨星"
+msgstr "蓝超巨星"
+
+msgid "蓝特超巨星"
+msgstr "蓝特超巨星"
+
+msgid "A型次矮星"
+msgstr "A型次矮星"
+
+msgid "A型主序星"
+msgstr "A型主序星"
+
+msgid "A型亚巨星"
+msgstr "A型亚巨星"
+
+msgid "F型次矮星"
+msgstr "F型次矮星"
+
+msgid "F型主序星"
+msgstr "F型主序星"
+
+msgid "F型亚巨星"
+msgstr "F型亚巨星"
+
+msgid "G型次矮星"
+msgstr "G型次矮星"
+
+msgid "黄矮星"
+msgstr "黄矮星"
+
+msgid "G型亚巨星"
+msgstr "G型亚巨星"
+
+msgid "黄巨星"
+msgstr "黄巨星"
+
+msgid "黄亮巨星"
+msgstr "黄亮巨星"
+
+msgid "黄超巨星"
+msgstr "黄超巨星"
+
+msgid "黄特超巨星"
+msgstr "黄特超巨星"
+
+msgid "K型次矮星"
+msgstr "K型次矮星"
+
+msgid "橙矮星"
+msgstr "橙矮星"
+
+msgid "K型亚巨星"
+msgstr "K型亚巨星"
+
+msgid "M型次矮星"
+msgstr "M型次矮星"
+
+msgid "红矮星"
+msgstr "红矮星"
+
+msgid "M型亚巨星"
+msgstr "M型亚巨星"
+
+msgid "红巨星"
+msgstr "红巨星"
+
+msgid "红亮巨星"
+msgstr "红亮巨星"
+
+msgid "红超巨星"
+msgstr "红超巨星"
+
+msgid "红特超巨星"
+msgstr "红特超巨星"
+
+msgid "褐矮星"
+msgstr "褐矮星"
+
+msgid "碳星"
+msgstr "碳星"
+
+msgid "S型恒星"
+msgstr "S型恒星"
+
+msgid "白矮星"
+msgstr "白矮星"
+
+msgid "沃尔夫-拉叶星"
+msgstr "沃尔夫-拉叶星"
+
+msgid "中子星"
+msgstr "中子星"
+
+msgid "黑洞"
+msgstr "黑洞"
+
+msgid "虫洞"
+msgstr "虫洞"
+
+msgid "特殊的恒星"
+msgstr "特殊的恒星"
+
+# ---------------------物体类型：行星分类（行星类型）------------------------
+# LOC(Classifications.PlanetClassification(...))
+msgid "铁质行星"
+msgstr "铁质行星"
+
+msgid "Mega Earth"
+msgstr "Mega Earth"
+
+msgid "超级地球"
+msgstr "超级地球"
+
+msgid "Sub Earth"
+msgstr "Sub Earth"
+
+msgid "岩质行星"
+msgstr "岩质行星"
+
+msgid "碳质行星"
+msgstr "碳质行星"
+
+msgid "海洋行星"
+msgstr "海洋行星"
+
+msgid "水质行星"
+msgstr "水质行星"
+
+msgid "冰质行星"
+msgstr "冰质行星"
+
+msgid "Hoptune"
+msgstr "Hoptune"
+
+msgid "迷你海王星"
+msgstr "迷你海王星"
+
+msgid "冰巨星"
+msgstr "冰巨星"
+
+msgid "1类（氨云）气态行星"
+msgstr "1类（氨云）气态行星"
+
+msgid "2类（水云）气态行星"
+msgstr "2类（水云）气态行星"
+
+msgid "3类（无云）气态行星"
+msgstr "3类（无云）气态行星"
+
+msgid "4类（碱云）气态行星"
+msgstr "4类（碱云）气态行星"
+
+msgid "5类（硅云）气态行星"
+msgstr "5类（硅云）气态行星"
+
+msgid "氦行星"
+msgstr "氦行星"
+
+msgid "未分类"
+msgstr "未分类"
+
+# ---------------------小行星列表：物体类型--------------------------------
+# LOC(Data["OType"])
+msgid "Asteroid"
+msgstr "小行星"
+
+msgid "Comet"
+msgstr "彗星"
+
+# -------------------------------生物圈--------------------------------
+# LOC(Object["Biosphere"]["Class" / "Type" / "Biome"])
+msgid "Organic"
+msgstr "有机"
+
+msgid "Exotic"
+msgstr "奇异"
+
+msgid "Unicellular"
+msgstr "单细胞"
+
+msgid "Multicellular"
+msgstr "多细胞"
+
+msgid "Terrestrial"
+msgstr "地面"
+
+msgid "Marine"
+msgstr "海洋"
+
+msgid "Aerial"
+msgstr "空中"
+
+msgid "Subglacial"
+msgstr "冰下"

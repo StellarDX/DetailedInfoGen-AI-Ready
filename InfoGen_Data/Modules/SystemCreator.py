@@ -195,7 +195,10 @@ class Generator(ABC):
                     OrbitalCharacteristics[LOC("轨道倾角 (i)")] = f"{Object["OrbitalCharacteristics"]["BInclination"]:.{self._Prec}g}"
                     OrbitalCharacteristics[LOC("升交点经度 (Ω)")] = f"{Object["OrbitalCharacteristics"]["BAscendingNode"]:.{self._Prec}g}"
                     OrbitalCharacteristics[LOC("历元 (T)")] = f"{Object["OrbitalCharacteristics"]["BEpoch"]:.{self._Prec}g} JD"
-                    OrbitalCharacteristics[LOC("近心点辐角 (ω)")] = f"{Object["OrbitalCharacteristics"]["BArgOfPericenter"]:.{self._Prec}g}"
+                    if Object["OrbitalCharacteristics"]["IsPrimary"]:
+                        OrbitalCharacteristics[LOC("近日点辐角 (ω)")] = f"{Object["OrbitalCharacteristics"]["BArgOfPericenter"]:.{self._Prec}g}"
+                    else:
+                        OrbitalCharacteristics[LOC("近地点辐角 (ω)")] = f"{Object["OrbitalCharacteristics"]["BArgOfPericenter"]:.{self._Prec}g}"
                 else:
                     OrbitalCharacteristics[LOC("参考系统")] = LOC(Object["OrbitalCharacteristics"]["RefPlane"])
                     OrbitalCharacteristics[LOC("远日点")] = f"{Object["OrbitalCharacteristics"]["AphelionDist"]:.{self._Prec}g} m"
@@ -253,7 +256,7 @@ class Generator(ABC):
                     Life[LOC("生物群系")] = ", ".join([LOC(i) for i in Object["Biosphere"]["Biome"]])
                     Life[LOC("生物圈")] = DataFrame([Life])
                 if "SubSystems" in Object.keys():
-                    ObjectInfo["卫星列表"] = self._Subsystem_To_DataFrame(Object["SubSystems"], ParentBody)
+                    ObjectInfo[LOC("卫星列表")] = self._Subsystem_To_DataFrame(Object["SubSystems"], ParentBody)
             case "Moon":
                 ObjectInfo[LOC("物体类型")] = LOC(Classifications.PlanetClassification(
                     Object["PhysicalCharacteristics"]["Class"],
@@ -478,7 +481,7 @@ def LoadObjectsFromSC(args):
     PrintArgs(args)
 
     global I18N, LOC # 我也没想到更好的办法了
-    I18N = LoadLocale("Create", args.lcid);
+    I18N = LoadLocale("SystemCreator", args.lcid);
     LOC = I18N.gettext
 
     Objects = InfoGen.InfoGen_Main(**vars(args))

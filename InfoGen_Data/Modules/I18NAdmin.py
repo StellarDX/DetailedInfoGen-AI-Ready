@@ -37,7 +37,12 @@ Modules = {
 }
 
 def LoadLocale(Domain:str, LCID = '2052'):
-    return gettext.translation(Domain, LocaleLoadPath, [f"{LCID}"], fallback = True)
+    MoFile = Path(LocaleLoadPath) / f"{LCID}" / f"{Domain}.mo"
+    if not MoFile.exists():
+        print(f"未找到语言文件{MoFile}，将输出原文（是否忘了先执行python InfoGen.py lcadmin init？）")
+        return gettext.NullTranslations()
+    with open(MoFile, "rb") as Fin:
+        return gettext.GNUTranslations(Fin)
 
 def Register(MainArgParser):
     ParserLocale = MainArgParser.add_parser("lcadmin", help = "国际化管理系统", formatter_class = InfoGenHelpFormatter)
