@@ -2,104 +2,243 @@
 
 > 基于 **C++26** 与 **Python** 混编的 SpaceEngine 详细信息生成器（含 AI 能力）。
 
-本项目使用 C++ 实现高性能核心逻辑，并通过 [pybind11](https://github.com/pybind/pybind11) 将其编译为 Python 扩展模块，
-从而在 Python 侧（脚本、AI 调用、数据处理）直接复用 C++ 核心。构建系统采用 CMake，所有头文件、
-源文件与第三方依赖均通过**自动查找**纳入构建，新增代码或依赖时无需手动修改 `CMakeLists.txt`。
+从SpaceEngine导出的场景文件（`.sc`）出发，解析行星系统结构并生成详细信息文档。
 
----
+## 目录
 
-## 目录结构
+- [产品介绍](#产品介绍)
+- [技术栈](#技术栈)
+- [项目结构](#项目结构)
+- [安装部署](#安装部署)
+- [使用方法](#使用方法)
+- [在做的功能](#在做的功能)
+- [计划添加的功能](#计划添加的功能)
+- [许可证](#许可证)
 
-```
-DetailedInfoGen-AI-Ready/
-├── CMakeLists.txt              # 顶层构建脚本（自动查找头/源/第三方）
-├── README.md                   # 本文档
-├── LICENSE                     # 许可证
-├── .gitignore                  # 忽略规则
-├── InfoGen.py                  # Python 入口脚本
-└── InfoGen_Data/               # 工程数据与源码包（Python 包）
-    ├── __init__.py             # 包标识
-    ├── requirements.txt        # Python 运行时依赖
-    ├── Headers/                # C++ 头文件（自动查找，含子目录）
-    │   └── InfoGen/
-    │       └── InfoGen.h
-    ├── Sources/                # C++ 源文件（自动查找，含子目录）
-    ├── Resources/              # 资源文件（如语法/配置模板）
-    ├── Config/                 # 配置文件
-    └── 3rdParty/               # 第三方依赖（自动查找，每个含 CMakeLists.txt 的子目录均被引入）
-        ├── antlr/              # ANTLR 运行时（占位目录）
-        ├── fmtlib/             # {fmt} 格式化库（git 子模块）
-        └── pybind/             # pybind11 绑定框架（git 子模块）
-```
+## 产品介绍
 
----
+DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能（使用pybind11编译成Python模块`InfoGen`）与Python侧的命令行、国际化及文档渲染能力相结合，用于从SpaceEngine导出的行星系统文件中提取天体数据并输出结构化文档。
 
-## 环境要求
+### 当前已完成的功能
 
-| 工具 / 依赖        | 版本要求                                  | 说明                                   |
-| ------------------ | ----------------------------------------- | -------------------------------------- |
-| CMake              | >= 3.25                                   | 提供 `CXX_STANDARD 26` 支持            |
-| C++ 编译器         | 支持 C++26 的工具链                       | 如 GCC 15+、Clang 19+、MSVC 17.10+ 等  |
-| Python             | 3.x（含开发头文件与链接库）               | `Development.Module` 组件               |
-| fmtlib / pybind11  | 随仓库附带的 3rdParty 子模块              | 无需另行安装                           |
+1. 从SpaceEngine导出的文件生成行星系统基本信息
+   - 解析行星系统文件（使用ANTLR）
+   - 重建行星系统层级：自动定位系统根节点（质心），并按广度优先遍历重建父/子系统树
+   - 汇总系统级信息：恒星/行星/矮行星/卫星/小行星/彗星数量、恒星光谱型
+   - 输出单天体信息：轨道数据（轨道根数、双星轨道）、物理数据（半径、质量、密度、温度、光度等）、大气、海洋、生物圈
+   - 生成小行星/彗星列表，支持按半径、质量、自转、逆行、高倾角等条件筛选与排序
+   - 中文友好的分类命名（恒星光谱型、行星类型分级）
+   - 输出结果为Markdown或用户自定义Jinja2模板格式（TODO）
 
-> 提示：若使用 git 子模块拉取 `fmtlib` / `pybind`，克隆后请执行：
-> ```bash
-> git submodule update --init --recursive
-> ```
+## 技术栈
 
----
+| 层次 | 技术 |
+| --- | --- |
+| 构建 | CMake 4.0+ |
+| 核心 | C++26（`<flat_map>` / `<flat_set>` / `ranges` / `concepts` / `jthread` 等） |
+| 绑定 | pybind11（C++代码编译为Python模块`InfoGen`） |
+| 解析 | ANTLR4（解析SpaceEngine文件语法） |
+| 数值 | Eigen（定长/动态向量与矩阵） |
+| 日志 | spdlog（复用外部 fmtlib，避免重复符号） |
+| 格式化/转换 | fmtlib、fast-float、google-double-conversion |
+| 脚本 | Python 3.12+，argparse / gettext / polib / pandas |
 
-## 构建步骤
+## 安装部署
 
-推荐使用独立构建目录（out-of-source build）：
+### 环境要求
+
+| 项目 | 要求 | 说明 |
+| --- | --- | --- |
+| 操作系统 | Windows / Linux | 仓库仅提供这两个平台的依赖清单 |
+| CMake | 4.0以上 | 构建脚本声明 `cmake_minimum_required(VERSION 4.0)` |
+| C++编译器 | 支持 C++26（推荐 GCC-16.1） | 需 `<flat_map>` / `<flat_set>` / `<ranges>` / `std::jthread` 等特性 |
+| Python | 3.12以上 | 需`Development.Module`组件（Python头文件与库） |
+| ANTLR4 C++ Runtime | v4 | 唯一需要手动准备的依赖 |
+
+### 依赖说明
+
+以下依赖已内置于`InfoGen_Data/3rdParty`，配置阶段由CMake按目录名排序后自动`add_subdirectory`引入，**无需手动安装，下载源码后记得git submodule update一下**：
+
+| 依赖 | 用途 |
+| --- | --- |
+| fmtlib | 字符串格式化（`fmt::format`） |
+| spdlog | 日志输出（配置为复用外部 fmtlib，避免`fmt::v12`符号重复定义） |
+| pybind11 | 将C++代码编译为可直接`import`的Python模块 |
+| Eigen | 向量/矩阵类型（`SEVec2` / `SEVec3` / `SEArray`等） |
+| fast-float | 快速浮点解析 |
+| google-double-conversion | 浮点数与字符串互转 |
+| antlr | ANTLR接入脚本，本身不含运行时，通过`find_package`定位系统安装的ANTLR C++ Runtime |
+
+> 注：唯一无法自动处理的依赖是**ANTLR**，必须手动下载安装（见第1步）。由于ANTLR生成的词法器/语法器源码已自带，因此**无需安装Java或ANTLR工具本身**，只需C++运行时库。
+
+### 安装步骤
+
+注：由于这一版本功能比以前的版本强大的多，因此安装部署的难度也提高了某些白嫖党难以接受的程度
+
+先修课程：C++程序设计，Python程序设计，天体物理学
+
+#### 1. 编译并安装 ANTLR C++ Runtime
+
+从 <https://www.antlr.org/download.html> 下载 `antlr4-cpp-runtime-4.x.x-source.zip` 并解压。
 
 ```bash
-# 1. 创建并进入构建目录
-mkdir build && cd build
-
-# 2. 配置工程（会自动查找头文件、源文件与 3rdParty 依赖）
-cmake .. -DCMAKE_BUILD_TYPE=Release
-
-# 3. 编译
-cmake --build . --config Release
+cd antlr4-cpp-runtime-4.x.x-source
+cmake -S . -B build \
+      -DANTLR4_INSTALL=ON \
+      -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+      -DCMAKE_INSTALL_PREFIX=<ANTLR4安装目录>
+cmake --build build --parallel
+cmake --install build
 ```
 
-构建成功后，会在 `build/lib/`（或 `build/bin/`）下生成可导入的 Python 扩展模块
-`InfoGen.<平台后缀>`（Windows 上为 `InfoGen.pyd`，Linux/macOS 上为 `InfoGen.so`）。
+两个关键选项：
 
-在 Python 中即可使用：
+- `-DANTLR4_INSTALL=ON`：让ANTLR生成并安装`antlr4-runtime-config.cmake`配置包，供`find_package(antlr4-runtime CONFIG)`定位。**不开启则本项目无法找到ANTLR。**
+- `-DCMAKE_POLICY_VERSION_MINIMUM=3.5`：ANTLR的`cmake_minimum_required`版本较旧，CMake 4.x已不兼容低于3.5的策略版本，必须显式指定。
 
-```python
-import InfoGen
-# 调用由 C++ 暴露的接口 ...
+安装后确认存在`lib/cmake/antlr4-runtime/antlr4-runtime-config.cmake`，该目录即为后续`ANTLR4_ROOT`的取值依据。
+
+#### 2. 配置项目
+
+```bash
+cmake -S <源码目录> -B <构建目录> \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX=<安装前缀> \
+      -DANTLR4_ROOT=<ANTLR4安装目录> \
+      -DPython3_EXECUTABLE=/path/to/python
 ```
 
----
+可用的 CMake 变量：
 
-## 自动查找机制说明
+| 变量 | 说明 |
+| --- | --- |
+| `-DANTLR4_ROOT=<dir>` | ANTLR安装根目录（需含 `lib/cmake/antlr4-runtime`或`lib/cmake/antlr4`），推荐写法 |
+| `-DANTLR_SEARCH_DIRS=<dir1>;<dir2>` | 额外的ANTLR搜索目录，分号分隔，可填多个 |
+| `-DCMAKE_PREFIX_PATH=<dir>` | CMake 标准前缀路径，与前两者等价，三者可任选 |
+| `-DPython3_EXECUTABLE=<python>` | 指定Python解释器，用于解析`Development.Module`组件 |
+| `-DCMAKE_INSTALL_PREFIX=<dir>` | 安装前缀，**必填** |
 
-`CMakeLists.txt` 通过以下规则实现“零配置”扩展：
+如果终端输出`[InfoGen/antlr] 已就绪，导入目标: antlr4::runtime`，以及`发现头文件 N 个，源文件 N 个`、`收集到可链接依赖目标 N 个`说明配置成功。若出现`[InfoGen/antlr] 未找到 ANTLR C++ 运行时`错误，说明ANTLR路径未正确传入。
 
-1. **头文件**：`file(GLOB_RECURSE ... CONFIGURE_DEPENDS)` 递归扫描
-   `InfoGen_Data/Headers` 下的 `.h / .hpp / .hh / .hxx`。
-2. **源文件**：同样递归扫描 `InfoGen_Data/Sources` 下的
-   `.cpp / .cc / .cxx / .c++`。
-   - 使用 `CONFIGURE_DEPENDS` 后，Ninja / Makefiles 生成器会在新增或删除文件时
-     自动重新配置；使用 Visual Studio 生成器时请手动重新运行 `cmake`。
-3. **第三方依赖**：遍历 `InfoGen_Data/3rdParty` 下的每个子目录，**凡是包含
-   `CMakeLists.txt` 的子目录都会被 `add_subdirectory` 纳入构建**。
-   当前内置 `fmtlib`、`pybind`、`antlr`；后续新增依赖只需把目录放入
-   `3rdParty` 即可，无需改动构建脚本。
+#### 3. 编译并安装
 
----
+```bash
+cmake --build <构建目录> --parallel
+cmake --install <构建目录>
+```
 
-## 当前状态（骨架）
+安装后，`CMAKE_INSTALL_PREFIX` 下会得到与源码一致的目录结构：
 
-- `InfoGen_Data/Sources/` 目前为空：待添加 C++ 实现文件，且其中**至少包含一个
-  `PYBIND11_MODULE(InfoGen, m)` 绑定入口**，编译后模块方可被 Python 导入。
-- `InfoGen_Data/Headers/InfoGen/InfoGen.h` 为占位头文件，可在此定义对外接口。
-- `InfoGen_Data/3rdParty/antlr/` 当前仅含占位 `CMakeLists.txt`，待补充 ANTLR
-  C++ 运行时源码后由其目录下的构建脚本接入。
+```
+<安装前缀>/
+├── InfoGen.py                          # 命令行入口
+└── InfoGen_Data/
+    ├── InfoGen.(so|pyd)                # C++ 核心编译出的 Python 扩展模块
+    ......
+    └── requirements-linux.txt / requirements-win.txt
+```
 
-在源文件就绪前，`cmake` 配置阶段仍可正常完成（会打印警告提示尚未发现源文件）。
+#### 4. 复制运行时动态库
+
+C++模块在Linux下使用`$ORIGIN`作为RPATH（构建脚本设置了`INSTALL_RPATH "$ORIGIN"`），即只会在**模块自身所在目录**查找依赖库，因此运行时库必须放到`<安装前缀>/InfoGen_Data/`下：
+
+- **ANTLR**：将ANTLR的DLL复制到`<安装前缀>/InfoGen_Data/`。
+- **GCC 运行时（仅当使用 GCC 编译，且其运行时库不在系统搜索路径时）**：
+  - Windows：将 `libstdc++-6.dll`、`libgcc_s_seh-1.dll`、`libwinpthread-1.dll`等复制到`<安装前缀>/InfoGen_Data/`。
+  - Linux：
+    ```bash
+    export LD_LIBRARY_PATH=/path/to/gcc/lib64:$LD_LIBRARY_PATH
+    ```
+
+#### 5. 安装 Python 依赖
+
+```bash
+python3 -m venv ./venv
+source ./venv/bin/activate                 # Windows: .\venv\Scripts\activate
+pip install -r <安装前缀>/InfoGen_Data/requirements-linux.txt   # Windows 改用 requirements-win.txt
+```
+
+依赖清单包含argparse之外的中文帮助、国际化（`polib`）、数据处理（`pandas`），以及后续AI/向量化功能所需的`langchain`、`chromadb`等组件。
+
+#### 6. 验证安装
+
+```bash
+cd <安装前缀>
+python InfoGen.py --help
+```
+
+若正常输出中文帮助信息（而非报错或乱码），则安装配置完成。
+
+### 常见问题排查（AI生成，仅供参考！！！）
+
+| 现象 | 原因与处理 |
+| --- | --- |
+| 第 1 步配置 ANTLR 时报 CMake 策略/兼容性错误 | 缺少 `-DCMAKE_POLICY_VERSION_MINIMUM=3.5` |
+| 第 2 步出现 `[InfoGen/antlr] 未找到 ANTLR C++ 运行时` | 未传 `-DANTLR4_ROOT` / `-DANTLR_SEARCH_DIRS` / `-DCMAKE_PREFIX_PATH`，或该路径下没有 `lib/cmake/antlr4-runtime` |
+| 链接报 `relocation R_X86_64_32 ... can not be used when making a shared object` | 静态依赖未以 `-fPIC` 编译；顶层已全局开启 `CMAKE_POSITION_INDEPENDENT_CODE`，若某依赖自行覆盖该属性需检查其 CMake |
+| 链接报 `multiple definition of fmt::v12::...` 或 `duplicate section` | spdlog 捆绑 fmt 与外部 fmtlib 冲突；构建脚本已强制 `SPDLOG_FMT_EXTERNAL_HO=ON`，请勿关闭或改为 `OFF` |
+| `import InfoGen` 失败，或提示找不到动态库 | 未执行第 4 步，把 ANTLR / GCC 的运行时库放到 `InfoGen_Data/` 下 |
+| Linux 运行前需每次设置 `LD_LIBRARY_PATH` | 属于第 4 步 GCC 运行时的正常处理，可写入 shell 配置或启动脚本 |
+| 配置时报找不到 Python 开发组件 | 安装 `python3-dev`（Linux）或在 Windows 安装包中勾选「Python 开发文件」，或用 `-DPython3_EXECUTABLE` 指定正确的解释器 |
+| Windows 控制台中文乱码 | `InfoGen_Data/__init__.py` 已自动把控制台输出代码页切到 UTF-8（65001），若仍乱码请确认终端字体支持中文 |
+
+## 使用方法
+
+### 从SpaceEngine导出的文件生成行星系统基本信息
+
+```
+python InfoGen.py create -S /SpaceEngine/Export/RS-xxxx.sc [-B /OutputPath]
+```
+
+解析SpaceEngine导出的文件、重建行星系统结构，并将结果写入输出目录下的`<系统主天体ID>.md`。
+
+#### `create` 参数说明
+
+| 参数 | 说明 | 默认值 |
+| --- | --- | --- |
+| `-S, --input` | 输入的 SpaceEngine 文件（必填） | — |
+| `-B, --output` | 输出目录 | `./Export` |
+| `--code-page` | 输入文件的编码代码页（用于防止乱码） | `65001` |
+| `--absolute-orbit` | 轨道是否为绝对参照系（如黄道、天球）；默认相对参照系（如赤道） | 关闭 |
+| `--common-plane-threshold` | `10^(-x)`，当计算的黄道轨道面与上一级物体的黄道轨道面相差小于该值时视为共面（仅 `--absolute-orbit=False` 生效） | `9` |
+| `--esi-estimator` | 地球相似指数算法：`SolarSys`（半径、密度、逃逸速度、温度）、`Extrasolar`（恒星辐射通量、行星半径） | `SolarSys` |
+| `--sort-system` | 对输出内容按半长轴顺序排序 | 关闭 |
+| `--exceptional-asteroids-pred` | 小行星列表排序依据（取值见下表） | `LargestByDiameter` |
+| `--exceptional-asteroids-limit` | 小行星列表最大数量 | `50` |
+| `-L, --lcid` | 输出文档的语言 ID（如 `2052` 简体中文、`1033` 英文）（TODO） | `2052` |
+| `-f, --format` | 输出文档格式（当前支持 `Markdown`） | `Markdown` |
+| `-D, --format-args` | 输出文档格式的额外参数，可重复传入（`key=value`，如 `-Dprecision=6`） | 空 |
+| `--store` | 将输出文档向量化后保存到 ChromaDB（需要模型支持，开发中） | 关闭 |
+| `--model-config` | 向量化文本模型的配置文件（TODO） | — |
+
+`--exceptional-asteroids-pred` 可选值：
+
+| 取值 | 含义 |
+| --- | --- |
+| `LargestByDiameter` | 半径降序 |
+| `MostMassive` | 质量降序 |
+| `SlowestRotators` | 自转周期降序 |
+| `FastestRotators` | 自转周期升序 |
+| `Retrograde` | 筛选轨道倾角大于90°小于270°的小行星并按倾角升序排序 |
+| `HighlyInclined` | 轨道面与黄道面夹角降序 |
+
+### 查看帮助
+
+```
+python InfoGen.py --help          # 查看全部命令
+python InfoGen.py create --help   # 查看某命令的详细参数
+```
+
+## 在做的功能
+
+1. 国际化翻译管理系统
+2. Jinja2自定义输出模板
+
+## 计划添加的功能
+
+1. ChromaDB持久化
+2. AI模型接入
+
+## 许可证
+
+本项目基于 [GPL-3.0](LICENSE) 许可协议开源。
