@@ -1,5 +1,5 @@
 from InfoGen_Data import LCAdminRegister, LocaleAdmin
-from InfoGen_Data import SystemCreatorRegister, LoadObjectsFromSC
+from InfoGen_Data import ResourceCreatorRegister, CreateResource
 from InfoGen_Data import InfoGenHelpFormatter
 import sys
 import os
@@ -7,7 +7,7 @@ from argparse import ArgumentParser
 
 ModuleList = {
     "lcadmin": {"Register": LCAdminRegister, "Invoke": LocaleAdmin},
-    "create": {"Register": SystemCreatorRegister, "Invoke": LoadObjectsFromSC}
+    "create": {"Register": ResourceCreatorRegister, "Invoke": CreateResource}
 }
 
 MainArgParser = ArgumentParser(prog = 'InfoGen', description='SpaceEngine详细信息生成器 (AI-Ready)', formatter_class = InfoGenHelpFormatter)

@@ -10,27 +10,6 @@ from pandas import DataFrame
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-def ArgToDict(s):
-    k, v = s.split('=', 1)
-    return k, v
-
-def Register(MainArgParser):
-    ParserCreate = MainArgParser.add_parser("create", help = "从SpaceEngine导出的SC文件导入物体", formatter_class = InfoGenHelpFormatter)
-    ParserCreate.add_argument("-S", "--input", type = str, required = True, help = "输入的文件")
-    ParserCreate.add_argument("-B", "--output", type = str, default = "./Export", help = "输出目录")
-    ParserCreate.add_argument("--code-page", type = int, default = 65001, help = "输入的文件的编码（防止烫屯锟斤拷）")
-    ParserCreate.add_argument("--absolute-orbit", action='store_true', help = "轨道是否为绝对参照系（如黄道，天球这些，默认为相对参照系，如赤道）")
-    ParserCreate.add_argument("--common-plane-threshold", type = float, default = 9, help = "10^(-x)，当计算的黄道轨道面与上一级物体的黄道轨道面相差少于这个值时视为共面，仅当--absolute-orbit=False时生效")
-    ParserCreate.add_argument("--esi-estimator", type = str, default = "SolarSys", choices = ["SolarSys", "Extrasolar"], help = "地球相似指数算法，当前可用：\n * SolarSys - 使用半径，密度，逃逸速度和温度计算。\n * Extrasolar - 使用恒星辐射通量和行星半径计算")
-    ParserCreate.add_argument("--sort-system", action='store_true', help = "对输出的内容按半长轴的顺序排序")
-    ParserCreate.add_argument("--exceptional-asteroids-pred", type = str, default = "LargestByDiameter", choices = ["LargestByDiameter", "MostMassive", "SlowestRotators", "FastestRotators", "Retrograde", "HighlyInclined"], help = "小行星列表排序依据，默认半径降序，可用：\n * LargestByDiameter - 半径降序\n * MostMassive - 质量降序\n * SlowestRotators - 自转周期降序\n * FastestRotators - 自转周期升序\n * Retrograde - 筛选轨道倾角大于90小于270的小行星并按倾角升序排序\n * HighlyInclined - 轨道面与黄道面夹角降序")
-    ParserCreate.add_argument("--exceptional-asteroids-limit", type = int, default = 50, help = "小行星列表最大数量")
-    ParserCreate.add_argument("-L", "--lcid", type = str, default = '2052', help = "输出文档的语言ID")
-    ParserCreate.add_argument("-f", "--format", type = str, default = "Markdown", help = "输出文档格式")
-    ParserCreate.add_argument("-D", "--format-args", action = 'append', type = ArgToDict, default = [], help = "输出文档格式的额外参数")
-    ParserCreate.add_argument("--store", action='store_true', help = "将输出的文档向量化后保存到ChromaDB（需要模型支持，仅Markdown输出时可用）")
-    ParserCreate.add_argument("--model-config", type = str, help = "向量化文本模型的配置文件")
-
 def PrintArgs(args):
     print(f"配置: ")
     print(f"--input:                       {args.input}")

@@ -187,7 +187,7 @@ python InfoGen.py --help
 ### 从SpaceEngine导出的文件生成行星系统基本信息
 
 ```
-python InfoGen.py create -S /SpaceEngine/Export/RS-xxxx.sc [-B /OutputPath]
+python InfoGen.py create system -S /SpaceEngine/Export/RS-xxxx.sc [-B /OutputPath]
 ```
 
 解析SpaceEngine导出的文件、重建行星系统结构，并将结果写入输出目录下的`<系统主天体ID>.md`。
