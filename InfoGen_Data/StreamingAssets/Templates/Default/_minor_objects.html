@@ -1,0 +1,71 @@
+{#
+================================================================================
+ _minor_objects.html —— 小行星列表（对应 Generator._Minor_Objects_To_Table）
+================================================================================
+   MinorObjects : dict
+       Columns : list[str]        可选，列顺序；缺省取首行的键顺序
+       Rows    : list[dict]       每行为「列名 -> 值」
+     例如列：小行星/彗星、平均直径、直径、质量、恒星日、
+             彗星绝对星等 (M1)、Comet total magnitude slope (K1)、
+             半长轴 (a)、轨道倾角 (i)、物体类型
+================================================================================
+#}
+{%- import "Default/_macros.html" as M with context -%}
+{%- set L = L|default({}) -%}
+
+<section class="panel" id="minor-objects">
+  <header class="panel-head">
+    <h2 class="panel-title">{{ L.MinorObjects|default('小行星列表') }}</h2>
+    <span class="panel-sub">
+      {%- if MinorObjects and MinorObjects.Rows -%}
+      {{ MinorObjects.Rows|length }} {{ L.Records|default('条记录') }}
+      {%- endif -%}
+    </span>
+  </header>
+
+  {%- if MinorObjects and MinorObjects.Rows -%}
+  <div class="card">
+    <div class="table-toolbar">
+      <input type="search" id="minor-filter" autocomplete="off" spellcheck="false"
+             placeholder="{{ L.Search|default('筛选天体…') }}">
+      <span class="table-hint">{{ L.TableFilterHint|default('支持按名称、类型等任意列模糊匹配') }}</span>
+    </div>
+    <div class="table-wrap tall">
+      <table class="data-table zebra" id="minor-table">
+        {%- set cols = MinorObjects.Columns if MinorObjects.Columns else MinorObjects.Rows[0].keys()|list -%}
+        {%- set ns = namespace(numcols=[]) -%}
+        {%- for col in cols -%}
+          {%- for row in MinorObjects.Rows -%}
+            {%- set probe = row.get(col) if row is mapping else none -%}
+            {%- if probe is not none and probe|string|length > 18 and col not in ns.numcols -%}
+              {%- set ns.numcols = ns.numcols + [col] -%}
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endfor -%}
+        <thead>
+          <tr>
+            <th class="col-idx">#</th>
+            {%- for col in cols -%}
+            <th class="{{ 'col-num' if col in ns.numcols }}">{{ col }}</th>
+            {%- endfor -%}
+          </tr>
+        </thead>
+        <tbody>
+          {%- for row in MinorObjects.Rows -%}
+          <tr>
+            <td class="col-idx">{{ loop.index0 }}</td>
+            {%- for col in cols -%}
+            {%- set cell = row.get(col) if row is mapping else none -%}
+            <td class="{{ 'col-num' if col in ns.numcols }}">{{ M.value(cell) }}</td>
+            {%- endfor -%}
+          </tr>
+          {%- endfor -%}
+        </tbody>
+      </table>
+    </div>
+    <p class="table-empty" id="minor-empty" hidden>{{ L.NoMatch|default('没有匹配的记录') }}</p>
+  </div>
+  {%- else -%}
+  <p class="placeholder">{{ L.NoData|default('暂无数据') }}</p>
+  {%- endif -%}
+</section>

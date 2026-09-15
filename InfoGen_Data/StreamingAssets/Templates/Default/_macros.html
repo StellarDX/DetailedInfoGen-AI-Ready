@@ -1,0 +1,132 @@
+{#
+================================================================================
+ _macros.html —— 公共渲染宏
+================================================================================
+ 与 SystemCreator.Generator 的产出一一对应：
+   _System_Info_To_Table   -> stat_grid / field_grid
+   _Object_To_Table        -> field_grid（轨道数据 / 物理数据 / 大气 / 海洋 / 生物圈）
+   _Subsystem_To_DataFrame -> data_table（卫星列表）
+   _Minor_Objects_To_Table -> data_table（小行星列表）
+
+ 排版约定：一条「标签 / 数值」占一个网格单元，由 CSS 的 auto-fill 网格自动把
+ 2~4 个短字段排到同一行；多行文本或过长的字段自动跨列独占一行。
+
+ 用法：在使用方模板中 {% import "_macros.html" as M with context %}
+================================================================================
+#}
+
+{#- 生成稳定的 HTML 锚点 ID（物体 ID 含空格/点号，不能直接做 ID） -#}
+{%- macro anchor(text) -%}
+{{- text|string|lower|replace(' ', '-')|replace('.', '-')|replace('/', '-')|replace('#', '') -}}
+{%- endmacro -%}
+
+{#- 判断一个值是否应该独占一整行（多行文本、或长度超过阈值） -#}
+{%- macro is_wide(value_, threshold) -%}
+{%- set text = value_|string -%}
+{%- if '\n' in text or text|length > (threshold|default(26)) -%}wide{%- endif -%}
+{%- endmacro -%}
+
+{#- 单个数值：换行切分成多条；空值统一显示为占位符 -#}
+{%- macro value(value_) -%}
+{%- if value_ is none or value_|string|trim == '' -%}
+<span class="empty" title="{{ L.Missing|default('无数据') }}">—</span>
+{%- else -%}
+{%- set text = value_|string -%}
+{%- if '\n' in text -%}
+<span class="multi">
+  {%- for line in text.split('\n') if line|trim -%}
+  <span class="multi-item">{{ line|trim }}</span>
+  {%- endfor -%}
+</span>
+{%- elif text|length > 32 and (text.startswith('-') or text[0].isdigit()) -%}
+<span class="num" title="{{ text }}">{{ text }}</span>
+{%- else -%}
+<span>{{ text }}</span>
+{%- endif -%}
+{%- endif -%}
+{%- endmacro -%}
+
+{#- 单条「标签 / 数值」 -#}
+{%- macro field(label, value_, threshold) -%}
+<div class="field {{ is_wide(value_, threshold) }} {{ 'is-empty' if value_ is none or value_|string|trim == '' }}">
+  <span class="field-label">{{ label }}</span>
+  <span class="field-value">{{ value(value_) }}</span>
+</div>
+{%- endmacro -%}
+
+{#- 字段网格：fields 为 dict；wide 为跨列阈值 -#}
+{%- macro field_grid(fields, wide) -%}
+{%- if not fields -%}
+<p class="placeholder">{{ L.NoData|default('暂无数据') }}</p>
+{%- else -%}
+<div class="field-grid">
+  {%- for label, value_ in fields.items() -%}
+  {{ field(label, value_, wide) }}
+  {%- endfor -%}
+</div>
+{%- endif -%}
+{%- endmacro -%}
+
+{#- 表格：rows 为 list[dict]，columns 可显式指定列顺序 -#}
+{%- macro data_table(rows, columns, caption) -%}
+{%- if not rows -%}
+<p class="placeholder">{{ L.NoData|default('暂无数据') }}</p>
+{%- else -%}
+{%- set cols = columns if columns else rows[0].keys()|list -%}
+{%- set ns = namespace(numcols=[]) -%}
+{%- for col in cols -%}
+  {%- for row in rows -%}
+    {%- set cell = row.get(col) if row is mapping else none -%}
+    {%- if cell is not none and cell|string|length > 18 and col not in ns.numcols -%}
+      {%- set ns.numcols = ns.numcols + [col] -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endfor -%}
+<div class="table-wrap">
+  <table class="data-table">
+    {%- if caption %}<caption>{{ caption }}</caption>{% endif -%}
+    <thead>
+      <tr>
+        {%- for col in cols -%}
+        <th class="{{ 'col-num' if col in ns.numcols }}">{{ col }}</th>
+        {%- endfor -%}
+      </tr>
+    </thead>
+    <tbody>
+      {%- for row in rows -%}
+      <tr>
+        {%- for col in cols -%}
+        {%- set cell = row.get(col) if row is mapping else none -%}
+        <td class="{{ 'col-num' if col in ns.numcols }}">{{ value(cell) }}</td>
+        {%- endfor -%}
+      </tr>
+      {%- endfor -%}
+    </tbody>
+  </table>
+</div>
+{%- endif -%}
+{%- endmacro -%}
+
+{#- 一个小节：有 Rows 走表格，否则走字段网格 -#}
+{%- macro section(title, fields, rows, columns, wide) -%}
+<section class="sub card">
+  <h4 class="sub-title">{{ title }}</h4>
+  {%- if rows -%}
+  {{ data_table(rows, columns) }}
+  {%- else -%}
+  {{ field_grid(fields, wide) }}
+  {%- endif -%}
+</section>
+{%- endmacro -%}
+
+{#- 系统概览统计块：多字段同行 -#}
+{%- macro stat_grid(fields) -%}
+<div class="stat-grid">
+  {%- for label, value_ in fields.items() -%}
+  <div class="stat">
+    <span class="stat-label">{{ label }}</span>
+    <span class="stat-value">{{ value_ }}</span>
+  </div>
+  {%- endfor -%}
+</div>
+{%- endmacro -%}

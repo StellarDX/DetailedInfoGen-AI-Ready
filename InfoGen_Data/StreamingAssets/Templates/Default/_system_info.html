@@ -1,0 +1,34 @@
+{#
+================================================================================
+ _system_info.html —— 行星系统信息（对应 Generator._System_Info_To_Table）
+================================================================================
+   SystemInfo : dict  例如
+               {"恒星数量": "2", "行星数量": "5", "矮行星数量": "1",
+                "卫星数量": "85", "小行星数量": "1000", "彗星数量": "0",
+                "光谱型": "O3.3 Ia + BlackHole"}
+================================================================================
+#}
+{%- import "Default/_macros.html" as M with context -%}
+{%- set L = L|default({}) -%}
+
+<section class="panel" id="overview">
+  <header class="panel-head">
+    <h2 class="panel-title">{{ L.SystemInfo|default('行星系统信息') }}</h2>
+    <span class="panel-sub">{{ MainID }}</span>
+  </header>
+
+  {%- if SystemInfo -%}
+  <div class="card">
+    <div class="stat-grid">
+      {%- for label, value_ in SystemInfo.items() -%}
+      <div class="stat {{ M.is_wide(value_, 12) }}">
+        <span class="stat-label">{{ label }}</span>
+        <span class="stat-value">{{ M.value(value_) }}</span>
+      </div>
+      {%- endfor -%}
+    </div>
+  </div>
+  {%- else -%}
+  <p class="placeholder">{{ L.NoData|default('暂无数据') }}</p>
+  {%- endif -%}
+</section>

@@ -1,0 +1,47 @@
+{#
+================================================================================
+ _object.html —— 单个天体（对应 Generator._Object_To_Table + ObjectList）
+================================================================================
+ 由 index.html 在循环中 {% set obj = ... %}{% include "_object.html" %} 渲染。
+
+ obj 结构：
+   Ident    : str                天体标识，如 "1"、"2.1"、"A"
+   Type     : str                物体类型（已本地化，如 "蓝超巨星"、"碳质行星"）
+   Depth    : int   可选         层级，缺省由 Ident 中 "." 的个数推导
+   Sections : list[dict]         以下小节按 SystemCreator 的顺序排列：
+       {Title:"轨道数据", Fields:{...}}                      -> 字段网格
+       {Title:"物理数据", Fields:{...}}                      -> 字段网格
+       {Title:"大气",     Fields:{...}}                      -> 字段网格（成分多行）
+       {Title:"海洋",     Fields:{...}}                      -> 字段网格（成分多行）
+       {Title:"生物圈",   Fields:{...}}                      -> 字段网格
+       {Title:"卫星列表", Rows:[{...}], Columns:[...](可选)}  -> 表格
+   Content  : str   可选        兜底：若上游只给出 Markdown 文本，则原样展示
+================================================================================
+#}
+{%- import "Default/_macros.html" as M with context -%}
+{%- set L = L|default({}) -%}
+
+{%- set ident = obj.Ident|default('') -%}
+{%- set otype = obj.Type|default('', true)|string -%}
+{%- set rawdepth = (obj.Depth if obj.Depth is defined else ((ident|string).split('.')|length - 1))|int -%}
+{%- set depth = rawdepth if rawdepth < 3 else 3 -%}
+
+<article class="panel object depth-{{ depth }}" id="obj-{{ M.anchor(ident) }}">
+  <header class="panel-head sticky-head">
+    <h2 class="panel-title">
+      <span class="obj-ident">{{ ident }}</span>
+      {%- if otype %}<span class="obj-sep">·</span><span class="obj-type">{{ otype }}</span>{% endif -%}
+    </h2>
+    <a class="panel-anchor" href="#obj-{{ M.anchor(ident) }}" title="{{ L.Permalink|default('固定链接') }}">#</a>
+  </header>
+
+  {%- if obj.Sections -%}
+    {%- for sec in obj.Sections -%}
+      {{ M.section(sec.Title, sec.Fields, sec.Rows, sec.Columns, sec.Wide) }}
+    {%- endfor -%}
+  {%- elif obj.Content -%}
+    <div class="card"><pre class="raw">{{ obj.Content }}</pre></div>
+  {%- else -%}
+    <p class="placeholder">{{ L.NoData|default('暂无数据') }}</p>
+  {%- endif -%}
+</article>

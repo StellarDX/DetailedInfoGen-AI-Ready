@@ -1,0 +1,94 @@
+{#
+================================================================================
+ _sidebar.html —— 左侧导航栏（被 base.html include）
+================================================================================
+使用的上下文变量（缺省时均有兜底，不会报错）：
+   MainID        : str        系统主天体 ID（对应 Generator._Src["MainID"]）
+   Title         : str        可选，页面标题，缺省用 MainID
+   SystemInfo    : dict       行星系统信息（_System_Info_To_Table 的键值对）
+   Objects       : list       物体列表（_Object_To_Table 的汇总）
+                               元素：{Ident, Type, Depth(可选)}
+   MinorObjects  : dict       小行星列表（_Minor_Objects_To_Table）
+                               结构：{Columns:[...], Rows:[{...}, ...]}
+   L             : dict       可选，界面文案覆盖表
+================================================================================
+#}
+{%- import "Default/_macros.html" as M with context -%}
+{%- set L = L|default({}) -%}
+{%- set Objects = Objects if Objects is iterable and Objects is not string else [] -%}
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <a class="brand" href="#top">
+      <span class="brand-mark">◍</span>
+      <span class="brand-text">
+        <span class="brand-title">{{ Title|default(MainID, true) }}</span>
+        <span class="brand-sub">{{ L.Nav|default('行星系统导航') }}</span>
+      </span>
+    </a>
+  </div>
+
+  <div class="sidebar-search">
+    <input type="search" id="nav-filter" autocomplete="off" spellcheck="false"
+           placeholder="{{ L.Search|default('筛选天体…') }}">
+  </div>
+
+  <nav class="nav" id="nav">
+    <div class="nav-group">
+      <div class="nav-group-title">{{ L.SystemInfo|default('行星系统信息') }}</div>
+      <a class="nav-link" href="#overview" data-nav data-search="{{ L.Overview|default('系统概览') }}">
+        <span class="nav-dot"></span>
+        <span class="nav-text">
+          <span class="nav-ident">{{ L.Overview|default('系统概览') }}</span>
+          <span class="nav-type">
+            {%- if SystemInfo -%}{{ SystemInfo|length }} {{ L.Fields|default('项') }}{%- endif -%}
+          </span>
+        </span>
+      </a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-title">
+        {{ L.ObjectList|default('物体列表') }}
+        {%- if Objects %}<span class="nav-count">{{ Objects|length }}</span>{% endif -%}
+      </div>
+      {%- if Objects -%}
+      {%- for obj in Objects -%}
+      {%- set ident = obj.Ident if obj is mapping else obj[0] -%}
+      {%- set otype = ((obj.Type if obj is mapping else obj[1])|default('', true))|string -%}
+      {%- set rawdepth = (obj.Depth if obj is mapping and obj.Depth is defined else ((ident|string).split('.')|length - 1))|int -%}
+      <a class="nav-link depth-{{ rawdepth if rawdepth < 3 else 3 }}"
+         href="#obj-{{ M.anchor(ident) }}" data-nav
+         data-search="{{ ident }} {{ otype }}" title="{{ ident }}{{ ' · ' + otype if otype }}">
+        <span class="nav-dot"></span>
+        <span class="nav-text">
+          <span class="nav-ident">{{ ident }}</span>
+          <span class="nav-type">{{ otype }}</span>
+        </span>
+      </a>
+      {%- endfor -%}
+      {%- else -%}
+      <p class="nav-placeholder">{{ L.NoData|default('暂无数据') }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- if MinorObjects and MinorObjects.Rows -%}
+    <div class="nav-group">
+      <div class="nav-group-title">{{ L.MinorObjects|default('小行星列表') }}</div>
+      <a class="nav-link" href="#minor-objects" data-nav
+         data-search="{{ L.MinorObjects|default('小行星列表') }}">
+        <span class="nav-dot"></span>
+        <span class="nav-text">
+          <span class="nav-ident">{{ L.MinorObjects|default('小行星列表') }}</span>
+          <span class="nav-type">{{ MinorObjects.Rows|length }} {{ L.Records|default('条记录') }}</span>
+        </span>
+      </a>
+    </div>
+    {%- endif -%}
+  </nav>
+
+  <div class="sidebar-foot">
+    <span class="foot-key">InfoGen</span>
+    <span class="foot-val">Default Template</span>
+  </div>
+</aside>

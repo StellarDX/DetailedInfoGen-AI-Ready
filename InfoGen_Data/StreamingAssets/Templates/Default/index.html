@@ -1,0 +1,89 @@
+{#
+================================================================================
+ index.html —— 默认模板入口（整份文档的单页输出）
+================================================================================
+ 与 SystemCreator.Generator.ExportTextToString 的结构一一对应：
+
+   # {MainID}                          -> .doc-head
+   ## {行星系统信息}                    -> _system_info.html   (SystemInfo)
+   ## {物体列表}                        -> _object.html × N    (Objects)
+   ## {小行星列表}                      -> _minor_objects.html (MinorObjects)
+
+ ------------------------------- 上下文契约 -------------------------------------
+ MainID        : str   必填   系统主天体 ID，例如 "RS 1237-3584-0-0-286"
+ Title         : str   可选   页面/导航标题，缺省 MainID
+ Subtitle      : str   可选   页眉副标题，缺省 MainID
+ GeneratedAt   : str   可选   生成时间，显示在页眉右侧
+ L             : dict  可选   界面文案覆盖表（默认简体中文）
+
+ SystemInfo    : dict  行星系统信息（对应 _System_Info_To_Table）
+                        {"恒星数量":"2", ..., "光谱型":"O3.3 Ia + BlackHole"}
+
+ Objects       : list  物体列表（对应 ObjectList/_Object_To_Table），按先序遍历顺序：
+                  [{
+                     "Ident": "A",
+                     "Type":  "蓝超巨星",
+                     "Depth": 0,                       # 可选，缺省按 Ident 中 "." 计数
+                     "Sections": [
+                        {"Title":"轨道数据","Fields":{...}},
+                        {"Title":"物理数据","Fields":{...}},
+                        {"Title":"大气",    "Fields":{...}},
+                        {"Title":"海洋",    "Fields":{...}},
+                        {"Title":"生物圈",  "Fields":{...}},
+                        {"Title":"卫星列表","Rows":[{...}],"Columns":[...]}   # Columns 可选
+                     ]
+                  }, ...]
+
+ MinorObjects  : dict  小行星列表（对应 _Minor_Objects_To_Table）
+                  {"Columns":[...], "Rows":[{...}, ...]}
+
+ --------------------------- Python 侧渲染示例 ----------------------------------
+   from pathlib import Path
+   from jinja2 import Environment, FileSystemLoader, select_autoescape
+
+   env = Environment(
+       loader = FileSystemLoader(Path(__file__).parent / "StreamingAssets" / "Templates"),
+       autoescape = select_autoescape(["html", "xml"]),
+   )
+   env.filters["anchor"] = lambda s: str(s).lower().replace(" ", "-").replace(".", "-")
+   html = env.get_template("Default/index.html").render(Context)
+================================================================================
+#}
+{% extends "Default/base.html" %}
+
+{% block content %}
+{#- 归一化入参：Objects 只接受序列（排除字符串），其余一律当作空 -#}
+{%- set Objects = Objects if Objects is iterable and Objects is not string else [] -%}
+<header class="doc-head">
+  <div>
+    <h1 class="doc-title">{{ Title|default(MainID, true) }}</h1>
+    {%- if Subtitle or MainID %}
+    <div class="doc-sub">{{ Subtitle|default(MainID, true) }}</div>
+    {%- endif %}
+  </div>
+  {%- if GeneratedAt %}
+  <div class="doc-meta">{{ GeneratedAt }}</div>
+  {%- endif %}
+</header>
+
+{% include "Default/_system_info.html" %}
+
+<section class="panel" id="object-list">
+  <header class="panel-head">
+    <h2 class="panel-title">{{ (L|default({})).ObjectList|default('物体列表') }}</h2>
+    <span class="panel-sub">
+      {%- if Objects -%}{{ Objects|length }} {{ (L|default({})).Objects|default('个天体') }}{%- endif -%}
+    </span>
+  </header>
+
+  {%- if Objects -%}
+    {%- for obj in Objects -%}
+      {% include "Default/_object.html" %}
+    {%- endfor -%}
+  {%- else -%}
+    <p class="placeholder">{{ (L|default({})).NoData|default('暂无数据') }}</p>
+  {%- endif -%}
+</section>
+
+{% include "Default/_minor_objects.html" %}
+{% endblock %}

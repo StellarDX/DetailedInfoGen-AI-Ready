@@ -8,6 +8,7 @@ import argparse
 from abc import ABC, abstractmethod
 from pandas import DataFrame
 from pathlib import Path
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 def ArgToDict(s):
     k, v = s.split('=', 1)
@@ -27,7 +28,7 @@ def Register(MainArgParser):
     ParserCreate.add_argument("-L", "--lcid", type = str, default = '2052', help = "输出文档的语言ID")
     ParserCreate.add_argument("-f", "--format", type = str, default = "Markdown", help = "输出文档格式")
     ParserCreate.add_argument("-D", "--format-args", action = 'append', type = ArgToDict, default = [], help = "输出文档格式的额外参数")
-    ParserCreate.add_argument("--store", action='store_true', help = "将输出的文档向量化后保存到ChromaDB（需要模型支持）")
+    ParserCreate.add_argument("--store", action='store_true', help = "将输出的文档向量化后保存到ChromaDB（需要模型支持，仅Markdown输出时可用）")
     ParserCreate.add_argument("--model-config", type = str, help = "向量化文本模型的配置文件")
 
 def PrintArgs(args):
@@ -254,7 +255,7 @@ class Generator(ABC):
                     Life[LOC("生物形式")] = LOC(Object["Biosphere"]["Class"])
                     Life[LOC("生物种类")] = LOC(Object["Biosphere"]["Type"])
                     Life[LOC("生物群系")] = ", ".join([LOC(i) for i in Object["Biosphere"]["Biome"]])
-                    Life[LOC("生物圈")] = DataFrame([Life])
+                    ObjectInfo[LOC("生物圈")] = DataFrame([Life])
                 if "SubSystems" in Object.keys():
                     ObjectInfo[LOC("卫星列表")] = self._Subsystem_To_DataFrame(Object["SubSystems"], ParentBody)
             case "Moon":
@@ -285,7 +286,7 @@ class Generator(ABC):
                     OrbitalCharacteristics[LOC("近地点")] = f"{Object["OrbitalCharacteristics"]["PericenterDist"]:.{self._Prec}g} m"
                     OrbitalCharacteristics[LOC("半长轴 (a)")] = f"{Object["OrbitalCharacteristics"]["SemiMajorAxis"]:.{self._Prec}g} m"
                     OrbitalCharacteristics[LOC("离心率 (e)")] = f"{Object["OrbitalCharacteristics"]["Eccentricity"]:.{self._Prec}g}"
-                    OrbitalCharacteristics[LOC("恒星月 (P)")] = f"{Object["OrbitalCharacteristics"]["Period"]} s"
+                    OrbitalCharacteristics[LOC("恒星月 (P)")] = f"{Object["OrbitalCharacteristics"]["Period"]:.{self._Prec}g} s"
                     OrbitalCharacteristics[LOC("朔望月 (P)")] = f"{Object["OrbitalCharacteristics"]["SynodicMonth"]:.{self._Prec}g} s"
                     OrbitalCharacteristics[LOC("平近点角 (M0)")] = f"{Object["OrbitalCharacteristics"]["MeanAnomaly"]:.{self._Prec}g}"
                     OrbitalCharacteristics[LOC("轨道倾角 (i)")] = f"{Object["OrbitalCharacteristics"]["Inclination"]:.{self._Prec}g}"
@@ -334,7 +335,7 @@ class Generator(ABC):
                     Life[LOC("生物形式")] = LOC(Object["Biosphere"]["Class"])
                     Life[LOC("生物种类")] = LOC(Object["Biosphere"]["Type"])
                     Life[LOC("生物群系")] = ", ".join([LOC(i) for i in Object["Biosphere"]["Biome"]])
-                    Life[LOC("生物圈")] = DataFrame([Life])
+                    ObjectInfo[LOC("生物圈")] = DataFrame([Life])
         return ObjectInfo
 
     def _Minor_Object_List_Has_Comet(self):
@@ -398,6 +399,10 @@ class Generator(ABC):
         return self._Texts;
 
     @abstractmethod
+    def FileSuffix(self):
+        pass
+
+    @abstractmethod
     def ExportTextToString(self):
         pass
 
@@ -457,6 +462,9 @@ class MarkdownGenerator(Generator): # 大模型推荐使用，因为模型训练
     def MinorObjectList(self):
         return self._Minor_Objects_To_Table().to_markdown()
 
+    def FileSuffix(self):
+        return "md"
+
     def ExportTextToString(self):
         Text = ""
         Text += f"# {self._Src["MainID"]}\n\n"
@@ -471,9 +479,95 @@ class MarkdownGenerator(Generator): # 大模型推荐使用，因为模型训练
         Text += f"{Contents[LOC("小行星列表")]}"
         return Text
 
+class Jinja2Generator(Generator):
+    def __init__(self, System:dict, kwargs:dict):
+        super().__init__(System, kwargs)
+        self.TemplatePath = self.CanonicalTemplatePath(kwargs["template-path"] if "template-path" in kwargs.keys() else "Default")
+
+    @staticmethod
+    def CanonicalTemplatePath(TPath: str) -> Path:
+        Root = Path("./InfoGen_Data/StreamingAssets/Templates")
+        Dir = Path(TPath) if ("/" in TPath or "\\" in TPath) else Root / TPath
+        if not (Dir.exists() and Dir.is_dir()):
+            raise FileNotFoundError(f"未能获取到有效模板目录：{Dir}，没有那个文件或目录或权限不够")
+        return Dir
+
+    @staticmethod
+    def _Fields(Frame: DataFrame) -> dict:
+        if len(Frame) == 0:
+            return {}
+        return {str(k): v for k, v in Frame.iloc[0].to_dict().items()}
+
+    @staticmethod
+    def _Rows(Frame: DataFrame):
+        Columns = [str(c) for c in Frame.columns]
+        Rows = [{str(k): v for k, v in Row.items()} for Row in Frame.to_dict(orient = "records")]
+        return Columns, Rows
+
+    def SystemInfo(self):
+        return self._Fields(self._System_Info_To_Table())
+
+    def _Object_Sections(self, ObjData: dict) -> list:
+        Sections = []
+        for Title, Data in ObjData.items():
+            if Title == LOC("物体类型") or not isinstance(Data, DataFrame):
+                continue
+            if len(Data) == 1:
+                Sections.append({"Title": Title, "Fields": self._Fields(Data)})
+            else:
+                Columns, Rows = self._Rows(Data)
+                Sections.append({"Title": Title, "Columns": Columns, "Rows": Rows})
+        return Sections
+
+    def _DFS_Iterate(self, Objs: list, Ident: str, ParentBody: str, Depth: int = 0):
+        Sub = self._Src["Objects"][Ident]
+        Store = not (Ident == ParentBody and Sub["OType"] == "Barycenter")
+        Store = Store and Sub["OType"] != "DwarfMoon"   # 与 Markdown 侧过滤规则一致
+        if Store:
+            ObjData = self._Object_To_Table(Sub, self._Src["Objects"][ParentBody])
+            Objs.append({
+                "Ident": Ident,
+                "Type": ObjData.get(LOC("物体类型"), ""),
+                "Depth": Depth,
+                "Sections": self._Object_Sections(ObjData),
+            })
+        for i in Sub.get("SubSystems", []):
+            self._DFS_Iterate(Objs, i, Ident, Depth + 1)
+
+    def ObjectList(self):
+        Objs = []
+        self._DFS_Iterate(Objs, self._Src["MainID"], self._Src["MainID"])
+        return Objs
+
+    def MinorObjectList(self):
+        Columns, Rows = self._Rows(self._Minor_Objects_To_Table())
+        return {"Columns": Columns, "Rows": Rows}
+
+    def FileSuffix(self):
+        return "Html"
+
+    def ExportTextToString(self):
+        Contents = self._Texts[self._Src["MainID"]]
+        Env = Environment(
+            loader = FileSystemLoader(str(self.TemplatePath.parent)),
+            autoescape = select_autoescape(["html", "xml"]),
+            trim_blocks = True, lstrip_blocks = True, keep_trailing_newline = True,
+        )
+        Env.globals["LOC"] = LOC   # 让模板也能走 i18n
+        Template = Env.get_template(f"{self.TemplatePath.name}/index.html")
+        return Template.render(
+            MainID       = self._Src["MainID"],
+            Title        = self._Src["MainID"],
+            SystemInfo   = Contents[LOC("行星系统信息")],
+            Objects      = Contents[LOC("物体列表")],
+            MinorObjects = Contents[LOC("小行星列表")],
+        )
+
 def InitGenerator(fmt:str, args:dict, Src:dict):
     if fmt == "Markdown":
         return MarkdownGenerator(Src, args)
+    elif fmt in ("Jinja2", "HTML"):
+        return Jinja2Generator(Src, args)
     else:
         raise ValueError(f"无效的格式：{fmt}")
 
@@ -492,7 +586,7 @@ def LoadObjectsFromSC(args):
     Gen.Run()
 
     Path(args.output).mkdir(parents = True, exist_ok = True)
-    OutputFileName = f"{args.output}/{Objects["MainID"]}.md"
+    OutputFileName = f"{args.output}/{Objects["MainID"]}.{Gen.FileSuffix()}"
     with open(OutputFileName, "w", encoding = "utf-8") as fout:
         fout.write(Gen.ExportTextToString())
 
