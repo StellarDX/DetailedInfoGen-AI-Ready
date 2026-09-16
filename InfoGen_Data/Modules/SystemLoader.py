@@ -377,9 +377,6 @@ class Generator(ABC):
     def GetTexts(self):
         return self._Texts;
 
-    def StoreData(self):
-        pass
-
     @abstractmethod
     def FileSuffix(self):
         pass
