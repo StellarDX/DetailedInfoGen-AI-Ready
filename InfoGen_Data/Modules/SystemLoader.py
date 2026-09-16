@@ -378,7 +378,7 @@ class Generator(ABC):
         return self._Texts;
 
     def StoreData(self):
-        raise NotImplementedError("此数据格式不支持存入向量数据库")
+        pass
 
     @abstractmethod
     def FileSuffix(self):
@@ -443,9 +443,6 @@ class MarkdownGenerator(Generator): # 大模型推荐使用，因为模型训练
 
     def MinorObjectList(self):
         return self._Minor_Objects_To_Table().to_markdown()
-
-    def StoreData(self):
-        pass
 
     def FileSuffix(self):
         return "md"
