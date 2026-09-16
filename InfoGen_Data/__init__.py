@@ -29,5 +29,7 @@ from InfoGen_Data.Modules.I18NAdmin import LocaleAdmin
 
 from InfoGen_Data.Modules.SystemLoader import LoadObjectsFromSC
 
+from InfoGen_Data.Modules.ChromaDB import CreateNamespace
+
 from InfoGen_Data.Modules.ResourceCreator import Register as ResourceCreatorRegister
 from InfoGen_Data.Modules.ResourceCreator import CreateResource
