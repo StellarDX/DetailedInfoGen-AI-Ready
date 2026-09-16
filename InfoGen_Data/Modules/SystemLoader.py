@@ -25,7 +25,7 @@ def PrintArgs(args):
     print(f"--format:                      {args.format}")
     print(f"--format-args:                 {args.format_args}")
     print(f"--store:                       {args.store}")
-    print(f"--namespace:                   {args.namespace}")
+    print(f"--model-config:                {args.model_config}")
 
 class Generator(ABC):
     def __init__(self, System:dict, kwargs:dict):
@@ -378,11 +378,14 @@ class Generator(ABC):
         return self._Texts;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     def StoreData(self):
         raise NotImplementedError("此数据格式不支持存入向量数据库")
 
 >>>>>>> parent of 4632588 (...)
+=======
+>>>>>>> parent of af78c1b (...)
     @abstractmethod
     def FileSuffix(self):
         pass
@@ -446,9 +449,6 @@ class MarkdownGenerator(Generator): # 大模型推荐使用，因为模型训练
 
     def MinorObjectList(self):
         return self._Minor_Objects_To_Table().to_markdown()
-
-    def StoreData(self):
-        pass
 
     def FileSuffix(self):
         return "md"
