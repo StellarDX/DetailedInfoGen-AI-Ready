@@ -377,15 +377,6 @@ class Generator(ABC):
     def GetTexts(self):
         return self._Texts;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    def StoreData(self):
-        raise NotImplementedError("此数据格式不支持存入向量数据库")
-
->>>>>>> parent of 4632588 (...)
-=======
->>>>>>> parent of af78c1b (...)
     @abstractmethod
     def FileSuffix(self):
         pass
