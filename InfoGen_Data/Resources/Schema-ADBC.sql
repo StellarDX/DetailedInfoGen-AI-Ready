@@ -4,7 +4,7 @@ CREATE TABLE ig_system (
     system_id        VARCHAR(512) PRIMARY KEY,     -- 预留足够多的空间
     main_id          VARCHAR(255) NOT NULL,        -- Objects根键MainID
     source_file      VARCHAR(1024),                -- 原始.sc路径
-    source_hash      CHAR(64),                     -- 文件sha256，决定要不要重新导入
+    source_hash      VARCHAR(512),                 -- 文件sha256，决定要不要重新导入
     code_page        INTEGER,
     esi_estimator    VARCHAR(32),                  -- SolarSys/Extrasolar
     absolute_orbit   BOOLEAN NOT NULL DEFAULT FALSE,

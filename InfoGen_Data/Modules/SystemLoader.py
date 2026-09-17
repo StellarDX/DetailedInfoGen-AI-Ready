@@ -7,10 +7,11 @@ from InfoGen_Data import ADBCClient
 import argparse
 
 from abc import ABC, abstractmethod
-from pandas import DataFrame, read_sql
+from pandas import DataFrame, read_sql, Timestamp
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from uuid import uuid5, NAMESPACE_URL
+from hashlib import sha256
 
 def PrintArgs(args):
     print(f"配置: ")
@@ -28,16 +29,17 @@ def PrintArgs(args):
     print(f"--format-args:                 {args.format_args}")
     print(f"--store:                       {args.store}")
     print(f"--namespace:                   {args.namespace}")
+    print(f"--store-mode:                  {args.store_mode}")
 
 class Uploader():
     @staticmethod
     def StrToRootNamespace(Namespace: str):
         return uuid5(NAMESPACE_URL, Namespace.strip())
 
-    def __init__(self, System:dict, Namespace:str):
+    def __init__(self, System:dict, args):
         self._Src = System
-        self._Namespace = Namespace
-        if self._Namespace == None or len(self._Namespace) == 0:
+        self._Args = args
+        if self._Args.namespace == None or len(self._Args.namespace) == 0:
             raise ValueError("命名空间未填写或无效")
         self._SystemDataFrame = None
         self._ObjectsDataFrame = None
@@ -49,21 +51,7 @@ class Uploader():
         self._BiosphereDataFrame = None
         self._BioBiomeDataFrame = None
         self._CompositionsDataFrame = None
-        self._RootID = self.StrToRootNamespace(self._Namespace)
-
-    def LoadTable(self):
-        Connection = ADBCClient()
-        # 此处使用select * from table where 1 = 0获取表数据，多数数据库都支持且这种方法是多数ORM都在用的方法
-        self._SystemDataFrame = read_sql("select * from ig_system where 1 = 0;", Connection)
-        self._ObjectsDataFrame = read_sql("select * from ig_object where 1 = 0;", Connection)
-        self._IdentifiersDataFrame = read_sql("select * from ig_identifiers where 1 = 0;", Connection)
-        self._PhysicalDataFrame = read_sql("select * from ig_physical where 1 = 0;", Connection)
-        self._OrbitDataFrame = read_sql("select * from ig_orbit where 1 = 0;", Connection)
-        self._AtmosphereDataFrame = read_sql("select * from ig_atmosphere where 1 = 0;", Connection)
-        self._HydrosphereDataFrame = read_sql("select * from ig_hydrosphere where 1 = 0;", Connection)
-        self._BiosphereDataFrame = read_sql("select * from ig_biosphere where 1 = 0;", Connection)
-        self._BioBiomeDataFrame = read_sql("select * from ig_biosphere_biome where 1 = 0;", Connection)
-        self._CompositionsDataFrame = read_sql("select * from ig_composition where 1 = 0;", Connection)
+        self._RootID = self.StrToRootNamespace(self._Args.namespace)
 
     def SystemID(self, main_id: str) -> str:
         return str(uuid5(self._RootID, f"{main_id}"))
@@ -72,12 +60,76 @@ class Uploader():
         # path是从根到自己的Identifiers[0]链，例如["Solar System", "Sun", "Earth", "Moon"]
         return str(uuid5(self._RootID, f"{main_id}://{'/'.join(path)}")) # SE的物体名里不会出现'/'
 
+    def FileSHA256(self, Source:str):
+        return sha256(Path(Source).read_bytes()).hexdigest()
+
+    def _Load_Table(self):
+        Connection = ADBCClient()
+        # 此处使用select * from table where 1 = 0获取表数据，多数数据库都支持且这种方法是多数ORM都在用的方法
+        self._SystemDataFrame = read_sql("select * from ig_system where 1 = 0;", Connection)
+        self._SystemDataFrame.set_index("system_id", inplace=True)
+        self._ObjectsDataFrame = read_sql("select * from ig_object where 1 = 0;", Connection)
+        self._ObjectsDataFrame.set_index("object_id", inplace=True)
+        self._IdentifiersDataFrame = read_sql("select * from ig_identifiers where 1 = 0;", Connection)
+        self._IdentifiersDataFrame.set_index(["object_id", "alias"], inplace=True)
+        self._PhysicalDataFrame = read_sql("select * from ig_physical where 1 = 0;", Connection)
+        self._PhysicalDataFrame.set_index("object_id", inplace=True)
+        self._OrbitDataFrame = read_sql("select * from ig_orbit where 1 = 0;", Connection)
+        self._OrbitDataFrame.set_index("object_id", inplace=True)
+        self._AtmosphereDataFrame = read_sql("select * from ig_atmosphere where 1 = 0;", Connection)
+        self._AtmosphereDataFrame.set_index("object_id", inplace=True)
+        self._HydrosphereDataFrame = read_sql("select * from ig_hydrosphere where 1 = 0;", Connection)
+        self._HydrosphereDataFrame.set_index("object_id", inplace=True)
+        self._BiosphereDataFrame = read_sql("select * from ig_biosphere where 1 = 0;", Connection)
+        self._BiosphereDataFrame.set_index("object_id", inplace=True)
+        self._BioBiomeDataFrame = read_sql("select * from ig_biosphere_biome where 1 = 0;", Connection)
+        self._BioBiomeDataFrame.set_index("object_id", inplace=True)
+        self._CompositionsDataFrame = read_sql("select * from ig_composition where 1 = 0;", Connection)
+        self._CompositionsDataFrame.set_index("object_id", inplace=True)
+
+    def _System_To_DataFrame(self):
+        SystemID = self.SystemID(self._Src["MainID"])
+        CurrentTime = Timestamp.now()
+        self._SystemDataFrame.loc[SystemID] = [
+            self._Src["MainID"],
+            self._Args.input,
+            self.FileSHA256(self._Args.input),
+            self._Args.code_page,
+            self._Args.esi_estimator,
+            self._Args.absolute_orbit,
+            self._Args.common_plane_threshold,
+            self._Args.namespace,
+            self._Src["NStars"],
+            self._Src["NPlanets"],
+            self._Src["NDwarfPlanets"],
+            self._Src["NSatellites"],
+            self._Src["NMinorPlanets"],
+            self._Src["NComets"],
+            " + ".join(self._Src["StarSpectralType"]),
+            CurrentTime,
+            CurrentTime
+        ]
+        print(self._SystemDataFrame)
+
     def _DFS_Iterate(self, Ident:str, ParentBody:str):
-        pass
+        # TODO
+        if "SubSystems" in self._Src["Objects"][Ident]:
+            for i in self._Src["Objects"][Ident]["SubSystems"]:
+                self._DFS_Iterate(i, Ident)
+
+    def DistUpgrade(self):
+        pass # TODO
 
     def Run(self):
-        self.LoadTable()
-        pass
+        # 先准备表
+        self._Load_Table()
+        self._System_To_DataFrame()
+        self._DFS_Iterate(self._Src["MainID"], self._Src["MainID"])
+        match self._Args.store_mode:
+            case "dist-upgrade":
+                self.DistUpgrade()
+            case _:
+                raise ValueError("无效的上传模式")
 
 class Generator(ABC):
     def __init__(self, System:dict, kwargs:dict):
@@ -613,7 +665,7 @@ def LoadObjectsFromSC(args):
 
     if args.store == True:
         print("上传行星系统到数据库...")
-        Upl = Uploader(Objects, args.namespace)
+        Upl = Uploader(Objects, args)
         Upl.Run()
 
     print("生成文件...")

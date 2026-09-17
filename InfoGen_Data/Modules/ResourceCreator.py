@@ -32,6 +32,7 @@ def Register(MainArgParser):
     SysParser.add_argument("-D", "--format-args", action = 'append', type = ArgToDict, default = [], help = "输出文档格式的额外参数")
     SysParser.add_argument("-i", "--store", action='store_true', help = "将生成的原始数据保存到数据库")
     SysParser.add_argument("-n", "--namespace", type = str, help = "保存数据的命名空间")
+    SysParser.add_argument("--store-mode", type = str, default = "dist-upgrade", choices = ["dist-upgrade"], help = "插入数据的模式（暂时只支持dist-upgrade，即卸载后重新导入）")
     # 创建命名空间
     NSParser = RCParser.add_parser("namespace", help = "创建命名空间")
     
