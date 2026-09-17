@@ -75,7 +75,7 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
 
 注：由于这一版本功能比以前的版本强大的多，因此安装部署的难度也提高了某些白嫖党难以接受的程度
 
-先修课程：C++程序设计，Python程序设计，天体物理学
+先修课程：C++程序设计，Python程序设计，数据库原理与应用，人工智能基础，天体物理学
 
 #### 1. 编译并安装 ANTLR C++ Runtime
 
@@ -208,8 +208,8 @@ python InfoGen.py create system -S /SpaceEngine/Export/RS-xxxx.sc [-B /OutputPat
 | `-L, --lcid` | 输出文档的语言 ID（如 `2052` 简体中文、`1033` 英文）（TODO） | `2052` |
 | `-f, --format` | 输出文档格式（当前支持 `Markdown`） | `Markdown` |
 | `-D, --format-args` | 输出文档格式的额外参数，可重复传入（`key=value`，如 `-Dprecision=6`） | 空 |
-| `--store` | 将输出文档向量化后保存到 ChromaDB（需要模型支持，开发中） | 关闭 |
-| `--model-config` | 向量化文本模型的配置文件（TODO） | — |
+| `--store` | 将生成的原始数据保存到数据库 | 关闭 |
+| `--namespace` | 保存数据的命名空间 | — |
 
 `--exceptional-asteroids-pred` 可选值：
 

@@ -2,13 +2,15 @@ from InfoGen_Data import InfoGen
 from InfoGen_Data import InfoGenHelpFormatter
 from InfoGen_Data import LoadLocale
 from InfoGen_Data import Classifications
+from InfoGen_Data import ADBCClient
 
 import argparse
 
 from abc import ABC, abstractmethod
-from pandas import DataFrame
+from pandas import DataFrame, read_sql
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from uuid import uuid5, NAMESPACE_URL
 
 def PrintArgs(args):
     print(f"配置: ")
@@ -27,8 +29,55 @@ def PrintArgs(args):
     print(f"--store:                       {args.store}")
     print(f"--namespace:                   {args.namespace}")
 
-def UploadSystem(System:dict):
-    pass
+class Uploader():
+    @staticmethod
+    def StrToRootNamespace(Namespace: str):
+        return uuid5(NAMESPACE_URL, Namespace.strip())
+
+    def __init__(self, System:dict, Namespace:str):
+        self._Src = System
+        self._Namespace = Namespace
+        if self._Namespace == None or len(self._Namespace) == 0:
+            raise ValueError("命名空间未填写或无效")
+        self._SystemDataFrame = None
+        self._ObjectsDataFrame = None
+        self._IdentifiersDataFrame = None
+        self._PhysicalDataFrame = None
+        self._OrbitDataFrame = None
+        self._AtmosphereDataFrame = None
+        self._HydrosphereDataFrame = None
+        self._BiosphereDataFrame = None
+        self._BioBiomeDataFrame = None
+        self._CompositionsDataFrame = None
+        self._RootID = self.StrToRootNamespace(self._Namespace)
+
+    def LoadTable(self):
+        Connection = ADBCClient()
+        # 此处使用select * from table where 1 = 0获取表数据，多数数据库都支持且这种方法是多数ORM都在用的方法
+        self._SystemDataFrame = read_sql("select * from ig_system where 1 = 0;", Connection)
+        self._ObjectsDataFrame = read_sql("select * from ig_object where 1 = 0;", Connection)
+        self._IdentifiersDataFrame = read_sql("select * from ig_identifiers where 1 = 0;", Connection)
+        self._PhysicalDataFrame = read_sql("select * from ig_physical where 1 = 0;", Connection)
+        self._OrbitDataFrame = read_sql("select * from ig_orbit where 1 = 0;", Connection)
+        self._AtmosphereDataFrame = read_sql("select * from ig_atmosphere where 1 = 0;", Connection)
+        self._HydrosphereDataFrame = read_sql("select * from ig_hydrosphere where 1 = 0;", Connection)
+        self._BiosphereDataFrame = read_sql("select * from ig_biosphere where 1 = 0;", Connection)
+        self._BioBiomeDataFrame = read_sql("select * from ig_biosphere_biome where 1 = 0;", Connection)
+        self._CompositionsDataFrame = read_sql("select * from ig_composition where 1 = 0;", Connection)
+
+    def SystemID(self, main_id: str) -> str:
+        return str(uuid5(self._RootID, f"{main_id}"))
+
+    def ObjectID(self, main_id: str, path: list[str]) -> str:
+        # path是从根到自己的Identifiers[0]链，例如["Solar System", "Sun", "Earth", "Moon"]
+        return str(uuid5(self._RootID, f"{main_id}://{'/'.join(path)}")) # SE的物体名里不会出现'/'
+
+    def _DFS_Iterate(self, Ident:str, ParentBody:str):
+        pass
+
+    def Run(self):
+        self.LoadTable()
+        pass
 
 class Generator(ABC):
     def __init__(self, System:dict, kwargs:dict):
@@ -564,7 +613,8 @@ def LoadObjectsFromSC(args):
 
     if args.store == True:
         print("上传行星系统到数据库...")
-        UploadSystem(Objects)
+        Upl = Uploader(Objects, args.namespace)
+        Upl.Run()
 
     print("生成文件...")
 

@@ -21,7 +21,7 @@ SchemaFile = "./InfoGen_Data/Resources/Schema-ADBC.sql"
 def ADBCConfig():
     global _ADBCConf
     if _ADBCConf == None:
-        with Path(ConnectionConf).open() as ADBCConfFile:
+        with Path(ConnectionConf).open("rb") as ADBCConfFile:
             _ADBCConf = tomllib.load(ADBCConfFile)
     return _ADBCConf
 
@@ -146,7 +146,7 @@ def Register(MainArgParser):
     ParserADBC = MainArgParser.add_parser("adbc", help = "ADBC数据库管理系统", formatter_class = InfoGenHelpFormatter)
     SubParsers = ParserADBC.add_subparsers(dest = 'adbcmodule', help = '可用选项')
     InitParser = SubParsers.add_parser("init", help = f"从原初模板渲染出副本配置（{ConnectionConf}）")
-    InitParser.add_argument("--driver", type = str, required = True, help = "ADBC驱动名")
+    InitParser.add_argument("--driver", type = str, required = True, help = "ADBC驱动路径")
     InitParser.add_argument("--uri", type = str, required = True, help = "连接目标：文件路径或DSN")
     InitParser.add_argument("-F", "--force", action = 'store_true', help = "覆盖已存在的副本配置")
     Modules[".Parser"] = ParserADBC
