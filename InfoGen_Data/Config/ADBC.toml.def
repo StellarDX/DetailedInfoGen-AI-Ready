@@ -1,0 +1,55 @@
+# ============================================================================
+# InfoGen - ADBC数据库连接配置（Deepseek生成）
+# ============================================================================
+#
+# 用途：Tool-Call查询数据库（物体的物理，轨道，大气，成分，生物圈数据），
+#       通过ADBC以Apache Arrow格式取数，可直接落进DataFrame，省掉中间反序列化。
+#
+# 注意：adbc-driver-manager只是驱动管理器，必须另外安装一个具体驱动，否则无法连接：
+#       SQLite     ->  adbc-driver-sqlite
+#       DuckDB     ->  adbc-driver-duckdb
+#       PostgreSQL ->  adbc-driver-postgresql
+#       ...以此类推
+#
+# ============================================================================
+# 示例（改driver，url，init_statements三项即可）
+# ============================================================================
+#
+# DuckDB：
+#   driver = "duckdb"
+#   uri    = "./IGAppData/ADBC/InfoGen.duckdb"
+#   init_statements = []
+#
+# PostgreSQL：
+#   driver = "postgresql"
+#   uri    = "postgresql://infogen:infogen@localhost:5432/infogen"
+#   init_statements = []
+
+[Connection] # 这些参数被直接用于初始化dbapi，因此配置名要和函数的参数名一致
+
+# 驱动名，对应ADBC驱动管理器里注册的驱动，如sqlite/duckdb/postgresql
+driver = ${DRIVER}
+
+# 连接目标，形态由驱动决定：
+#   sqlite/duckdb：文件路径，相对路径以进程工作目录为基准（与IGAppData同级）
+#   postgresql等：DSN，例如"postgresql://user:password@localhost:5432/infogen"
+uri = ${URI}
+
+# 数据库级参数，原样透传给ADBC驱动，等价于AdbcDatabase(**db_kwargs)。
+# 例（PostgreSQL）：sslmode = "prefer"
+[Connection.db_kwargs]
+
+
+# 连接级参数，原样透传给ADBC驱动，等价于AdbcConnection.init(**conn_kwargs)。
+[Connection.conn_kwargs]
+
+
+[InitStatements]
+# 按顺序执行的初始化语句，驱动默认关闭的特性要靠这里打开。
+# 例如SQLite的外键约束需要每个连接单独开：
+# init_statements = [
+#     "PRAGMA foreign_keys = ON",
+#     "PRAGMA journal_mode = WAL",
+#     "PRAGMA synchronous = NORMAL",
+# ]
+init_statements = []

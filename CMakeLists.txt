@@ -266,6 +266,36 @@ list(LENGTH PYTHON_INSTALL_FILES _pycount)
 message(STATUS "[${PROJECT_NAME}] 将安装 Python 文件 ${_pycount} 个（已排除 3rdParty）")
 
 # ----------------------------------------------------------------------------
+# 安装 Config 资源目录（按原目录结构）
+#   将 ./InfoGen_Data/Config 整个目录安装到
+#   CMAKE_INSTALL_PREFIX/InfoGen_Data/Config 下，保留其内部目录层级。
+# ----------------------------------------------------------------------------
+set(INFOGEN_CONFIG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/InfoGen_Data/Config")
+if(IS_DIRECTORY "${INFOGEN_CONFIG_DIR}")
+    install(DIRECTORY "${INFOGEN_CONFIG_DIR}"
+        DESTINATION "InfoGen_Data"
+    )
+    message(STATUS "[${PROJECT_NAME}] 将安装配置目录: ${INFOGEN_CONFIG_DIR} -> InfoGen_Data/Config")
+else()
+    message(WARNING "[${PROJECT_NAME}] 未找到 Config 目录: ${INFOGEN_CONFIG_DIR}")
+endif()
+
+# ----------------------------------------------------------------------------
+# 安装 Resources 资源目录（按原目录结构）
+#   将 ./InfoGen_Data/Resources 整个目录安装到
+#   CMAKE_INSTALL_PREFIX/InfoGen_Data/Resources 下，保留其内部目录层级。
+# ----------------------------------------------------------------------------
+set(INFOGEN_RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/InfoGen_Data/Resources")
+if(IS_DIRECTORY "${INFOGEN_RESOURCE_DIR}")
+    install(DIRECTORY "${INFOGEN_RESOURCE_DIR}"
+        DESTINATION "InfoGen_Data"
+    )
+    message(STATUS "[${PROJECT_NAME}] 将安装资源目录: ${INFOGEN_RESOURCE_DIR} -> InfoGen_Data/Resources")
+else()
+    message(WARNING "[${PROJECT_NAME}] 未找到 Resources 目录: ${INFOGEN_RESOURCE_DIR}")
+endif()
+
+# ----------------------------------------------------------------------------
 # 安装 StreamingAssets 资源目录（按原目录结构）
 #   将 ./InfoGen_Data/StreamingAssets 整个目录安装到
 #   CMAKE_INSTALL_PREFIX/InfoGen_Data/StreamingAssets 下，保留其内部目录层级。
