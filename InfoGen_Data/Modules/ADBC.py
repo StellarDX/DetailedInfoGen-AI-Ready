@@ -108,8 +108,18 @@ def Init(args):
     try:
         Existing = [T for T in ListTables(Conn) if T]
     except dbapi.NotSupportedError:
-        print("目标数据库未实现获取表数据方法，正在检查自身表是否存在，可能污染原有表结构")
+        print("目标数据库未实现获取表数据方法，正在检查自身表是否存在")
         Existing = [T for T in SchemaTables if TableExists(Conn, T)]
+        Continue = False
+        Confirm = ''
+        while Confirm not in ["y", "n", "Y", "N"]:
+            Confirm = input("继续执行可能污染原有表结构，是否继续？（y/n)：")
+            if (Confirm == 'y' or Confirm == 'Y'):
+                Continue = True
+            elif (Confirm == 'n' or Confirm == 'N'):
+                Continue = False
+        if Continue == False:
+            raise InterruptedError("用户取消执行")
 
     if Existing:
         Conn.close()

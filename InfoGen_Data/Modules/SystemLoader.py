@@ -25,7 +25,10 @@ def PrintArgs(args):
     print(f"--format:                      {args.format}")
     print(f"--format-args:                 {args.format_args}")
     print(f"--store:                       {args.store}")
-    print(f"--model-config:                {args.model_config}")
+    print(f"--namespace:                   {args.namespace}")
+
+def UploadSystem(System:dict):
+    pass
 
 class Generator(ABC):
     def __init__(self, System:dict, kwargs:dict):
@@ -558,6 +561,10 @@ def LoadObjectsFromSC(args):
     LOC = I18N.gettext
 
     Objects = InfoGen.InfoGen_Main(**vars(args))
+
+    if args.store == True:
+        print("上传行星系统到数据库...")
+        UploadSystem(Objects)
 
     print("生成文件...")
 
