@@ -42,7 +42,7 @@ CREATE TABLE ig_identifiers (
     alias     VARCHAR(255) NOT NULL,
     PRIMARY KEY (object_id, alias)
 );
-CREATE INDEX ix_ig_identifiers_alias ON ig_identifiers (alias);
+-- CREATE INDEX ix_ig_identifiers_alias ON ig_identifiers (alias);
 
 CREATE TABLE ig_physical ( -- 部分字段只有特定类型的物体才有，不过这个只需要在查询时按目标物体类型分流就行
     object_id                    CHAR(36) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
