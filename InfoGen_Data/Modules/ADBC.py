@@ -3,12 +3,15 @@ from InfoGen_Data import InfoGenHelpFormatter
 from adbc_driver_manager import dbapi
 from pathlib import Path
 from copy import deepcopy
+from urllib.parse import urlparse
 
 import tomllib
 import string
 import sqlparse
 import re
+from sqlalchemy.dialects import mssql, mysql, oracle, postgresql, sqlite # 这里应该可以换成动态导入
 
+_SQLVariation = None
 _ADBCConf = None
 _ADBCROConf = None
 _Connection = None
@@ -18,12 +21,36 @@ ConnectionTemplate = "./InfoGen_Data/Config/ADBC.toml.def"
 ConnectionConf = "./InfoGen_Data/Config/ADBC.toml"
 SchemaFile = "./InfoGen_Data/Resources/Schema-ADBC.sql"
 
+RegisteredVariation = { # 这是我唯一能想到的办法了
+    "mssql": mssql.dialect(),
+    "mysql": mysql.dialect(),
+    "oracle": oracle.dialect(),
+    "postgresql": postgresql.dialect(),
+    "sqlite": sqlite.dialect()
+}
+
+def UserConfirm(Question:str):
+    Confirm = ''
+    while Confirm not in ["y", "n", "Y", "N"]:
+        Confirm = input(Question)
+        if (Confirm == 'y' or Confirm == 'Y'):
+            return True
+        elif (Confirm == 'n' or Confirm == 'N'):
+            return False
+
 def ADBCConfig():
     global _ADBCConf
     if _ADBCConf == None:
         with Path(ConnectionConf).open("rb") as ADBCConfFile:
             _ADBCConf = tomllib.load(ADBCConfFile)
     return _ADBCConf
+
+def CurrentSQLVariation():
+    global _SQLVariation
+    if _SQLVariation == None:
+        DatabaseName = urlparse(ADBCConfig()["Connection"]["uri"]).scheme
+        _SQLVariation = RegisteredVariation[DatabaseName]
+    return _SQLVariation
 
 def ADBCROConfig():
     global _ADBCROConf
@@ -110,14 +137,7 @@ def Init(args):
     except dbapi.NotSupportedError:
         print("目标数据库未实现获取表数据方法，正在检查自身表是否存在")
         Existing = [T for T in SchemaTables if TableExists(Conn, T)]
-        Continue = False
-        Confirm = ''
-        while Confirm not in ["y", "n", "Y", "N"]:
-            Confirm = input("继续执行可能污染原有表结构，是否继续？（y/n)：")
-            if (Confirm == 'y' or Confirm == 'Y'):
-                Continue = True
-            elif (Confirm == 'n' or Confirm == 'N'):
-                Continue = False
+        Continue = UserConfirm("继续执行可能污染原有表结构，是否继续？（y/n)：")
         if Continue == False:
             raise InterruptedError("用户取消执行")
 

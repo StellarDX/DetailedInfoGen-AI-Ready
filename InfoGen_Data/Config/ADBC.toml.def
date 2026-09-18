@@ -7,22 +7,34 @@
 #
 # 注意：adbc-driver-manager只是驱动管理器，必须另外安装一个具体驱动，否则无法连接：
 #       SQLite     ->  adbc-driver-sqlite
-#       DuckDB     ->  adbc-driver-duckdb
+#       MySQL      ->  adbc-driver-mysql
 #       PostgreSQL ->  adbc-driver-postgresql
 #       ...以此类推
+#      具体驱动请前往Apache ADBC官网下载：
+#       https://arrow.apache.org/adbc/current/driver/index.html
+#
+# 已经支持的数据库列表：（DataFrame -> SQLAlchemy中转层 -> ADBC执行）
+#      Microsoft SQL Server(mssql)
+#      MySQL(mysql)
+#      Oracle(oracle)
+#      PostgreSQL(postgresql)
+#      SQLite(sqlite)：有限支持，需要单独配置
+#
+# 不受支持的数据库列表：
+#      DuckDB: 此数据库级联删除功能不全，更新数据会产生脏数据
 #
 # ============================================================================
 # 示例（改driver，url，init_statements三项即可）
 # ============================================================================
 #
-# DuckDB：
-#   driver = "duckdb"
-#   uri    = "./IGAppData/ADBC/InfoGen.duckdb"
+# MySQL：
+#   driver = "/path/to/libadbc_driver_mysql.dll"
+#   uri    = "mysql://username:password@localhost:3306/infogen"
 #   init_statements = []
 #
 # PostgreSQL：
-#   driver = "postgresql"
-#   uri    = "postgresql://infogen:infogen@localhost:5432/infogen"
+#   driver = "/path/to/libadbc_driver_postgresql.dll"
+#   uri    = "postgresql://username:password@localhost:5432/infogen"
 #   init_statements = []
 
 [Connection] # 这些参数被直接用于初始化dbapi，因此配置名要和函数的参数名一致
@@ -31,8 +43,8 @@
 driver = ${DRIVER}
 
 # 连接目标，形态由驱动决定：
-#   sqlite/duckdb：文件路径，相对路径以进程工作目录为基准（与IGAppData同级）
-#   postgresql等：DSN，例如"postgresql://user:password@localhost:5432/infogen"
+#   sqlite等文件数据源：文件路径，相对路径以进程工作目录为基准（与IGAppData同级）
+#   postgresql等关系型数据库：DSN，例如"postgresql://user:password@localhost:5432/infogen"
 uri = ${URI}
 
 # 数据库级参数，原样透传给ADBC驱动，等价于AdbcDatabase(**db_kwargs)。
@@ -46,7 +58,7 @@ uri = ${URI}
 
 [InitStatements]
 # 按顺序执行的初始化语句，驱动默认关闭的特性要靠这里打开。
-# 例如SQLite的外键约束需要每个连接单独开：
+# 例如SQLite的外键约束需要每个连接单独开（若不开启删除时会留下脏数据）：
 # init_statements = [
 #     "PRAGMA foreign_keys = ON",
 #     "PRAGMA journal_mode = WAL",

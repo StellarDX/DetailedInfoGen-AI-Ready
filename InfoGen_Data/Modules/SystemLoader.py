@@ -3,6 +3,8 @@ from InfoGen_Data import InfoGenHelpFormatter
 from InfoGen_Data import LoadLocale
 from InfoGen_Data import Classifications
 from InfoGen_Data import ADBCClient
+from InfoGen_Data import UserConfirm
+from InfoGen_Data import CurrentSQLVariation
 
 import argparse
 
@@ -12,6 +14,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from uuid import uuid5, NAMESPACE_URL
 from hashlib import sha256
+from sqlalchemy import select, MetaData, Table, Column, String, Double, Integer, Boolean, DateTime
 
 def PrintArgs(args):
     print(f"配置: ")
@@ -83,9 +86,9 @@ class Uploader():
         self._BiosphereDataFrame = read_sql("select * from ig_biosphere where 1 = 0;", Connection)
         self._BiosphereDataFrame.set_index("object_id", inplace=True)
         self._BioBiomeDataFrame = read_sql("select * from ig_biosphere_biome where 1 = 0;", Connection)
-        self._BioBiomeDataFrame.set_index("object_id", inplace=True)
+        self._BioBiomeDataFrame.set_index(["object_id", "biome"], inplace=True)
         self._CompositionsDataFrame = read_sql("select * from ig_composition where 1 = 0;", Connection)
-        self._CompositionsDataFrame.set_index("object_id", inplace=True)
+        self._CompositionsDataFrame.set_index(["object_id", "kind", "component"], inplace=True)
 
     def _System_To_DataFrame(self):
         SystemID = self.SystemID(self._Src["MainID"])
@@ -109,25 +112,257 @@ class Uploader():
             CurrentTime,
             CurrentTime
         ]
-        print(self._SystemDataFrame)
+        return SystemID
 
-    def _DFS_Iterate(self, Ident:str, ParentBody:str):
-        # TODO
-        if "SubSystems" in self._Src["Objects"][Ident]:
-            for i in self._Src["Objects"][Ident]["SubSystems"]:
-                self._DFS_Iterate(i, Ident)
+    def _DFS_Iterate(self, Ident:str, ParentBody:str, SystemHash:str, ParentHash:str, CurrentStack:list, SubSysIndex:int):
+        CurrentObject = self._Src["Objects"][Ident]
+        CurrentHash = self.ObjectID(self._Src["MainID"], CurrentStack)
+        ObjType = CurrentObject["OType"]
 
-    def DistUpgrade(self):
-        pass # TODO
+        self._ObjectsDataFrame.loc[CurrentHash] = [
+            SystemHash,
+            ParentHash,
+            Ident,
+            ObjType,
+            CurrentObject["PhysicalCharacteristics"]["Class"] if "PhysicalCharacteristics" in CurrentObject else None,
+            len(CurrentStack) - 1,
+            SubSysIndex,
+            ObjType in ["DwarfMoon", "Asteroid", "Comet"]
+        ]
+
+        for i in CurrentObject["Identifiers"]:
+            self._IdentifiersDataFrame.loc[(CurrentHash, i), :] = None
+
+        if "PhysicalCharacteristics" in CurrentObject:
+            PhysicalCharacteristics = CurrentObject["PhysicalCharacteristics"]
+            self._PhysicalDataFrame.loc[CurrentHash] = [
+                PhysicalCharacteristics["AbsMagnBol"] if ObjType == "Star" else None,
+                PhysicalCharacteristics["MeanRadius"],
+                PhysicalCharacteristics["Dimensions"][0],
+                PhysicalCharacteristics["Dimensions"][1],
+                PhysicalCharacteristics["Dimensions"][2],
+                PhysicalCharacteristics["Flattening"][0],
+                PhysicalCharacteristics["Flattening"][1],
+                PhysicalCharacteristics["Flattening"][2],
+                PhysicalCharacteristics["Circumference"][0],
+                PhysicalCharacteristics["Circumference"][1],
+                PhysicalCharacteristics["SurfaceArea"],
+                PhysicalCharacteristics["Volume"],
+                PhysicalCharacteristics["Mass"],
+                PhysicalCharacteristics["MeanDensity"],
+                PhysicalCharacteristics["Age"] if ObjType == "Star" else None,
+                PhysicalCharacteristics["SurfaceGravity"],
+                PhysicalCharacteristics["MomentOfInertiaFactor"],
+                PhysicalCharacteristics["EscapeVelocity"],
+                PhysicalCharacteristics["SynodicRotationPeriod"] if ObjType not in ["Barycenter", "Star"] else None,
+                PhysicalCharacteristics["SiderealRotationPeriod"],
+                PhysicalCharacteristics["EquatorialRotationVelocity"],
+                PhysicalCharacteristics["AxialTilt"],
+                PhysicalCharacteristics["Albedo"][0] if ObjType not in ["Barycenter", "Star"] else None,
+                PhysicalCharacteristics["Albedo"][1] if ObjType not in ["Barycenter", "Star"] else None,
+                PhysicalCharacteristics["Luminosity"] if ObjType == "Star" else None,
+                PhysicalCharacteristics["Temperature"],
+                PhysicalCharacteristics["RadiantFlux"] if ObjType not in ["Barycenter", "Star"] else None,
+                PhysicalCharacteristics["KerrSpin"] if ObjType == "Star" and (PhysicalCharacteristics["Class"] == "X" or PhysicalCharacteristics["Class"] == "BlackHole") else None,
+                PhysicalCharacteristics["KerrCharge"] if ObjType == "Star" and (PhysicalCharacteristics["Class"] == "X" or PhysicalCharacteristics["Class"] == "BlackHole") else None,
+                PhysicalCharacteristics["CometTotalMagn"] if ObjType == "Comet" else None,
+                PhysicalCharacteristics["CometTotalMagnSlope"] if ObjType == "Comet" else None,
+                PhysicalCharacteristics["ESI"] if ObjType in ["Planet", "Moon"] else None,
+                ""
+            ]
+
+        if "OrbitalCharacteristics" in CurrentObject:
+            OrbitalCharacteristics = CurrentObject["OrbitalCharacteristics"]
+            OutputBinaryOrbit = (OrbitalCharacteristics["BinaryOrbit"] and not OrbitalCharacteristics["IsPrimary"]) if ObjType in ["Barycenter", "Star"] else (OrbitalCharacteristics["BinaryOrbit"])
+            self._OrbitDataFrame.loc[CurrentHash] = [
+                OrbitalCharacteristics["RefPlane"],
+                OrbitalCharacteristics["Position"][0],
+                OrbitalCharacteristics["Position"][1],
+                OrbitalCharacteristics["Position"][2],
+                OrbitalCharacteristics["Period"],
+                OrbitalCharacteristics["PericenterDist"],
+                OrbitalCharacteristics["AphelionDist"],
+                OrbitalCharacteristics["SemiMajorAxis"],
+                OrbitalCharacteristics["Eccentricity"],
+                OrbitalCharacteristics["Inclination"],
+                OrbitalCharacteristics["InclEcliptic"],
+                OrbitalCharacteristics["AscendingNode"],
+                OrbitalCharacteristics["AscNodeEcliptic"],
+                OrbitalCharacteristics["Epoch"],
+                OrbitalCharacteristics["ArgOfPericenter"],
+                OrbitalCharacteristics["ArgOfPeriEcliptic"],
+                OrbitalCharacteristics["MeanAnomaly"],
+                OrbitalCharacteristics["SynodicMonth"] if ObjType == "Moon" or (ObjType == "Planet" and OrbitalCharacteristics["BinaryOrbit"] and not OrbitalCharacteristics["IsPrimary"]) else None,
+                OrbitalCharacteristics["BinaryOrbit"],
+                OrbitalCharacteristics["IsPrimary"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["Primary"] if OutputBinaryOrbit and not OrbitalCharacteristics["IsPrimary"] else None,
+                OrbitalCharacteristics["Companion"] if OutputBinaryOrbit and not OrbitalCharacteristics["IsPrimary"] else None,
+                OrbitalCharacteristics["BPeriod"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BPericenterDist"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BAphelionDist"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BSemiMajorAxis"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BEccentricity"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BInclination"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BInclinationEcliptic"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BAscendingNode"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BAscNodeEcliptic"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BEpoch"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BArgOfPericenter"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BArgOfPeriEcliptic"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["BMeanAnomaly"] if OutputBinaryOrbit else None,
+            ]
+
+        if "Atmosphere" in CurrentObject:
+            Atmosphere = CurrentObject["Atmosphere"]
+            self._AtmosphereDataFrame.loc[CurrentHash] = [
+                Atmosphere["SurfacePressure"],
+                Atmosphere["ScaleHeight"],
+            ]
+
+            for Material, Percent in Atmosphere["CompositionByVolume"].items():
+                self._CompositionsDataFrame.loc[(CurrentHash, "Atmosphere", Material)] = [
+                    Percent
+                ]
+        
+        if "Hydrosphere" in CurrentObject:
+            Hydrosphere = CurrentObject["Hydrosphere"]
+            self._HydrosphereDataFrame.loc[CurrentHash] = [
+                Hydrosphere["Height"]
+            ]
+
+            for Material, Percent in Hydrosphere["CompositionByVolume"].items():
+                self._CompositionsDataFrame.loc[(CurrentHash, "Hydrosphere", Material)] = [
+                    Percent
+                ]
+        
+        if "Biosphere" in CurrentObject:
+            Biosphere = CurrentObject["Biosphere"]
+            self._BiosphereDataFrame.loc[CurrentHash] = [
+                Biosphere["Class"],
+                Biosphere["Type"]
+            ]
+
+            for i in Biosphere["Biome"]:
+                self._BioBiomeDataFrame.loc[(CurrentHash, i), :] = None
+        
+        if "SubSystems" in CurrentObject:
+            j = 0
+            for i in CurrentObject["SubSystems"]:
+                self._DFS_Iterate(i, Ident, SystemHash, CurrentHash, CurrentStack + [i], j)
+                j += 1
+
+    def DistUpgrade(self, SysID):
+        Connection = ADBCClient()
+
+        ExistingSystemTable = Table("ig_system", MetaData(), 
+            Column('system_id', String, primary_key = True),
+            Column('main_id', String),
+            Column('namespace', String),
+            Column('create_date', DateTime)
+        )
+        ExistingSystemQuery = str((select(ExistingSystemTable)
+            .where(ExistingSystemTable.c.namespace == self._Args.namespace)
+            .where(ExistingSystemTable.c.main_id == self._Src["MainID"])
+        ).compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+        ExistingSystem = read_sql(ExistingSystemQuery, Connection)
+        ExistingSystem.set_index("system_id", inplace = True)
+
+        Upload = True if len(ExistingSystem) == 0 else UserConfirm(f"当前命名空间已存在系统\"{self._Src["MainID"]}\"，是否更新？")
+
+        if Upload:
+            if len(ExistingSystem) != 0:
+                self._SystemDataFrame.loc[SysID, "create_date"] = ExistingSystem.at[SysID, "create_date"]
+                with Connection.cursor() as Cursor:
+                    Cursor.execute("delete from ig_system where system_id = ?", [SysID])
+            
+            self._SystemDataFrame.to_sql(
+                name = "ig_system",
+                con = Connection,
+                if_exists = "append",
+                index = True,
+                index_label = "system_id",
+            )
+
+            self._ObjectsDataFrame.to_sql(
+                name = "ig_object",
+                con = Connection,
+                if_exists = "append",
+                index = True,
+                index_label = "object_id",
+            )
+
+            self._IdentifiersDataFrame.to_sql(
+                name = "ig_identifiers",
+                con = Connection,
+                if_exists = "append",
+                index = True,
+                index_label = ["object_id", "alias"],
+            )
+
+            self._PhysicalDataFrame.to_sql(
+                name = "ig_physical",
+                con = Connection,
+                if_exists = "append",
+                index = True,
+                index_label = "object_id",
+            )
+
+            self._OrbitDataFrame.to_sql(
+                name = "ig_orbit",
+                con = Connection,
+                if_exists = "append",
+                index = True,
+                index_label = "object_id",
+            )
+
+            self._AtmosphereDataFrame.to_sql(
+                name = "ig_atmosphere",
+                con = Connection,
+                if_exists = "append",
+                index = True,
+                index_label = "object_id",
+            )
+
+            self._HydrosphereDataFrame.to_sql(
+                name = "ig_hydrosphere",
+                con = Connection,
+                if_exists = "append",
+                index = True,
+                index_label = "object_id",
+            )
+
+            self._BiosphereDataFrame.to_sql(
+                name = "ig_biosphere",
+                con = Connection,
+                if_exists = "append",
+                index = True,
+                index_label = "object_id",
+            )
+
+            self._BioBiomeDataFrame.to_sql(
+                name = "ig_biosphere_biome",
+                con = Connection,
+                if_exists = "append",
+                index = True,
+                index_label = ["object_id", "biome"],
+            )
+
+            self._CompositionsDataFrame.to_sql(
+                name = "ig_composition",
+                con = Connection,
+                if_exists = "append",
+                index = True,
+                index_label = ["object_id", "kind", "component"],
+            )
 
     def Run(self):
         # 先准备表
         self._Load_Table()
-        self._System_To_DataFrame()
-        self._DFS_Iterate(self._Src["MainID"], self._Src["MainID"])
+        SystemID = self._System_To_DataFrame()
+        self._DFS_Iterate(self._Src["MainID"], None, SystemID, None, [self._Src["MainID"]], None)
         match self._Args.store_mode:
             case "dist-upgrade":
-                self.DistUpgrade()
+                self.DistUpgrade(SystemID)
             case _:
                 raise ValueError("无效的上传模式")
 
