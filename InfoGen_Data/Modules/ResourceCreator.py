@@ -1,11 +1,7 @@
 from InfoGen_Data import InfoGenHelpFormatter
 from InfoGen_Data import LoadObjectsFromSC
 
-def Dummy(args):
-    print("Successfully called")
-
 Modules = {
-    "namespace": Dummy,
     "system": LoadObjectsFromSC
 }
 
@@ -33,8 +29,6 @@ def Register(MainArgParser):
     SysParser.add_argument("-i", "--store", action='store_true', help = "将生成的原始数据保存到数据库")
     SysParser.add_argument("-n", "--namespace", type = str, help = "保存数据的命名空间")
     SysParser.add_argument("--store-mode", type = str, default = "dist-upgrade", choices = ["dist-upgrade"], help = "插入数据的模式（暂时只支持dist-upgrade，即卸载后重新导入）")
-    # 创建命名空间
-    NSParser = RCParser.add_parser("namespace", help = "创建命名空间")
     
 def CreateResource(args):
     # 这里原本想着如果有第三级子命令则走第三级子命令的参数，然后没有第三级子命令的情况下走默认。

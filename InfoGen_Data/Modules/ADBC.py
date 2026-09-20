@@ -168,7 +168,7 @@ def Register(MainArgParser):
     InitParser = SubParsers.add_parser("init", help = f"从原初模板渲染出副本配置（{ConnectionConf}）")
     InitParser.add_argument("--driver", type = str, required = True, help = "ADBC驱动路径")
     InitParser.add_argument("--uri", type = str, required = True, help = "连接目标：文件路径或DSN")
-    InitParser.add_argument("-F", "--force", action = 'store_true', help = "覆盖已存在的副本配置")
+    InitParser.add_argument("-F", "--force", action = 'store_true', help = "覆盖已存在的配置")
     Modules[".Parser"] = ParserADBC
 
 def ADBCAdmin(args):

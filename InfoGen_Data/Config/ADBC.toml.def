@@ -13,7 +13,7 @@
 #      具体驱动请前往Apache ADBC官网下载：
 #       https://arrow.apache.org/adbc/current/driver/index.html
 #
-# 已经支持的数据库列表：（DataFrame -> SQLAlchemy中转层 -> ADBC执行）
+# 已经支持的数据库列表：（DataFrame -> SQLAlchemy编译 -> ADBC执行）
 #      Microsoft SQL Server(mssql)
 #      MySQL(mysql)
 #      Oracle(oracle)

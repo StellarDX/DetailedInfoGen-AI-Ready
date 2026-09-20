@@ -29,6 +29,7 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
    - 生成小行星/彗星列表，支持按半径、质量、自转、逆行、高倾角等条件筛选与排序
    - 中文友好的分类命名（恒星光谱型、行星类型分级）
    - 输出结果为Markdown或用户自定义Jinja2模板格式
+   - （可选）把读取的行星系统保存到数据库，支持的数据库详见[配置文件](./InfoGen_Data/Config/ADBC.toml.def)
 
 ## 技术栈
 
@@ -42,6 +43,7 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
 | 日志 | spdlog（复用外部 fmtlib，避免重复符号） |
 | 格式化/转换 | fmtlib、fast-float、google-double-conversion |
 | 脚本 | Python 3.12+，argparse / gettext / polib / pandas |
+| 数据库 | Apache ADBC + SQLAlchemy |
 
 ## 安装部署
 
@@ -192,7 +194,7 @@ python InfoGen.py create system -S /SpaceEngine/Export/RS-xxxx.sc [-B /OutputPat
 
 解析SpaceEngine导出的文件、重建行星系统结构，并将结果写入输出目录下的`<系统主天体ID>.md`。
 
-#### `create` 参数说明
+#### `create system` 参数说明
 
 | 参数 | 说明 | 默认值 |
 | --- | --- | --- |
@@ -221,6 +223,22 @@ python InfoGen.py create system -S /SpaceEngine/Export/RS-xxxx.sc [-B /OutputPat
 | `FastestRotators` | 自转周期升序 |
 | `Retrograde` | 筛选轨道倾角大于90°小于270°的小行星并按倾角升序排序 |
 | `HighlyInclined` | 轨道面与黄道面夹角降序 |
+
+### 数据库联动
+
+```
+python InfoGen.py adbc init --driver="/path/to/libadbc_driver_xxxx.dll" --uri="<数据库链接>"
+```
+
+此命令会自动在URL对应的数据库里建立表结构，并在./InfoGen_Data/Config目录下生成一个配置文件，内容就是命令里填的驱动和数据库URL。目标数据库必须是一个空的数据库。
+
+#### `adbc init` 参数说明
+
+| 参数 | 说明 | 默认值 |
+| --- | --- | --- |
+| `--driver` | ADBC驱动路径（必填） | — |
+| `--uri` | 连接目标：文件路径或DSN | — |
+| `-F, --force` | 覆盖已存在的配置 | 关闭 |
 
 ### 查看帮助
 
