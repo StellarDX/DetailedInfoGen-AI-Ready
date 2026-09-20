@@ -375,7 +375,7 @@ class Uploader():
         ExistingSystem = read_sql(ExistingSystemQuery, Connection)
         ExistingSystem.set_index("system_id", inplace = True)
 
-        Upload = True if len(ExistingSystem) == 0 else UserConfirm(f"当前命名空间已存在系统\"{self._Src["MainID"]}\"，是否更新？")
+        Upload = True if len(ExistingSystem) == 0 else UserConfirm(f"当前命名空间已存在系统\"{self._Src["MainID"]}\"，是否更新？(y/n)：")
 
         if Upload:
             if len(ExistingSystem) != 0:
