@@ -14,7 +14,8 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from uuid import uuid5, NAMESPACE_URL
 from hashlib import sha256
-from sqlalchemy import select, MetaData, Table, Column, String, Double, Integer, Boolean, DateTime
+from sqlalchemy import select, delete, insert, MetaData, Table, Column
+from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger
 
 def PrintArgs(args):
     print(f"配置: ")
@@ -44,6 +45,7 @@ class Uploader():
         self._Args = args
         if self._Args.namespace == None or len(self._Args.namespace) == 0:
             raise ValueError("命名空间未填写或无效")
+        self._TableSchema = {}
         self._SystemDataFrame = None
         self._ObjectsDataFrame = None
         self._IdentifiersDataFrame = None
@@ -70,24 +72,34 @@ class Uploader():
         Connection = ADBCClient()
         # 此处使用select * from table where 1 = 0获取表数据，多数数据库都支持且这种方法是多数ORM都在用的方法
         self._SystemDataFrame = read_sql("select * from ig_system where 1 = 0;", Connection)
+        self._TableSchema["ig_system"] = self._SystemDataFrame.dtypes.to_dict()
         self._SystemDataFrame.set_index("system_id", inplace=True)
         self._ObjectsDataFrame = read_sql("select * from ig_object where 1 = 0;", Connection)
+        self._TableSchema["ig_object"] = self._ObjectsDataFrame.dtypes.to_dict()
         self._ObjectsDataFrame.set_index("object_id", inplace=True)
         self._IdentifiersDataFrame = read_sql("select * from ig_identifiers where 1 = 0;", Connection)
+        self._TableSchema["ig_identifiers"] = self._IdentifiersDataFrame.dtypes.to_dict()
         self._IdentifiersDataFrame.set_index(["object_id", "alias"], inplace=True)
         self._PhysicalDataFrame = read_sql("select * from ig_physical where 1 = 0;", Connection)
+        self._TableSchema["ig_physical"] = self._PhysicalDataFrame.dtypes.to_dict()
         self._PhysicalDataFrame.set_index("object_id", inplace=True)
         self._OrbitDataFrame = read_sql("select * from ig_orbit where 1 = 0;", Connection)
+        self._TableSchema["ig_orbit"] = self._OrbitDataFrame.dtypes.to_dict()
         self._OrbitDataFrame.set_index("object_id", inplace=True)
         self._AtmosphereDataFrame = read_sql("select * from ig_atmosphere where 1 = 0;", Connection)
+        self._TableSchema["ig_atmosphere"] = self._AtmosphereDataFrame.dtypes.to_dict()
         self._AtmosphereDataFrame.set_index("object_id", inplace=True)
         self._HydrosphereDataFrame = read_sql("select * from ig_hydrosphere where 1 = 0;", Connection)
+        self._TableSchema["ig_hydrosphere"] = self._HydrosphereDataFrame.dtypes.to_dict()
         self._HydrosphereDataFrame.set_index("object_id", inplace=True)
         self._BiosphereDataFrame = read_sql("select * from ig_biosphere where 1 = 0;", Connection)
+        self._TableSchema["ig_biosphere"] = self._BiosphereDataFrame.dtypes.to_dict()
         self._BiosphereDataFrame.set_index("object_id", inplace=True)
         self._BioBiomeDataFrame = read_sql("select * from ig_biosphere_biome where 1 = 0;", Connection)
+        self._TableSchema["ig_biosphere_biome"] = self._BioBiomeDataFrame.dtypes.to_dict()
         self._BioBiomeDataFrame.set_index(["object_id", "biome"], inplace=True)
         self._CompositionsDataFrame = read_sql("select * from ig_composition where 1 = 0;", Connection)
+        self._TableSchema["ig_composition"] = self._CompositionsDataFrame.dtypes.to_dict()
         self._CompositionsDataFrame.set_index(["object_id", "kind", "component"], inplace=True)
 
     def _System_To_DataFrame(self):
@@ -251,11 +263,107 @@ class Uploader():
                 self._DFS_Iterate(i, Ident, SystemHash, CurrentHash, CurrentStack + [i], j)
                 j += 1
 
+    @staticmethod
+    def SQLAlchemyType( # DataFrame的SQLTable里的类型映射函数（已被我改编）
+        col_name: str, 
+        table_dtype: pd.DataType, 
+        schema_mapping: Optional[dict] = None,
+        manual_mapping: Optional[dict] = None,
+        tz_info: Optional[str] = None
+    ) -> object:
+        # 另外，据官方文档所说，DataFrame与PyArrow（ADBC）的对接还是实验性功能，用官方的推送功能无异于在地雷上蹦迪
+        # 因此保守的办法还是自己弄一套逻辑
+        if manual_mapping and isinstance(manual_mapping, dict):
+            if col_name in manual_mapping:
+                return manual_mapping[col_name]
+
+        dtype = schema_mapping[col_name] if schema_mapping else table_dtype
+
+        from sqlalchemy.types import (
+            TIMESTAMP,
+            BigInteger,
+            Boolean,
+            Date,
+            DateTime,
+            Float,
+            Integer,
+            SmallInteger,
+            Text,
+            Time
+        )
+
+        from pandas.api.types import (
+            is_datetime64_any_dtype, 
+            is_timedelta64_dtype, 
+            is_bool_dtype, 
+            is_float_dtype, 
+            is_integer_dtype, 
+            is_complex_dtype
+        )
+
+        if is_datetime64_any_dtype(dtype):
+            # 如果有显式传入的 tz_info 或者 dtype 本身包含 tz
+            has_tz = tz_info is not None
+            if not has_tz:
+                # 检查 type是否本身就是带时区的 (例如datetime64[ns, UTC])
+                if hasattr(dtype, 'tz') and dtype.tz is not None:
+                    has_tz = True
+            if has_tz:
+                return TIMESTAMP(timezone=True)
+            else:
+                return DateTime
+
+        if is_timedelta64_dtype(dtype):
+            print(f"列\"{col_name}\"：大多数数据库产品不原生支持timedelta类型，该类型将被映射为BigInteger（纳秒）。")
+            return BigInteger
+
+        if is_float_dtype(dtype):
+            # float32 -> Float(precision=23)
+            # float64 -> Float(precision=53)
+            if dtype == 'float32':
+                return Float(precision = 23) 
+            else:
+                # 默认包括 float64 和其他浮点类型
+                return Float(precision = 53)
+
+        if is_integer_dtype(dtype):
+            dtype_name = dtype.name.lower()
+            # 映射整数类型到最佳SQLAlchemy整数类型
+            if dtype_name in ("int8", "uint8", "int16"):
+                return SmallInteger
+            elif dtype_name in ("uint16", "int32"):
+                return Integer
+            elif dtype_name == "uint64":
+                raise ValueError(f"列\"{col_name}\"：SQLAlchemy整数类型不支持无符号64位整数（uint64）。")
+            else:
+                # 包括int64, int128(如果存在), uint32等
+                return BigInteger
+
+        if is_bool_dtype(dtype):
+            return Boolean
+
+        if is_complex_dtype(dtype):
+            raise ValueError(f"列\"{col_name}\"：SQLAlchemy不支持复数类型")
+
+        return Text
+
+    @staticmethod
+    def DataFrameToSQL(TblName:str, Data:DataFrame, SchemaMapping:dict = None, ManualMapping:dict = None):
+        # 导出所有列名和数据类型
+        FullTable = Data.reset_index()
+        ColNames = FullTable.columns
+        DTypes = [Uploader.SQLAlchemyType(i, j, schema_mapping = SchemaMapping, manual_mapping = ManualMapping) 
+            for i, j in zip(ColNames, FullTable.dtypes)]
+        AlchemyCols = [Column(i, j) for i, j in zip(ColNames, DTypes)]
+        AlchemyTable = Table(TblName, MetaData(), *AlchemyCols)
+        Statement = insert(AlchemyTable).values(FullTable.to_dict(orient = "records"))
+        return str(Statement.compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+
     def DistUpgrade(self, SysID):
         Connection = ADBCClient()
 
         ExistingSystemTable = Table("ig_system", MetaData(), 
-            Column('system_id', String, primary_key = True),
+            Column('system_id', String),
             Column('main_id', String),
             Column('namespace', String),
             Column('create_date', DateTime)
@@ -273,87 +381,38 @@ class Uploader():
             if len(ExistingSystem) != 0:
                 self._SystemDataFrame.loc[SysID, "create_date"] = ExistingSystem.at[SysID, "create_date"]
                 with Connection.cursor() as Cursor:
-                    Cursor.execute("delete from ig_system where system_id = ?", [SysID])
+                    DeleteTable = Table("ig_system", MetaData(), Column('system_id', String))
+                    DeleteQuery = str(delete(DeleteTable).where(DeleteTable.c.system_id == SysID)
+                        .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+                    Cursor.execute(DeleteQuery)
+                Connection.commit()
             
-            self._SystemDataFrame.to_sql(
-                name = "ig_system",
-                con = Connection,
-                if_exists = "append",
-                index = True,
-                index_label = "system_id",
-            )
-
-            self._ObjectsDataFrame.to_sql(
-                name = "ig_object",
-                con = Connection,
-                if_exists = "append",
-                index = True,
-                index_label = "object_id",
-            )
-
-            self._IdentifiersDataFrame.to_sql(
-                name = "ig_identifiers",
-                con = Connection,
-                if_exists = "append",
-                index = True,
-                index_label = ["object_id", "alias"],
-            )
-
-            self._PhysicalDataFrame.to_sql(
-                name = "ig_physical",
-                con = Connection,
-                if_exists = "append",
-                index = True,
-                index_label = "object_id",
-            )
-
-            self._OrbitDataFrame.to_sql(
-                name = "ig_orbit",
-                con = Connection,
-                if_exists = "append",
-                index = True,
-                index_label = "object_id",
-            )
-
-            self._AtmosphereDataFrame.to_sql(
-                name = "ig_atmosphere",
-                con = Connection,
-                if_exists = "append",
-                index = True,
-                index_label = "object_id",
-            )
-
-            self._HydrosphereDataFrame.to_sql(
-                name = "ig_hydrosphere",
-                con = Connection,
-                if_exists = "append",
-                index = True,
-                index_label = "object_id",
-            )
-
-            self._BiosphereDataFrame.to_sql(
-                name = "ig_biosphere",
-                con = Connection,
-                if_exists = "append",
-                index = True,
-                index_label = "object_id",
-            )
-
-            self._BioBiomeDataFrame.to_sql(
-                name = "ig_biosphere_biome",
-                con = Connection,
-                if_exists = "append",
-                index = True,
-                index_label = ["object_id", "biome"],
-            )
-
-            self._CompositionsDataFrame.to_sql(
-                name = "ig_composition",
-                con = Connection,
-                if_exists = "append",
-                index = True,
-                index_label = ["object_id", "kind", "component"],
-            )
+            InsertStatements = []
+            if (len(self._SystemDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_system", self._SystemDataFrame, self._TableSchema["ig_system"]))
+            if (len(self._ObjectsDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_object", self._ObjectsDataFrame, self._TableSchema["ig_object"]))
+            if (len(self._IdentifiersDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_identifiers", self._IdentifiersDataFrame, self._TableSchema["ig_identifiers"]))
+            if (len(self._PhysicalDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_physical", self._PhysicalDataFrame, self._TableSchema["ig_physical"]))
+            if (len(self._OrbitDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_orbit", self._OrbitDataFrame, self._TableSchema["ig_orbit"]))
+            if (len(self._AtmosphereDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_atmosphere", self._AtmosphereDataFrame, self._TableSchema["ig_atmosphere"]))
+            if (len(self._HydrosphereDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_hydrosphere", self._HydrosphereDataFrame, self._TableSchema["ig_hydrosphere"]))
+            if (len(self._BiosphereDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_biosphere", self._BiosphereDataFrame, self._TableSchema["ig_biosphere"]))
+            if (len(self._BioBiomeDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_biosphere_biome", self._BioBiomeDataFrame, self._TableSchema["ig_biosphere_biome"]))
+            if (len(self._CompositionsDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_composition", self._CompositionsDataFrame, self._TableSchema["ig_composition"]))
+        
+            with Connection.cursor() as Cursor:
+                for i in InsertStatements:
+                    Cursor.execute(i)
+            Connection.commit()
 
     def Run(self):
         # 先准备表
