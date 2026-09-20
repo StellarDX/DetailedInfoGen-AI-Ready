@@ -7,6 +7,7 @@ from InfoGen_Data import UserConfirm
 from InfoGen_Data import CurrentSQLVariation
 
 import argparse
+import re
 
 from abc import ABC, abstractmethod
 from pandas import DataFrame, read_sql, Timestamp
@@ -35,6 +36,12 @@ def PrintArgs(args):
     print(f"--namespace:                   {args.namespace}")
     print(f"--store-mode:                  {args.store_mode}")
 
+def CheckNamespace(Namespace):
+    if re.fullmatch("^[a-z0-9]([-a-z0-9]*[a-z0-9])?$", Namespace) is not None and len(Namespace) <= 63:
+        return;
+    else:
+        raise ValueError("命名空间只能以只能包含小写字母（a-z）、数字（0-9）以及连字符/中划线（-），必须以字母或数字开头和结尾，不能以连字符（-）开头或结尾，且最大长度不能超过63个字符。")
+
 class Uploader():
     @staticmethod
     def StrToRootNamespace(Namespace: str):
@@ -45,6 +52,7 @@ class Uploader():
         self._Args = args
         if self._Args.namespace == None or len(self._Args.namespace) == 0:
             raise ValueError("命名空间未填写或无效")
+        CheckNamespace(self._Args.namespace)
         self._TableSchema = {}
         self._SystemDataFrame = None
         self._ObjectsDataFrame = None

@@ -1,4 +1,5 @@
 from InfoGen_Data import ResourceCreatorRegister, CreateResource
+from InfoGen_Data import GetterRegister, Get
 from InfoGen_Data import LCAdminRegister, LocaleAdmin
 from InfoGen_Data import ADBCRegister, ADBCAdmin
 from InfoGen_Data import InfoGenHelpFormatter
@@ -8,6 +9,7 @@ from argparse import ArgumentParser
 
 ModuleList = {
     "create": {"Register": ResourceCreatorRegister, "Invoke": CreateResource},
+    "get": {"Register": GetterRegister, "Invoke": Get},
     "adbc": {"Register": ADBCRegister, "Invoke": ADBCAdmin},
     "lcadmin": {"Register": LCAdminRegister, "Invoke": LocaleAdmin}
 }

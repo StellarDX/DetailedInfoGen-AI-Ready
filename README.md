@@ -224,6 +224,12 @@ python InfoGen.py create system -S /SpaceEngine/Export/RS-xxxx.sc [-B /OutputPat
 | `Retrograde` | 筛选轨道倾角大于90°小于270°的小行星并按倾角升序排序 |
 | `HighlyInclined` | 轨道面与黄道面夹角降序 |
 
+命名空间 `--namespace` 名称限制：
+
+1. 字符限制：只能包含小写字母（a-z）、数字（0-9）以及连字符/中划线（-）。
+2. 首尾限制：必须以字母或数字开头和结尾，不能以连字符（-）开头或结尾。
+3. 长度限制：最大长度不能超过63个字符。
+
 ### 数据库联动
 
 ```
@@ -237,8 +243,23 @@ python InfoGen.py adbc init --driver="/path/to/libadbc_driver_xxxx.dll" --uri="<
 | 参数 | 说明 | 默认值 |
 | --- | --- | --- |
 | `--driver` | ADBC驱动路径（必填） | — |
-| `--uri` | 连接目标：文件路径或DSN | — |
+| `--uri` | 连接目标：文件路径或DSN（必填） | — |
 | `-F, --force` | 覆盖已存在的配置 | 关闭 |
+
+### 获取已经导入的数据
+
+```
+python InfoGen.py get <resource> -A # 获取所有<resource>
+python InfoGen.py get <resource> -n<namespace> <name> # 获取那个名称对应的<resource>
+```
+
+#### `get` 参数说明
+
+| 参数 | 说明 | 默认值 |
+| --- | --- | --- |
+| `-A, --all-namespaces` | 获取全部资源 | — |
+| `-n, --namespace` | 指定命名空间，没有设置-A的情况下为必填 | — |
+| `-o, --output` | 输出格式，目前支持json和yaml | — |
 
 ### 查看帮助
 
