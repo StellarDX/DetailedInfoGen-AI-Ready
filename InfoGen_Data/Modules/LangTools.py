@@ -468,14 +468,52 @@ def _QueryObject(Namespace, ObjectName, OutFmt):
 
 @tool
 def QuerySystem(SystemName): # 这个是给AI看的
-    """按名称查询信息生成器数据库中某个恒星系（System）的元数据。
+    """查询指定系统的信息。
 
-    传入恒星系的主标识 SystemName（对应 ig_system.main_id），返回该恒星系
-    记录的 JSON 数组，字段包含 system_id、main_id、spectral_types、
-    n_stars、n_planets、create_date 等；
-    当命名空间内不存在该名称时返回"没找到任何资源"。
+    根据系统名称查询系统数据，并以 JSON 格式返回。
+
+    Args:
+        SystemName: 要查询的系统名称。
+
+    Returns:
+        命中时返回系统信息（JSON 格式的字符串）；
+        未命中（系统不存在）时返回提示文本 「没找到任何资源」。
     """
     return _QuerySystem(GetNamespace(), SystemName, "json")
+
+@tool
+def QueryObject(SystemName, ObjectName):
+    """
+    查询指定行星系统内某个物体的完整信息。
+
+    用于按「系统 + 物体名」检索该物体的轨道、物理、大气、水圈、生物圈等模块数据，
+    返回格式化后的 JSON 字符串，便于直接阅读或继续解析。
+    适用场景：需要了解某个已知天体/物体的具体参数与属性时调用。
+    注意：SE 约定同一行星系统内的物体不会重名，因此正常情况下最多命中一条数据。
+
+    所有字段的单位均遵循国际单位制，即：
+        长度类字段单位为米，即面积为平方米，体积单位为立方米
+        质量类字段单位为千克，即密度单位为千克每立方米
+        时间类字段单位为秒（age为年，轨道数据的Epoch单位是JD），即重力单位为米每平方秒，速度单位为米每秒
+        光度类字段单位为瓦特
+        温度类字段单位为开氏度
+        压强单位为帕斯卡
+        成分类字段为体积分数
+
+    Args:
+        SystemName (str): 行星系统名称，用于限定检索范围。
+        ObjectName (str): 物体名称，需与系统中登记的名称一致。
+
+    Returns:
+        str: 命中时返回该物体信息的 JSON 字符串（ensure_ascii=False，indent=4）；
+             未命中（系统或物体不存在）时返回提示文本 「没有那个系统或物体」。
+    """
+    ObjectDict = _QueryObject_Unchecked(GetNamespace(), ObjectName, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere"])
+    ObjectDict = [i for i in ObjectDict if i["system"] == SystemName]
+    if len(ObjectDict) == 0:
+        return "没有那个系统或物体"
+    else: # SE约定单个行星系统内的物体不会出现重名，理论上这个列表最多只会得到唯一一条数据
+        return json.dumps(ObjectDict, ensure_ascii = False, indent = 4)
 
 def GetSystem(args):
     print(_QuerySystem("-A" if args.all_namespaces else args.namespace, args.name, args.output))
