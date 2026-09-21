@@ -2,11 +2,12 @@ from InfoGen_Data import InfoGenHelpFormatter
 from InfoGen_Data import ADBCClient, CurrentSQLVariation
 from InfoGen_Data import CheckNamespace
 
-import yaml
+import yaml, json
 
-from sqlalchemy import Table, MetaData, Column, select, or_
+from sqlalchemy import Table, MetaData, Column, select, and_, or_, not_, case
 from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger, Text
-from pandas import read_sql
+from pandas import read_sql, notna
+from pandas.api.types import is_dict_like
 from tabulate import tabulate
 from langchain.tools import tool
 
@@ -98,7 +99,7 @@ def _QuerySystem(Namespace, SystemName, OutFmt):
                 showindex = False
             ))
 
-def _QueryObjectBasic_Unchecked(Namespace, ObjectName):
+def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     SysCols = [Column(i, j) for i, j in [
         ["system_id",              String(512)],
         ["main_id",                String(255)],
@@ -118,54 +119,348 @@ def _QueryObjectBasic_Unchecked(Namespace, ObjectName):
         ["is_minor",         Boolean]
     ]]
     Tbl = Table("ig_object", MetaData(), *Cols)
+    BasicLabels = [
+        "namespace", "system",
+        "object_id", "system_id", "parent_object_id",
+        "ident", "otype", "class",
+        "depth", "sibling_index", "is_minor"
+    ]
+    SelectList = [
+        Tbl.c.object_id, Tbl.c.system_id, Tbl.c.parent_object_id,
+        Tbl.c.primary_name.label("ident"),
+        Tbl.c.otype, Tbl.c["class"], Tbl.c.depth,
+        Tbl.c.sibling_index, Tbl.c.is_minor,
+        SysTbl.c.main_id.label("system"), SysTbl.c.namespace
+    ]
+    JoinQuery = Tbl.join(SysTbl, SysTbl.c.system_id == Tbl.c.system_id)
 
-    Statement = ""
+    OrbitList, OrbitLabels = [], []
+    if "orbit" in Info:
+        OrbCols = [Column(i, j) for i, j in [
+            ["object_id",              String(512)],
+            ["ref_plane",              String(32)],
+            ["position_x",             Double],
+            ["position_y",             Double],
+            ["position_z",             Double],
+            ["period",                 Double],
+            ["pericenter_dist",        Double],
+            ["aphelion_dist",          Double],
+            ["semi_major_axis",        Double],
+            ["eccentricity",           Double],
+            ["inclination",            Double],
+            ["inclination_ecliptic",   Double],
+            ["ascending_node",         Double],
+            ["asc_node_ecliptic",      Double],
+            ["epoch",                  Double],
+            ["arg_of_pericenter",      Double],
+            ["arg_of_peri_ecliptic",   Double],
+            ["mean_anomaly",           Double],
+            ["synodic_month",          Double],
+            ["binary_orbit",           Boolean],
+            ["is_primary",             Boolean],
+            ["primary_name",           String(255)],
+            ["companion_name",         String(255)],
+            ["b_period",               Double],
+            ["b_pericenter_dist",      Double],
+            ["b_aphelion_dist",        Double],
+            ["b_semi_major_axis",      Double],
+            ["b_eccentricity",         Double],
+            ["b_inclination",          Double],
+            ["b_inclination_ecliptic", Double],
+            ["b_ascending_node",       Double],
+            ["b_asc_node_ecliptic",    Double],
+            ["b_epoch",                Double],
+            ["b_arg_of_pericenter",    Double],
+            ["b_arg_of_peri_ecliptic", Double],
+            ["b_mean_anomaly",         Double]
+        ]]
+        OrbTbl = Table("ig_orbit", MetaData(), *OrbCols)
+        BinaryCondSt = (and_(Tbl.c.otype.in_(["Star", "Barycenter"]), not_(and_(OrbTbl.c.binary_orbit.is_(True), OrbTbl.c.is_primary.is_(False)))))
+        BinaryCondPl = (and_(Tbl.c.otype.not_in(["Star", "Barycenter"]), OrbTbl.c.binary_orbit.is_(True)))
+        PrimCompCond = (and_(OrbTbl.c.binary_orbit, OrbTbl.c.is_primary.is_(False)))
+        OrbitLabels = ["ref_plane", "primary_name", "companion_name", 
+            "period", "synodic_month", "pericenter_dist", "aphelion_dist", "semi_major_axis",
+            "eccentricity", "inclination", "ascending_node", "arg_of_pericenter", "mean_anomaly",
+            "incl_ecliptic", "asc_node_ecliptic", "arg_of_peri_ecliptic"]
+        OrbitList = [
+            case((BinaryCondSt, None), else_ = OrbTbl.c.ref_plane).label("ref_plane"),
+            case((PrimCompCond, OrbTbl.c.primary_name), else_ = None).label("primary_name"),
+            case((PrimCompCond, OrbTbl.c.companion_name), else_ = None).label("companion_name"),
+            case((BinaryCondPl, OrbTbl.c.b_period), (BinaryCondSt, None), else_ = OrbTbl.c.period).label("period"),
+            case((Tbl.c.otype != "Moon", None), else_ = OrbTbl.c.synodic_month).label("synodic_month"),
+            case((BinaryCondPl, OrbTbl.c.b_pericenter_dist), (BinaryCondSt, None), else_ = OrbTbl.c.pericenter_dist).label("pericenter_dist"),
+            case((BinaryCondPl, OrbTbl.c.b_aphelion_dist), (BinaryCondSt, None), else_ = OrbTbl.c.aphelion_dist).label("aphelion_dist"),
+            case((BinaryCondPl, OrbTbl.c.b_semi_major_axis), (BinaryCondSt, None), else_ = OrbTbl.c.semi_major_axis).label("semi_major_axis"),
+            case((BinaryCondPl, OrbTbl.c.b_eccentricity), (BinaryCondSt, None), else_ = OrbTbl.c.eccentricity).label("eccentricity"),
+            case((BinaryCondPl, OrbTbl.c.b_inclination), (BinaryCondSt, None), else_ = OrbTbl.c.inclination).label("inclination"),
+            case((BinaryCondPl, OrbTbl.c.b_inclination_ecliptic), (BinaryCondSt, None), else_ = OrbTbl.c.inclination_ecliptic).label("incl_ecliptic"),
+            case((BinaryCondPl, OrbTbl.c.b_ascending_node), (BinaryCondSt, None), else_ = OrbTbl.c.ascending_node).label("ascending_node"),
+            case((BinaryCondPl, OrbTbl.c.b_asc_node_ecliptic), (BinaryCondSt, None), else_ = OrbTbl.c.asc_node_ecliptic).label("asc_node_ecliptic"),
+            case((BinaryCondPl, OrbTbl.c.b_epoch), (BinaryCondSt, None), else_ = OrbTbl.c.epoch).label("epoch"),
+            case((BinaryCondPl, OrbTbl.c.b_arg_of_pericenter), (BinaryCondSt, None), else_ = OrbTbl.c.arg_of_pericenter).label("arg_of_pericenter"),
+            case((BinaryCondPl, OrbTbl.c.b_arg_of_peri_ecliptic), (BinaryCondSt, None), else_ = OrbTbl.c.arg_of_peri_ecliptic).label("arg_of_peri_ecliptic"),
+            case((BinaryCondPl, OrbTbl.c.b_mean_anomaly), (BinaryCondSt, None), else_ = OrbTbl.c.mean_anomaly).label("mean_anomaly")
+        ]
+        SelectList += OrbitList
+        JoinQuery = JoinQuery.outerjoin(OrbTbl, OrbTbl.c.object_id == Tbl.c.object_id)
+
+    PhysList, PhysLabels = [], []
+    if "physic" in Info:
+        PhysCols = [Column(i, j) for i, j in [
+            ["object_id",                    String(512)],
+            ["abs_magn_bol",                 Double],
+            ["mean_radius",                  Double],
+            ["dimension_x",                  Double],
+            ["dimension_y",                  Double],
+            ["dimension_z",                  Double],
+            ["flattening_x",                 Double],
+            ["flattening_y",                 Double],
+            ["flattening_z",                 Double],
+            ["circumference_equatorial",     Double],
+            ["circumference_meridional",     Double],
+            ["surface_area",                 Double],
+            ["volume",                       Double],
+            ["mass",                         Double],
+            ["mean_density",                 Double],
+            ["age",                          Double],
+            ["surface_gravity",              Double],
+            ["moment_of_inertia_factor",     Double],
+            ["escape_velocity",              Double],
+            ["synodic_rotation_period",      Double],
+            ["sidereal_rotation_period",     Double],
+            ["equatorial_rotation_velocity", Double],
+            ["axial_tilt",                   Double],
+            ["albedo_bond",                  Double],
+            ["albedo_geometric",             Double],
+            ["luminosity",                   Double],
+            ["temperature",                  Double],
+            ["radiant_flux",                 Double],
+            ["kerr_spin",                    Double],
+            ["kerr_charge",                  Double],
+            ["comet_total_magn",             Double],
+            ["comet_total_magn_slope",       Double],
+            ["esi",                          Double],
+            ["extra",                        Text]
+        ]]
+        PhysTbl = Table("ig_physical", MetaData(), *PhysCols)
+        PhysLabels = ["abs_magn_bol", "mean_radius", "dimension_x", "dimension_y", "dimension_z",
+            "flattening_x", "flattening_y", "flattening_z", "circumference_equatorial", "circumference_meridional",
+            "surface_area", "volume", "mass", "mean_density", "age", "surface_gravity", "moment_of_inertia_factor",
+            "escape_velocity", "synodic_rotation_period", "sidereal_rotation_period", "equatorial_rotation_velocity",
+            "axial_tilt", "albedo_bond", "albedo_geometric", "luminosity", "temperature", "radiant_flux",
+            "kerr_spin", "kerr_charge", "comet_total_magn", "comet_total_magn_slope", "esi", "extra"]
+        PhysList = [
+            PhysTbl.c.abs_magn_bol, PhysTbl.c.mean_radius, 
+            PhysTbl.c.dimension_x, PhysTbl.c.dimension_y, PhysTbl.c.dimension_z,
+            PhysTbl.c.flattening_x, PhysTbl.c.flattening_y, PhysTbl.c.flattening_z,
+            PhysTbl.c.circumference_equatorial, PhysTbl.c.circumference_meridional,
+            PhysTbl.c.surface_area, PhysTbl.c.volume, PhysTbl.c.mass, PhysTbl.c.mean_density,
+            PhysTbl.c.age, PhysTbl.c.surface_gravity, PhysTbl.c.moment_of_inertia_factor, PhysTbl.c.escape_velocity, 
+            PhysTbl.c.synodic_rotation_period, PhysTbl.c.sidereal_rotation_period, PhysTbl.c.equatorial_rotation_velocity,
+            PhysTbl.c.axial_tilt, PhysTbl.c.albedo_bond, PhysTbl.c.albedo_geometric, 
+            PhysTbl.c.luminosity, PhysTbl.c.temperature, PhysTbl.c.radiant_flux,
+            PhysTbl.c.kerr_spin, PhysTbl.c.kerr_charge, PhysTbl.c.comet_total_magn, PhysTbl.c.comet_total_magn_slope,
+            PhysTbl.c.esi, PhysTbl.c.extra
+        ]
+        SelectList += PhysList
+        JoinQuery = JoinQuery.outerjoin(PhysTbl, PhysTbl.c.object_id == Tbl.c.object_id)
+
+    AtmosphereList, AtmosphereLabels = [], []
+    if "atmosphere" in Info:
+        AtmoCols = [Column(i, j) for i, j in [
+            ["object_id",        String(512)],
+            ["surface_pressure", Double],
+            ["scale_height",     Double]
+        ]]
+        AtmoTbl = Table("ig_atmosphere", MetaData(), *AtmoCols)
+        AtmosphereLabels = ["atmosphere_pressure", "atmosphere_scale_height"]
+        AtmosphereList = [
+            AtmoTbl.c.surface_pressure.label("atmosphere_pressure"),
+            AtmoTbl.c.scale_height.label("atmosphere_scale_height")
+        ]
+        SelectList += AtmosphereList
+        JoinQuery = JoinQuery.outerjoin(AtmoTbl, AtmoTbl.c.object_id == Tbl.c.object_id)
+
+    HydrosphereList, HydrosphereLabels = [], []
+    if "hydrosphere" in Info:
+        HydCols = [Column(i, j) for i, j in [
+            ["object_id", String(512)],
+            ["height",    Double],
+        ]]
+        HydTbl = Table("ig_hydrosphere", MetaData(), *HydCols)
+        HydrosphereLabels = ["ocean_height"]
+        HydrosphereList = [
+            HydTbl.c.height.label("ocean_height"),
+        ]
+        SelectList += HydrosphereList
+        JoinQuery = JoinQuery.outerjoin(HydTbl, HydTbl.c.object_id == Tbl.c.object_id)
+
+    BiosphereList, BiosphereLabels = [], []
+    if "biosphere" in Info:
+        BioCols = [Column(i, j) for i, j in [
+            ["object_id", String(512)],
+            ["bio_class", String(64)],
+            ["bio_type",  String(64)]
+        ]]
+        BioTbl = Table("ig_biosphere", MetaData(), *BioCols)
+        BiosphereLabels = ["bio_class", "bio_type"]
+        BiosphereList = [
+            BioTbl.c.bio_class,
+            BioTbl.c.bio_type
+        ]
+        SelectList += BiosphereList
+        JoinQuery = JoinQuery.outerjoin(BioTbl, BioTbl.c.object_id == Tbl.c.object_id)
+
+    MainStatement = ""
     if Namespace == "-A":
-        Statement = str((select(SysTbl.c.namespace, SysTbl.c.main_id, Tbl)
-            .select_from(Tbl.join(SysTbl, SysTbl.c.system_id == Tbl.c.system_id)))
+        MainStatement = str((select(*SelectList).select_from(JoinQuery))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     elif ObjectName == None or ObjectName == "":
-        Statement = str((select(SysTbl.c.namespace, SysTbl.c.main_id, Tbl)
-            .select_from(Tbl.join(SysTbl, SysTbl.c.system_id == Tbl.c.system_id))
+        MainStatement = str(((select(*SelectList).select_from(JoinQuery))
             .where(SysTbl.c.namespace == Namespace))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     else:
-        Statement = str((select(SysTbl.c.namespace, SysTbl.c.main_id, Tbl)
-            .select_from(Tbl.join(SysTbl, SysTbl.c.system_id == Tbl.c.system_id))
+        MainStatement = str(((select(*SelectList).select_from(JoinQuery))
             .where(SysTbl.c.namespace == Namespace)
             .where(or_(Tbl.c.primary_name == ObjectName, Tbl.c.object_id == ObjectName)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+
     Connection = ADBCClient()
-    return read_sql(Statement, Connection)
+    MainFrame = read_sql(MainStatement, Connection)
+
+    # 主表生成以后处理一对多查询
+
+    ObjList = MainFrame["object_id"].to_list()
+    IdentCols = [Column(i, j) for i, j in [
+        ["object_id", String(512)],
+        ["alias",     String(255)]
+    ]]
+    IdentTbl = Table("ig_identifiers", MetaData(), *IdentCols)
+    IdentQuery = str((select(IdentTbl).where(IdentTbl.c.object_id.in_(ObjList)))
+        .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+    IdentFrame = read_sql(IdentQuery, Connection)
+    IdentFrame.set_index("object_id", inplace = True)
+    IdentDict = IdentFrame.groupby("object_id")["alias"].apply(list).to_dict()
+
+    CompDict = None
+    if "atmosphere" in Info or "hydrosphere" in Info:
+        CompCols = [Column(i, j) for i, j in [
+            ["object_id", String(512)],
+            ["kind",      String(16)],
+            ["component", String(64)],
+            ["fraction",  Double]
+        ]]
+        CompTbl = Table("ig_composition", MetaData(), *CompCols)
+        CompQuery = str((select(CompTbl).where(CompTbl.c.object_id.in_(ObjList)))
+            .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+        CompFrame = read_sql(CompQuery, Connection)
+        CompFrame.set_index(["object_id", "kind"], inplace = True)
+        CompDict = CompFrame.groupby(["object_id", "kind"])[["component", "fraction"]].apply(lambda x: x.to_dict('records')).to_dict()
+    
+    BiomeDict = None
+    if "biosphere" in Info:
+        BiomeCols = [Column(i, j) for i, j in [
+            ["object_id", String(512)],
+            ["biome",     String(64)]
+        ]]
+        BiomeTbl = Table("ig_biosphere_biome", MetaData(), *BiomeCols)
+        BiomeQuery = str((select(BiomeTbl).where(BiomeTbl.c.object_id.in_(ObjList)))
+            .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+        BiomeFrame = read_sql(BiomeQuery, Connection)
+        BiomeFrame.set_index(["object_id"], inplace = True)
+        BiomeDict = BiomeFrame.groupby("object_id")["biome"].apply(list).to_dict()
+
+    Result = MainFrame[BasicLabels].to_dict(orient = 'records')
+
+    for i in Result:
+        if i["object_id"] in IdentDict.keys():
+            i["other_designations"] = IdentDict[i["object_id"]]
+
+    if "orbit" in Info:
+        OrbitFrame = [{i: j for i, j in k.items() if notna(j)}
+            for k in MainFrame[OrbitLabels].to_dict(orient = 'records')]
+        for i, j in zip(range(len(OrbitFrame)), OrbitFrame):
+            if len(j) != 0:
+                Result[i]["orbital_characteristics"] = j
+    if "physic" in Info:
+        PhysFrame = [{i: j for i, j in k.items() if notna(j)}
+            for k in MainFrame[PhysLabels].to_dict(orient = 'records')]
+        for i, j in zip(range(len(PhysFrame)), PhysFrame):
+            if len(j) != 0:
+                Result[i]["physical_characteristics"] = j
+    if "atmosphere" in Info:
+        AtmoFrame = [{i: j for i, j in k.items() if notna(j)}
+            for k in MainFrame[AtmosphereLabels].to_dict(orient = 'records')]
+        for i, j in zip(range(len(AtmoFrame)), AtmoFrame):
+            if len(j) != 0:
+                if (Result[i]["object_id"], "Atmosphere") in CompDict.keys(): # 直接变JSON了
+                    j["compositions_by_volume"] = CompDict[(Result[i]["object_id"], "Atmosphere")]
+                Result[i]["atmosphere"] = j
+    if "hydrosphere" in Info:
+        HydroFrame = [{i: j for i, j in k.items() if notna(j)}
+            for k in MainFrame[HydrosphereLabels].to_dict(orient = 'records')]
+        for i, j in zip(range(len(HydroFrame)), HydroFrame):
+            if len(j) != 0:
+                if (Result[i]["object_id"], "Hydrosphere") in CompDict.keys(): # 直接变JSON了
+                    j["compositions_by_volume"] = CompDict[(Result[i]["object_id"], "Hydrosphere")]
+                Result[i]["hydrosphere"] = j
+    if "biosphere" in Info:
+        BioFrame = [{i: j for i, j in k.items() if notna(j)}
+            for k in MainFrame[BiosphereLabels].to_dict(orient = 'records')]
+        for i, j in zip(range(len(BioFrame)), BioFrame):
+            if len(j) != 0:
+                if Result[i]["object_id"] in BiomeDict.keys(): # 直接变JSON了
+                    j["biome"] = BiomeDict[Result[i]["object_id"]]
+                Result[i]["bioSphere"] = j
+
+    return Result
 
 def _QueryObject(Namespace, ObjectName, OutFmt):
     _PreCheck(Namespace, ObjectName)
-    ObjectDataFrame = _QueryObjectBasic_Unchecked(Namespace, ObjectName)
+    FullOutputFormats = ["json", "yaml"]
+    ObjectList = _QueryObject_Unchecked(Namespace, ObjectName, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere"] if OutFmt in FullOutputFormats else [])
 
-    if len(ObjectDataFrame) == 0:
+    if len(ObjectList) == 0:
         return "没找到任何资源"
 
     match OutFmt:
         case "json":
-            return ObjectDataFrame.to_json(
-                orient = 'records',
+            return json.dumps(ObjectList,
+                ensure_ascii = False,
                 indent = 4
             )
         case "yaml":
-            return yaml.dump(ObjectDataFrame.to_dict(orient = 'records'),
+            return yaml.dump(ObjectList,
                 allow_unicode = True, 
                 sort_keys = False, 
                 default_flow_style = False, 
                 indent = 2
             )
         case "wide":
-            return str(tabulate(ObjectDataFrame[["namespace", "primary_name", "main_id", "otype", "class", "object_id", "parent_object_id", "system_id", "depth", "sibling_index"]], 
+            return str(tabulate([{
+                    "namespace": i["namespace"], 
+                    "primary_name": i["ident"], 
+                    "system": i["system"], 
+                    "otype": i["otype"], 
+                    "class": i["class"], 
+                    "object_id": i["object_id"], 
+                    "parent_object_id": i["parent_object_id"], 
+                    "system_id": i["system_id"], 
+                    "depth": i["depth"], 
+                    "sibling_index": i["sibling_index"]
+                } for i in ObjectList], 
                 headers = "keys", 
                 tablefmt = "plain", 
                 showindex = False
             ))
         case _:
-            return str(tabulate(ObjectDataFrame[["namespace", "primary_name", "main_id", "otype", "class"]], 
+            return str(tabulate([{
+                    "namespace": i["namespace"], 
+                    "primary_name": i["ident"], 
+                    "system": i["system"], 
+                    "otype": i["otype"], 
+                    "class": i["class"], 
+                } for i in ObjectList], 
                 headers = "keys", 
                 tablefmt = "plain", 
                 showindex = False
@@ -177,7 +472,8 @@ def QuerySystem(SystemName): # 这个是给AI看的
 
     传入恒星系的主标识 SystemName（对应 ig_system.main_id），返回该恒星系
     记录的 JSON 数组，字段包含 system_id、main_id、spectral_types、
-    n_stars、n_planets、create_date 等；当命名空间内不存在该名称时返回空数组。
+    n_stars、n_planets、create_date 等；
+    当命名空间内不存在该名称时返回"没找到任何资源"。
     """
     return _QuerySystem(GetNamespace(), SystemName, "json")
 
@@ -187,13 +483,37 @@ def GetSystem(args):
 def GetObject(args):
     print(_QueryObject("-A" if args.all_namespaces else args.namespace, args.name, args.output))
 
+def _Print_Dict(Data:dict, Indent = 0, IndentInc = 4):
+    MaxLength = len(max(Data.keys(), key = len)) + 3
+    for Key, Value in Data.items():
+        if is_dict_like(Value):
+            print(f"{' ' * Indent}{(Key + ":"):{MaxLength}}")
+            _Print_Dict(Value, Indent + IndentInc)
+        else:
+            print(f"{' ' * Indent}{(Key + ":"):{MaxLength}}{Value}")
+
+def DescribeSystem(args):
+    _PreCheck(args.namespace, args.name)
+    SystemDict = _QuerySystem_Unchecked(args.namespace, args.name).to_dict(orient = 'records')
+    for i in SystemDict:
+        _Print_Dict(i)
+        print()
+
+def DescribeObject(args):
+    _PreCheck(args.namespace, args.name)
+    ObjectDict = _QueryObject_Unchecked(args.namespace, args.name, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere"])
+    for i in ObjectDict:
+        _Print_Dict(i)
+        print()
+
 Modules = {
     "system": GetSystem,
     "object": GetObject
 }
 
 Modules1 = {
-    
+    "system": DescribeSystem,
+    "object": DescribeObject
 }
 
 def GetRegister(MainArgParser):
