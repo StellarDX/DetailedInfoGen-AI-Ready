@@ -39,5 +39,5 @@ from InfoGen_Data.Modules.SystemLoader import CheckNamespace
 from InfoGen_Data.Modules.ResourceCreator import Register as ResourceCreatorRegister
 from InfoGen_Data.Modules.ResourceCreator import CreateResource
 
-from InfoGen_Data.Modules.LangTools import GetRegister as GetterRegister
-from InfoGen_Data.Modules.LangTools import Get
+from InfoGen_Data.Modules.LangTools import GetRegister as GetterRegister, DescribeRegister as DescribeRegister
+from InfoGen_Data.Modules.LangTools import Get, Describe
