@@ -19,6 +19,7 @@ def GetNamespace():
 
 def SetNamespace(NewNamespace):
     global _NamespaceBuffer
+    CheckNamespace(NewNamespace)
     _NamespaceBuffer = NewNamespace
 
 def _PreCheck(Namespace, SystemName):
@@ -526,7 +527,7 @@ def QuerySystem(SystemName:str) -> str: # 这个是给AI看的
     根据系统名称查询系统数据，并以 JSON 格式返回。
 
     Args:
-        SystemName: 要查询的系统名称。
+        SystemName (str): 要查询的系统名称。
 
     Returns:
         str: 命中时返回系统信息（JSON 格式的字符串）；
@@ -542,7 +543,7 @@ def QueryAllObjectsInSystem(SystemName:str) -> str:
     根据系统名称查询该系统下包含的全部对象，并以 TSV（制表符分隔）格式返回。
 
     Args:
-        SystemName: 要查询的系统名称。
+        SystemName (str): 要查询的系统名称。
 
     Returns:
         str: 该系统内所有对象的数据表，以 TSV 格式的字符串返回（列之间以制表符 \t 分隔，不含行索引）。
@@ -551,7 +552,7 @@ def QueryAllObjectsInSystem(SystemName:str) -> str:
     return SystemFrame.to_csv(index = False, sep = '\t')
 
 @tool(parse_docstring = True)
-def QueryObject(SystemName:str, ObjectName:str, ObjectType:str = None) -> str:
+def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:str = None) -> str:
     """
     查询指定行星系统内某个物体的完整信息。
 
@@ -561,14 +562,15 @@ def QueryObject(SystemName:str, ObjectName:str, ObjectType:str = None) -> str:
     注意：SE 约定同一行星系统内的物体不会重名，因此正常情况下最多命中一条数据。
 
     Args:
+        ObjectName (str): 物体名称、别名或 object_id。
         SystemName (str): 行星系统名称，用于限定检索范围。
-        ObjectName (str): 物体名称，需与系统中登记的名称一致。
         ObjectType (str): 物体类型，用于进一步过滤，可以是：
                           "Barycenter", "Star", "Planet", "DwarfPlanet", 
                           "Moon", "DwarfMoon", "Asteroid", "Comet"
 
     Returns:
         str: 命中时返回该物体信息的 JSON 字符串（ensure_ascii=False，indent=4）；
+             匹配到多个物体时返回提示文本 「匹配到多个物体」 和候选物体列表，此时需询问用户具体指代哪一个物体；
              未命中（系统或物体不存在）时返回提示文本 「没有那个系统或物体」。
              所有字段的单位均遵循国际单位制，即：
                 长度类字段单位为米，即面积为平方米，体积单位为立方米；
@@ -580,14 +582,21 @@ def QueryObject(SystemName:str, ObjectName:str, ObjectType:str = None) -> str:
                 成分类字段为体积分数；
     """
 
-    ObjectDict = _QueryObject_Unchecked(GetNamespace(), ObjectName, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere"])
-    ObjectDict = [i for i in ObjectDict if i["system"] == SystemName]
+    ObjectDict = _QueryObject_Unchecked(GetNamespace(), ObjectName, 
+        ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere", "subsystems"])
+    if SystemName != None:
+        ObjectDict = [i for i in ObjectDict if i["system"] == SystemName]
     if ObjectType != None:
         ObjectDict = [i for i in ObjectDict if i["otype"] == ObjectType]
 
     if len(ObjectDict) == 0:
         return "没有那个系统或物体"
-    else: # SE约定单个行星系统内的物体不会出现重名，理论上这个列表最多只会得到唯一一条数据
+    elif len(ObjectDict) >= 2:
+        Result = "匹配到多个物体：\n"
+        for i, j in zip(ObjectDict, range(len(ObjectDict))):
+            Result += f" {j + 1}. {i["system"]}: {i["ident"]} (Parent Body = {i["parent_object"]})\n"
+        return Result
+    else:
         return json.dumps(ObjectDict, ensure_ascii = False, indent = 4)
 
 def GetSystem(args):
