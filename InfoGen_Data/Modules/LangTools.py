@@ -4,6 +4,7 @@ from InfoGen_Data import CheckNamespace
 
 import yaml, json
 
+from typing import Literal
 from sqlalchemy import Table, MetaData, Column, select, and_, or_, not_, case
 from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger, Text
 from sqlalchemy.orm import aliased
@@ -429,19 +430,19 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     if "orbit" in Info:
         OrbitFrame = [{i: j for i, j in k.items() if notna(j)}
             for k in MainFrame[OrbitLabels].to_dict(orient = 'records')]
-        for i, j in zip(range(len(OrbitFrame)), OrbitFrame):
+        for i, j in enumerate(OrbitFrame):
             if len(j) != 0:
                 Result[i]["orbital_characteristics"] = j
     if "physic" in Info:
         PhysFrame = [{i: j for i, j in k.items() if notna(j)}
             for k in MainFrame[PhysLabels].to_dict(orient = 'records')]
-        for i, j in zip(range(len(PhysFrame)), PhysFrame):
+        for i, j in enumerate(PhysFrame):
             if len(j) != 0:
                 Result[i]["physical_characteristics"] = j
     if "atmosphere" in Info:
         AtmoFrame = [{i: j for i, j in k.items() if notna(j)}
             for k in MainFrame[AtmosphereLabels].to_dict(orient = 'records')]
-        for i, j in zip(range(len(AtmoFrame)), AtmoFrame):
+        for i, j in enumerate(AtmoFrame):
             if len(j) != 0:
                 if (Result[i]["object_id"], "Atmosphere") in CompDict.keys(): # 直接变JSON了
                     j["compositions_by_volume"] = CompDict[(Result[i]["object_id"], "Atmosphere")]
@@ -449,7 +450,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     if "hydrosphere" in Info:
         HydroFrame = [{i: j for i, j in k.items() if notna(j)}
             for k in MainFrame[HydrosphereLabels].to_dict(orient = 'records')]
-        for i, j in zip(range(len(HydroFrame)), HydroFrame):
+        for i, j in enumerate(HydroFrame):
             if len(j) != 0:
                 if (Result[i]["object_id"], "Hydrosphere") in CompDict.keys(): # 直接变JSON了
                     j["compositions_by_volume"] = CompDict[(Result[i]["object_id"], "Hydrosphere")]
@@ -457,7 +458,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     if "biosphere" in Info:
         BioFrame = [{i: j for i, j in k.items() if notna(j)}
             for k in MainFrame[BiosphereLabels].to_dict(orient = 'records')]
-        for i, j in zip(range(len(BioFrame)), BioFrame):
+        for i, j in enumerate(BioFrame):
             if len(j) != 0:
                 if Result[i]["object_id"] in BiomeDict.keys(): # 直接变JSON了
                     j["biome"] = BiomeDict[Result[i]["object_id"]]
@@ -552,21 +553,25 @@ def QueryAllObjectsInSystem(SystemName:str) -> str:
     return SystemFrame.to_csv(index = False, sep = '\t')
 
 @tool(parse_docstring = True)
-def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:str = None) -> str:
+def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
+        "Barycenter", "Star", "Planet", "DwarfPlanet",
+        "Moon", "DwarfMoon", "Asteroid", "Comet"
+    ] = None) -> str:
     """
     查询指定行星系统内某个物体的完整信息。
 
-    用于按「系统 + 物体名」检索该物体的轨道、物理、大气、水圈、生物圈等模块数据，
+    用于按物体名检索该物体的轨道、物理、大气、水圈、生物圈等模块数据，
     返回格式化后的 JSON 字符串，便于直接阅读或继续解析。
     适用场景：需要了解某个已知天体/物体的具体参数与属性时调用。
-    注意：SE 约定同一行星系统内的物体不会重名，因此正常情况下最多命中一条数据。
 
     Args:
-        ObjectName (str): 物体名称、别名或 object_id。
-        SystemName (str): 行星系统名称，用于限定检索范围。
-        ObjectType (str): 物体类型，用于进一步过滤，可以是：
-                          "Barycenter", "Star", "Planet", "DwarfPlanet", 
-                          "Moon", "DwarfMoon", "Asteroid", "Comet"
+        ObjectName (str): 物体名称、别名或 object_id（必填）。
+        SystemName (str): 行星系统名称，用于限定检索范围；不指定时搜索所有系统。
+        ObjectType (str): 物体类型，用于进一步过滤。可选值：
+                          "Barycenter"（质心）、"Star"（恒星）、"Planet"（行星）、
+                          "DwarfPlanet"（矮行星）、"Moon"（卫星）、"DwarfMoon"（小卫星）、
+                          "Asteroid"（小行星）、"Comet"（彗星）。
+                          不指定时不限制类型。
 
     Returns:
         str: 命中时返回该物体信息的 JSON 字符串（ensure_ascii=False，indent=4）；
@@ -580,6 +585,8 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:str = None) ->
                 温度类字段单位为开氏度；
                 压强类字段单位为帕斯卡；
                 成分类字段为体积分数；
+                角度类字段单位为度；
+             另外，返回的字符串里只会包含对应物体“拥有”的属性，例如只有在那个物体有“大气”时才会出现atmosphere及相关字段
     """
 
     ObjectDict = _QueryObject_Unchecked(GetNamespace(), ObjectName, 
@@ -593,8 +600,8 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:str = None) ->
         return "没有那个系统或物体"
     elif len(ObjectDict) >= 2:
         Result = "匹配到多个物体：\n"
-        for i, j in zip(ObjectDict, range(len(ObjectDict))):
-            Result += f" {j + 1}. {i["system"]}: {i["ident"]} (Parent Body = {i["parent_object"]})\n"
+        for j, i in enumerate(ObjectDict, 1):
+            Result += f" {j}. {i["system"]}: {i["ident"]} (Parent Body = {i["parent_object"]})\n"
         return Result
     else:
         return json.dumps(ObjectDict, ensure_ascii = False, indent = 4)

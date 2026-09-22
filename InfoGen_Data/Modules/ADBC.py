@@ -72,6 +72,7 @@ def ADBCClient():
     return _Connection
 
 def ADBCROClient():
+    raise NotImplementedError("部分数据库不支持此方式设置只读链接")
     global _ROConnection
     if _ROConnection is None:
         _ROConnection = dbapi.connect(**(ADBCROConfig()["Connection"]))

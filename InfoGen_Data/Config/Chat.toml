@@ -1,0 +1,105 @@
+# ChatOpenAI 客户端配置
+#
+# 键名与 langchain_openai.ChatOpenAI 的初始化参数（含别名）一一对应，
+# 读取后可直接用于初始化客户端：
+#
+#   import tomllib
+#   from langchain_openai import ChatOpenAI
+#
+#   with open("InfoGen_Data/Config/Chat.toml", "rb") as f:
+#       config = tomllib.load(f)
+#
+#   client = ChatOpenAI(**config)
+#
+# 说明：
+# - TOML 没有 null，未启用的可选项请保持注释状态，不要写成空值。
+# - 注释中标注 "别名" 的参数，其键名即为 ChatOpenAI 接受的别名字段。
+
+# ---------------------------------------------------------------------------
+# 必填：模型
+# ---------------------------------------------------------------------------
+# 模型名称（别名：model，对应字段 model_name）
+model = ""
+
+# ---------------------------------------------------------------------------
+# 必填：鉴权与端点
+# ---------------------------------------------------------------------------
+# API Key（别名：api_key，对应字段 openai_api_key）
+# 若不写此项，将回退到环境变量 OPENAI_API_KEY
+api_key = ""
+
+# API 端点（别名：base_url，对应字段 openai_api_base）
+# 使用 OpenAI 官方端点时保持默认；使用兼容代理/自建服务时修改此处
+base_url = ""
+
+# 组织 ID（别名：organization，对应字段 openai_organization）
+# 不写则回退到环境变量 OPENAI_ORG_ID
+# organization = ""
+
+# ---------------------------------------------------------------------------
+# 请求行为
+# ---------------------------------------------------------------------------
+# 请求超时（别名：timeout，对应字段 request_timeout），单位：秒
+timeout = 60
+
+# 失败最大重试次数
+max_retries = 2
+
+# 是否使用流式输出
+streaming = false
+
+# 流式输出时是否返回 usage 元数据
+stream_usage = true
+
+# ---------------------------------------------------------------------------
+# 生成参数
+# ---------------------------------------------------------------------------
+# 采样温度
+temperature = 0.7
+
+# 单次生成的最大 token 数
+# max_tokens = 4096
+
+# 核采样概率阈值
+top_p = 0.95
+
+# 为每个输入生成的候选数量
+n = 1
+
+# 存在惩罚
+# presence_penalty = 0.0
+
+# 频率惩罚
+# frequency_penalty = 0.0
+
+# 随机种子（用于结果复现）
+# seed = 0
+
+# 服务等级：'auto' | 'default' | 'flex'
+# service_tier = "auto"
+
+# ---------------------------------------------------------------------------
+# 其它可选参数（按需启用）
+# ---------------------------------------------------------------------------
+# 推理强度（推理模型，Chat Completions API）：'minimal' | 'low' | 'medium' | 'high'
+# reasoning_effort = "medium"
+
+# 是否返回 logprobs
+# logprobs = false
+
+# 与 logprobs 搭配使用的候选 token 数量
+# top_logprobs = 5
+
+# 默认停止序列（别名：stop_sequences）
+# stop_sequences = ["\n\n"]
+
+# 自定义 HTTP 代理
+# openai_proxy = "http://localhost:7890"
+
+# 附加请求体（用于兼容 OpenAI 协议的三方服务自定义参数）
+# [extra_body]
+# ttl = 300
+
+# 自定义请求头
+# [default_headers]
+# X-Custom-Header = "value"
