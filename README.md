@@ -250,7 +250,8 @@ python InfoGen.py adbc init --driver="/path/to/libadbc_driver_xxxx.dll" --uri="<
 
 ```
 python InfoGen.py get <resource> -A # 获取所有<resource>
-python InfoGen.py get <resource> -n<namespace> <name> # 获取那个名称对应的<resource>
+python InfoGen.py get <resource> -n<namespace> [<name>] # 获取那个名称或ID对应的<resource>
+python InfoGen.py describe <resource> -n<namespace> [<name>] # 输出<resource>的详细信息
 ```
 
 #### `get` 参数说明
@@ -259,7 +260,9 @@ python InfoGen.py get <resource> -n<namespace> <name> # 获取那个名称对应
 | --- | --- | --- |
 | `-A, --all-namespaces` | 获取全部资源 | — |
 | `-n, --namespace` | 指定命名空间，没有设置-A的情况下为必填 | — |
-| `-o, --output` | 输出格式，目前支持json和yaml | — |
+| `-o, --output` | 输出格式，目前支持wide，json和yaml | — |
+
+注：get和describe均不支持模糊查询，如果要模糊查询，请使用`python InfoGen.py get <resource> [-A | -n<namespace>] | grep ...`
 
 ### 查看帮助
 
