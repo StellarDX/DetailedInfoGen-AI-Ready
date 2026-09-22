@@ -153,20 +153,29 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         ["is_minor",         Boolean]
     ]]
     Tbl = Table("ig_object", MetaData(), *Cols)
+    PTbl = aliased(Tbl, "parents")
     BasicLabels = [
         "namespace", "system",
-        "object_id", "system_id", "parent_object_id",
+        "object_id", "system_id", "parent_object_id", "parent_object",
         "ident", "otype", "class",
         "depth", "sibling_index", "is_minor"
     ]
     SelectList = [
-        Tbl.c.object_id, Tbl.c.system_id, Tbl.c.parent_object_id,
+        Tbl.c.object_id, Tbl.c.system_id, Tbl.c.parent_object_id, PTbl.c.primary_name.label("parent_object"),
         Tbl.c.primary_name.label("ident"),
         Tbl.c.otype, Tbl.c["class"], Tbl.c.depth,
         Tbl.c.sibling_index, Tbl.c.is_minor,
         SysTbl.c.main_id.label("system"), SysTbl.c.namespace
     ]
     JoinQuery = Tbl.join(SysTbl, SysTbl.c.system_id == Tbl.c.system_id)
+    JoinQuery = JoinQuery.outerjoin(PTbl, Tbl.c.parent_object_id == PTbl.c.object_id)
+
+    IdentCols = [Column(i, j) for i, j in [
+        ["object_id", String(512)],
+        ["alias",     String(255)]
+    ]]
+    IdentTbl = Table("ig_identifiers", MetaData(), *IdentCols)
+    JoinQuery = JoinQuery.join(IdentTbl, IdentTbl.c.object_id == Tbl.c.object_id)
 
     OrbitList, OrbitLabels = [], []
     if "orbit" in Info:
@@ -356,7 +365,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     else:
         MainStatement = str(((select(*SelectList).select_from(JoinQuery))
             .where(SysTbl.c.namespace == Namespace)
-            .where(or_(Tbl.c.primary_name == ObjectName, Tbl.c.object_id == ObjectName)))
+            .where(or_(IdentTbl.c.alias == ObjectName, Tbl.c.object_id == ObjectName)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
 
     Connection = ADBCClient()
@@ -365,11 +374,6 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     # 主表生成以后处理一对多查询
 
     ObjList = MainFrame["object_id"].to_list()
-    IdentCols = [Column(i, j) for i, j in [
-        ["object_id", String(512)],
-        ["alias",     String(255)]
-    ]]
-    IdentTbl = Table("ig_identifiers", MetaData(), *IdentCols)
     IdentQuery = str((select(IdentTbl).where(IdentTbl.c.object_id.in_(ObjList)))
         .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     IdentFrame = read_sql(IdentQuery, Connection)
@@ -403,6 +407,17 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         BiomeFrame = read_sql(BiomeQuery, Connection)
         BiomeFrame.set_index(["object_id"], inplace = True)
         BiomeDict = BiomeFrame.groupby("object_id")["biome"].apply(list).to_dict()
+
+    SubDict = None
+    if "subsystems" in Info:
+        STbl = aliased(Tbl, name = "subsystems")
+        SubQuery = str((select(Tbl.c.object_id, STbl.c.primary_name.label("subsystem"))
+            .select_from(Tbl.join(STbl, STbl.c.parent_object_id == Tbl.c.object_id))
+            .where(Tbl.c.object_id.in_(ObjList)))
+            .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+        SubFrame = read_sql(SubQuery, Connection)
+        SubFrame.set_index("object_id", inplace = True)
+        SubDict = SubFrame.groupby("object_id")["subsystem"].apply(list).to_dict()
 
     Result = MainFrame[BasicLabels].to_dict(orient = 'records')
 
@@ -446,6 +461,10 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
                 if Result[i]["object_id"] in BiomeDict.keys(): # 直接变JSON了
                     j["biome"] = BiomeDict[Result[i]["object_id"]]
                 Result[i]["bioSphere"] = j
+    if "subsystems" in Info:
+        for i in Result:
+            if i["object_id"] in SubDict.keys():
+                i["sub_systems"] = SubDict[i["object_id"]]
 
     return Result
 
@@ -500,8 +519,8 @@ def _QueryObject(Namespace, ObjectName, OutFmt):
                 showindex = False
             ))
 
-@tool
-def QuerySystem(SystemName): # 这个是给AI看的
+@tool(parse_docstring = True)
+def QuerySystem(SystemName:str) -> str: # 这个是给AI看的
     """查询指定系统的信息。
 
     根据系统名称查询系统数据，并以 JSON 格式返回。
@@ -510,19 +529,29 @@ def QuerySystem(SystemName): # 这个是给AI看的
         SystemName: 要查询的系统名称。
 
     Returns:
-        命中时返回系统信息（JSON 格式的字符串）；
-        未命中（系统不存在）时返回提示文本 「没找到任何资源」。
+        str: 命中时返回系统信息（JSON 格式的字符串）；
+             未命中（系统不存在）时返回提示文本 「没找到任何资源」。
     """
 
     return _QuerySystem(GetNamespace(), SystemName, "json")
 
-# @tool
-# def QueryAllObjectsInSystem(SystemName):
-#     SystemFrame = _QueryAllObjectsInSystem_Unchecked(GetNamespace(), SystemName)
-#     return SystemFrame.to_csv()
+@tool(parse_docstring = True)
+def QueryAllObjectsInSystem(SystemName:str) -> str:
+    """查询指定系统内的所有物体。
 
-@tool
-def QueryObject(SystemName, ObjectName, ObjectType = None):
+    根据系统名称查询该系统下包含的全部对象，并以 TSV（制表符分隔）格式返回。
+
+    Args:
+        SystemName: 要查询的系统名称。
+
+    Returns:
+        str: 该系统内所有对象的数据表，以 TSV 格式的字符串返回（列之间以制表符 \t 分隔，不含行索引）。
+    """
+    SystemFrame = _QueryAllObjectsInSystem_Unchecked(GetNamespace(), SystemName)
+    return SystemFrame.to_csv(index = False, sep = '\t')
+
+@tool(parse_docstring = True)
+def QueryObject(SystemName:str, ObjectName:str, ObjectType:str = None) -> str:
     """
     查询指定行星系统内某个物体的完整信息。
 
@@ -530,15 +559,6 @@ def QueryObject(SystemName, ObjectName, ObjectType = None):
     返回格式化后的 JSON 字符串，便于直接阅读或继续解析。
     适用场景：需要了解某个已知天体/物体的具体参数与属性时调用。
     注意：SE 约定同一行星系统内的物体不会重名，因此正常情况下最多命中一条数据。
-
-    所有字段的单位均遵循国际单位制，即：
-        长度类字段单位为米，即面积为平方米，体积单位为立方米
-        质量类字段单位为千克，即密度单位为千克每立方米
-        时间类字段单位为秒（age为年，轨道数据的Epoch单位是JD），即重力单位为米每平方秒，速度单位为米每秒
-        光度类字段单位为瓦特
-        温度类字段单位为开氏度
-        压强类字段单位为帕斯卡
-        成分类字段为体积分数
 
     Args:
         SystemName (str): 行星系统名称，用于限定检索范围。
@@ -550,6 +570,14 @@ def QueryObject(SystemName, ObjectName, ObjectType = None):
     Returns:
         str: 命中时返回该物体信息的 JSON 字符串（ensure_ascii=False，indent=4）；
              未命中（系统或物体不存在）时返回提示文本 「没有那个系统或物体」。
+             所有字段的单位均遵循国际单位制，即：
+                长度类字段单位为米，即面积为平方米，体积单位为立方米；
+                质量类字段单位为千克，即密度单位为千克每立方米；
+                时间类字段单位为秒（age为年，轨道数据的Epoch单位是JD），即重力单位为米每平方秒，速度单位为米每秒；
+                光度类字段单位为瓦特；
+                温度类字段单位为开氏度；
+                压强类字段单位为帕斯卡；
+                成分类字段为体积分数；
     """
 
     ObjectDict = _QueryObject_Unchecked(GetNamespace(), ObjectName, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere"])
@@ -589,7 +617,7 @@ def DescribeSystem(args):
 
 def DescribeObject(args):
     _PreCheck(args.namespace, args.name)
-    ObjectDict = _QueryObject_Unchecked(args.namespace, args.name, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere"])
+    ObjectDict = _QueryObject_Unchecked(args.namespace, args.name, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere", "subsystems"])
     if len(ObjectDict) == 0:
         print("没找到任何资源")
         return
