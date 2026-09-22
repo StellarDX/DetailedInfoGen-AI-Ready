@@ -17,6 +17,7 @@ from uuid import uuid5, NAMESPACE_URL
 from hashlib import sha256
 from sqlalchemy import select, delete, insert, MetaData, Table, Column
 from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger
+from numpy import inf
 
 def PrintArgs(args):
     print(f"配置: ")
@@ -65,6 +66,8 @@ class Uploader():
         self._BioBiomeDataFrame = None
         self._CompositionsDataFrame = None
         self._RootID = self.StrToRootNamespace(self._Args.namespace)
+        self._SysID = ""
+        self._ObjectIDs = {}
 
     def SystemID(self, main_id: str) -> str:
         return str(uuid5(self._RootID, f"{main_id}"))
@@ -72,6 +75,10 @@ class Uploader():
     def ObjectID(self, main_id: str, path: list[str]) -> str:
         # path是从根到自己的Identifiers[0]链，例如["Solar System", "Sun", "Earth", "Moon"]
         return str(uuid5(self._RootID, f"{main_id}://{'/'.join(path)}")) # SE的物体名里不会出现'/'
+
+    def MinorObjectID(self, main_id: str, ident: str) -> str:
+        # path是从根到自己的Identifiers[0]链，例如["Solar System", "Sun", "Earth", "Moon"]
+        return str(uuid5(self._RootID, f"{main_id}+minor://{'/'.join(ident)}"))
 
     def FileSHA256(self, Source:str):
         return sha256(Path(Source).read_bytes()).hexdigest()
@@ -132,7 +139,7 @@ class Uploader():
             CurrentTime,
             CurrentTime
         ]
-        return SystemID
+        self._SysID = SystemID
 
     def _DFS_Iterate(self, Ident:str, ParentBody:str, SystemHash:str, ParentHash:str, CurrentStack:list, SubSysIndex:int):
         CurrentObject = self._Src["Objects"][Ident]
@@ -264,12 +271,112 @@ class Uploader():
 
             for i in Biosphere["Biome"]:
                 self._BioBiomeDataFrame.loc[(CurrentHash, i), :] = None
+
+        self._ObjectIDs[Ident] = CurrentHash
         
         if "SubSystems" in CurrentObject:
             j = 0
             for i in CurrentObject["SubSystems"]:
                 self._DFS_Iterate(i, Ident, SystemHash, CurrentHash, CurrentStack + [i], j)
                 j += 1
+
+    def _Collect_Minor_objects(self):
+        for Ident, CurrentObject in self._Src["MinorObjects"].items():
+            CurrentHash = self.MinorObjectID(self._Src["MainID"], Ident)
+            ObjType = CurrentObject["OType"]
+
+            self._ObjectsDataFrame.loc[CurrentHash] = [
+                self._SysID,
+                self._ObjectIDs[CurrentObject["ParentBody"]],
+                Ident,
+                ObjType,
+                "Asteroid",
+                -1, # 小型物体的Depth始终填-1
+                None,
+                True
+            ]
+
+            for i in CurrentObject["Identifiers"]:
+                self._IdentifiersDataFrame.loc[(CurrentHash, i), :] = None
+
+            if "PhysicalCharacteristics" in CurrentObject:
+                PhysicalCharacteristics = CurrentObject["PhysicalCharacteristics"]
+                self._PhysicalDataFrame.loc[CurrentHash] = [
+                    None,
+                    PhysicalCharacteristics["MeanRadius"],
+                    PhysicalCharacteristics["Dimensions"][0],
+                    PhysicalCharacteristics["Dimensions"][1],
+                    PhysicalCharacteristics["Dimensions"][2],
+                    PhysicalCharacteristics["Flattening"][0],
+                    PhysicalCharacteristics["Flattening"][1],
+                    PhysicalCharacteristics["Flattening"][2],
+                    PhysicalCharacteristics["Circumference"][0],
+                    PhysicalCharacteristics["Circumference"][1],
+                    PhysicalCharacteristics["SurfaceArea"],
+                    PhysicalCharacteristics["Volume"],
+                    PhysicalCharacteristics["Mass"],
+                    PhysicalCharacteristics["MeanDensity"],
+                    None,
+                    PhysicalCharacteristics["SurfaceGravity"],
+                    PhysicalCharacteristics["MomentOfInertiaFactor"],
+                    PhysicalCharacteristics["EscapeVelocity"],
+                    None,
+                    PhysicalCharacteristics["SiderealRotationPeriod"],
+                    PhysicalCharacteristics["EquatorialRotationVelocity"],
+                    PhysicalCharacteristics["AxialTilt"],
+                    PhysicalCharacteristics["Albedo"][0],
+                    PhysicalCharacteristics["Albedo"][1],
+                    None,
+                    PhysicalCharacteristics["Temperature"],
+                    PhysicalCharacteristics["RadiantFlux"],
+                    None,
+                    None,
+                    PhysicalCharacteristics["CometTotalMagn"] if ObjType == "Comet" else None,
+                    PhysicalCharacteristics["CometTotalMagnSlope"] if ObjType == "Comet" else None,
+                    None,
+                    ""
+                ]
+
+            if "OrbitalCharacteristics" in CurrentObject:
+                OrbitalCharacteristics = CurrentObject["OrbitalCharacteristics"]
+                OutputBinaryOrbit = (OrbitalCharacteristics["BinaryOrbit"] and not OrbitalCharacteristics["IsPrimary"]) if ObjType in ["Barycenter", "Star"] else (OrbitalCharacteristics["BinaryOrbit"])
+                self._OrbitDataFrame.loc[CurrentHash] = [
+                    OrbitalCharacteristics["RefPlane"],
+                    OrbitalCharacteristics["Position"][0],
+                    OrbitalCharacteristics["Position"][1],
+                    OrbitalCharacteristics["Position"][2],
+                    OrbitalCharacteristics["Period"],
+                    OrbitalCharacteristics["PericenterDist"],
+                    OrbitalCharacteristics["AphelionDist"],
+                    OrbitalCharacteristics["SemiMajorAxis"],
+                    OrbitalCharacteristics["Eccentricity"],
+                    OrbitalCharacteristics["Inclination"],
+                    OrbitalCharacteristics["InclEcliptic"],
+                    OrbitalCharacteristics["AscendingNode"],
+                    OrbitalCharacteristics["AscNodeEcliptic"],
+                    OrbitalCharacteristics["Epoch"],
+                    OrbitalCharacteristics["ArgOfPericenter"],
+                    OrbitalCharacteristics["ArgOfPeriEcliptic"],
+                    OrbitalCharacteristics["MeanAnomaly"],
+                    None,
+                    False,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                ]
 
     @staticmethod
     def SQLAlchemyType( # DataFrame的SQLTable里的类型映射函数（已被我改编）
@@ -367,7 +474,7 @@ class Uploader():
         Statement = insert(AlchemyTable).values(FullTable.to_dict(orient = "records"))
         return str(Statement.compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
 
-    def DistUpgrade(self, SysID):
+    def DistUpgrade(self):
         Connection = ADBCClient()
 
         ExistingSystemTable = Table("ig_system", MetaData(), 
@@ -387,10 +494,10 @@ class Uploader():
 
         if Upload:
             if len(ExistingSystem) != 0:
-                self._SystemDataFrame.loc[SysID, "create_date"] = ExistingSystem.at[SysID, "create_date"]
+                self._SystemDataFrame.loc[self._SysID, "create_date"] = ExistingSystem.at[self._SysID, "create_date"]
                 with Connection.cursor() as Cursor:
                     DeleteTable = Table("ig_system", MetaData(), Column('system_id', String))
-                    DeleteQuery = str(delete(DeleteTable).where(DeleteTable.c.system_id == SysID)
+                    DeleteQuery = str(delete(DeleteTable).where(DeleteTable.c.system_id == self._SysID)
                         .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
                     Cursor.execute(DeleteQuery)
                 Connection.commit()
@@ -403,8 +510,10 @@ class Uploader():
             if (len(self._IdentifiersDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_identifiers", self._IdentifiersDataFrame, self._TableSchema["ig_identifiers"]))
             if (len(self._PhysicalDataFrame) != 0):
+                self._PhysicalDataFrame.replace([inf, -inf], [None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
                 InsertStatements.append(self.DataFrameToSQL("ig_physical", self._PhysicalDataFrame, self._TableSchema["ig_physical"]))
             if (len(self._OrbitDataFrame) != 0):
+                self._OrbitDataFrame.replace([inf, -inf], [None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
                 InsertStatements.append(self.DataFrameToSQL("ig_orbit", self._OrbitDataFrame, self._TableSchema["ig_orbit"]))
             if (len(self._AtmosphereDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_atmosphere", self._AtmosphereDataFrame, self._TableSchema["ig_atmosphere"]))
@@ -425,11 +534,12 @@ class Uploader():
     def Run(self):
         # 先准备表
         self._Load_Table()
-        SystemID = self._System_To_DataFrame()
-        self._DFS_Iterate(self._Src["MainID"], None, SystemID, None, [self._Src["MainID"]], None)
+        self._System_To_DataFrame()
+        self._DFS_Iterate(self._Src["MainID"], None, self._SysID, None, [self._Src["MainID"]], None)
+        self._Collect_Minor_objects()
         match self._Args.store_mode:
             case "dist-upgrade":
-                self.DistUpgrade(SystemID)
+                self.DistUpgrade()
             case _:
                 raise ValueError("无效的上传模式")
 

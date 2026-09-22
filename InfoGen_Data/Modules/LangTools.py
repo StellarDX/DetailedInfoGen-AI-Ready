@@ -6,6 +6,7 @@ import yaml, json
 
 from sqlalchemy import Table, MetaData, Column, select, and_, or_, not_, case
 from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger, Text
+from sqlalchemy.orm import aliased
 from pandas import read_sql, notna
 from pandas.api.types import is_dict_like
 from tabulate import tabulate
@@ -98,6 +99,39 @@ def _QuerySystem(Namespace, SystemName, OutFmt):
                 tablefmt = "plain", 
                 showindex = False
             ))
+
+def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName):
+    SysCols = [Column(i, j) for i, j in [
+        ["system_id",              String(512)],
+        ["main_id",                String(255)],
+        ["namespace",              String(255)]
+    ]]
+    SysTbl = Table("ig_system", MetaData(), *SysCols)
+
+    Cols = [Column(i, j) for i, j in [
+        ["object_id",        String(512)],
+        ["system_id",        String(512)],
+        ["parent_object_id", String(512)],
+        ["primary_name",     String(255)],
+        ["otype",            String(32)],
+        ["class",            String(64)],
+        ["depth",            Integer]
+    ]]
+    Tbl = Table("ig_object", MetaData(), *Cols)
+    PTbl = aliased(Tbl, name = "primaries")
+    CTbl = aliased(Tbl, name = "companions")
+
+    Query = str((select(SysTbl.c.main_id.label("system"), CTbl.c.object_id, CTbl.c.otype, 
+        CTbl.c.primary_name.label("ident"), PTbl.c.primary_name.label("parent_body"),
+        CTbl.c["class"], CTbl.c.depth)
+        .select_from(CTbl
+            .join(SysTbl, SysTbl.c.system_id == CTbl.c.system_id)
+            .outerjoin(PTbl, CTbl.c.parent_object_id == PTbl.c.object_id))
+        .where(SysTbl.c.namespace == Namespace)
+        .where(SysTbl.c.main_id == SystemName))
+        .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+    Connection = ADBCClient()
+    return read_sql(Query, Connection)
 
 def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     SysCols = [Column(i, j) for i, j in [
@@ -479,10 +513,16 @@ def QuerySystem(SystemName): # 这个是给AI看的
         命中时返回系统信息（JSON 格式的字符串）；
         未命中（系统不存在）时返回提示文本 「没找到任何资源」。
     """
+
     return _QuerySystem(GetNamespace(), SystemName, "json")
 
+# @tool
+# def QueryAllObjectsInSystem(SystemName):
+#     SystemFrame = _QueryAllObjectsInSystem_Unchecked(GetNamespace(), SystemName)
+#     return SystemFrame.to_csv()
+
 @tool
-def QueryObject(SystemName, ObjectName):
+def QueryObject(SystemName, ObjectName, ObjectType = None):
     """
     查询指定行星系统内某个物体的完整信息。
 
@@ -497,19 +537,26 @@ def QueryObject(SystemName, ObjectName):
         时间类字段单位为秒（age为年，轨道数据的Epoch单位是JD），即重力单位为米每平方秒，速度单位为米每秒
         光度类字段单位为瓦特
         温度类字段单位为开氏度
-        压强单位为帕斯卡
+        压强类字段单位为帕斯卡
         成分类字段为体积分数
 
     Args:
         SystemName (str): 行星系统名称，用于限定检索范围。
         ObjectName (str): 物体名称，需与系统中登记的名称一致。
+        ObjectType (str): 物体类型，用于进一步过滤，可以是：
+                          "Barycenter", "Star", "Planet", "DwarfPlanet", 
+                          "Moon", "DwarfMoon", "Asteroid", "Comet"
 
     Returns:
         str: 命中时返回该物体信息的 JSON 字符串（ensure_ascii=False，indent=4）；
              未命中（系统或物体不存在）时返回提示文本 「没有那个系统或物体」。
     """
+
     ObjectDict = _QueryObject_Unchecked(GetNamespace(), ObjectName, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere"])
     ObjectDict = [i for i in ObjectDict if i["system"] == SystemName]
+    if ObjectType != None:
+        ObjectDict = [i for i in ObjectDict if i["otype"] == ObjectType]
+
     if len(ObjectDict) == 0:
         return "没有那个系统或物体"
     else: # SE约定单个行星系统内的物体不会出现重名，理论上这个列表最多只会得到唯一一条数据
@@ -533,6 +580,9 @@ def _Print_Dict(Data:dict, Indent = 0, IndentInc = 4):
 def DescribeSystem(args):
     _PreCheck(args.namespace, args.name)
     SystemDict = _QuerySystem_Unchecked(args.namespace, args.name).to_dict(orient = 'records')
+    if len(SystemDict) == 0:
+        print("没找到任何资源")
+        return
     for i in SystemDict:
         _Print_Dict(i)
         print()
@@ -540,6 +590,9 @@ def DescribeSystem(args):
 def DescribeObject(args):
     _PreCheck(args.namespace, args.name)
     ObjectDict = _QueryObject_Unchecked(args.namespace, args.name, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere"])
+    if len(ObjectDict) == 0:
+        print("没找到任何资源")
+        return
     for i in ObjectDict:
         _Print_Dict(i)
         print()
