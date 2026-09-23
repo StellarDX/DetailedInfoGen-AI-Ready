@@ -44,7 +44,8 @@ def SendMessage(State:IGChatState):
             Response = Chunk if Response is None else Response + Chunk
             if Chunk.content:
                 print(Chunk.content, end = "", flush = True)
-        print()
+        if Response is not None and len(Response.content) != 0:
+            print()
         if Response is None:
             Response = AIMessage(content = "")
     else:
