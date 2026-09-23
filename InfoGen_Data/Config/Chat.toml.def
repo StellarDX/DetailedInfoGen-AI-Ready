@@ -1,4 +1,4 @@
-# ChatOpenAI 客户端配置
+# ChatOpenAI 客户端配置 - Deepseek生成
 #
 # 键名与 langchain_openai.ChatOpenAI 的初始化参数（含别名）一一对应，
 # 读取后可直接用于初始化客户端：

@@ -535,6 +535,8 @@ def QuerySystem(SystemName:str) -> str: # 这个是给AI看的
              未命中（系统不存在）时返回提示文本 「没找到任何资源」。
     """
 
+    print(f"查询行星系统：{SystemName}")
+    
     return _QuerySystem(GetNamespace(), SystemName, "json")
 
 @tool(parse_docstring = True)
@@ -549,6 +551,9 @@ def QueryAllObjectsInSystem(SystemName:str) -> str:
     Returns:
         str: 该系统内所有对象的数据表，以 TSV 格式的字符串返回（列之间以制表符 \t 分隔，不含行索引）。
     """
+
+    print(f"查询行星系统：{SystemName} 内的所有物体")
+
     SystemFrame = _QueryAllObjectsInSystem_Unchecked(GetNamespace(), SystemName)
     return SystemFrame.to_csv(index = False, sep = '\t')
 
@@ -589,6 +594,8 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
              另外，返回的字符串里只会包含对应物体“拥有”的属性，例如只有在那个物体有“大气”时才会出现atmosphere及相关字段
     """
 
+    print(f"查询物体：{SystemName} -> {ObjectName} （类型：{ObjectType}）")
+
     ObjectDict = _QueryObject_Unchecked(GetNamespace(), ObjectName, 
         ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere", "subsystems"])
     if SystemName != None:
@@ -604,7 +611,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
             Result += f" {j}. {i["system"]}: {i["ident"]} (Parent Body = {i["parent_object"]})\n"
         return Result
     else:
-        return json.dumps(ObjectDict, ensure_ascii = False, indent = 4)
+        return json.dumps(ObjectDict, ensure_ascii = False)
 
 def GetSystem(args):
     print(_QuerySystem("-A" if args.all_namespaces else args.namespace, args.name, args.output))

@@ -38,6 +38,13 @@ from InfoGen_Data.Modules.SystemLoader import CheckNamespace
 
 from InfoGen_Data.Modules.ResourceCreator import Register as ResourceCreatorRegister
 from InfoGen_Data.Modules.ResourceCreator import CreateResource
+from InfoGen_Data.Modules.ResourceCreator import ArgToDict
 
-from InfoGen_Data.Modules.LangTools import GetRegister as GetterRegister, DescribeRegister as DescribeRegister
-from InfoGen_Data.Modules.LangTools import Get, Describe
+from InfoGen_Data.Modules.SQLQuery import GetRegister as GetterRegister, DescribeRegister as DescribeRegister
+from InfoGen_Data.Modules.SQLQuery import Get, Describe
+
+from InfoGen_Data.Modules.SQLQuery import SetNamespace
+from InfoGen_Data.Modules.SQLQuery import QuerySystem, QueryAllObjectsInSystem, QueryObject
+
+from InfoGen_Data.Modules.LangGraph import Register as LangGraphRegister
+from InfoGen_Data.Modules.LangGraph import Generate

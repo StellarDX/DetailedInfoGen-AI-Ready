@@ -3,6 +3,7 @@ from InfoGen_Data import GetterRegister, Get
 from InfoGen_Data import DescribeRegister, Describe
 from InfoGen_Data import LCAdminRegister, LocaleAdmin
 from InfoGen_Data import ADBCRegister, ADBCAdmin
+from InfoGen_Data import LangGraphRegister, Generate
 from InfoGen_Data import InfoGenHelpFormatter
 import sys
 import os
@@ -12,6 +13,7 @@ ModuleList = {
     "create": {"Register": ResourceCreatorRegister, "Invoke": CreateResource},
     "get": {"Register": GetterRegister, "Invoke": Get},
     "describe": {"Register": DescribeRegister, "Invoke": Describe},
+    "generate": {"Register": LangGraphRegister, "Invoke": Generate},
     "adbc": {"Register": ADBCRegister, "Invoke": ADBCAdmin},
     "lcadmin": {"Register": LCAdminRegister, "Invoke": LocaleAdmin}
 }
