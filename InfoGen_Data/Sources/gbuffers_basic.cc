@@ -232,7 +232,7 @@ void ComputePlanetTemperature(const SETable& RawData, OIDType CurrentID, const O
         SETable AtmData;
         try {if (HasTable) {AtmData = it->second[0].As<SETable>();}}
         catch (...) {HasTable = 0;}
-        if (HasTable) {GreenHouse = GetObjectS(RawData, "GreenHouse", 0, 0.);}
+        if (HasTable) {GreenHouse = GetObjectS(AtmData, "Greenhouse", 0, 0.);}
     }
 
     Table->Albedo = 
