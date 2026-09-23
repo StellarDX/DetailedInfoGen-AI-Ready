@@ -30,6 +30,9 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
    - 中文友好的分类命名（恒星光谱型、行星类型分级）
    - 输出结果为Markdown或用户自定义Jinja2模板格式
    - （可选）把读取的行星系统保存到数据库，支持的数据库详见[配置文件](./InfoGen_Data/Config/ADBC.toml.def)
+2. 根据数据库中保存的物体数据，AI生成各种二创数据（如文明，矿产等）
+   - 基于LangGraph构建多轮工具调用工作流，模型可自动查询数据库中真实的系统/物体信息后再生成内容
+   - 支持全局提示词与用户提示词（含变量占位符）、最大工具调用次数限制与流式输出，结果写入Markdown文件
 
 ## 技术栈
 
@@ -44,6 +47,7 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
 | 格式化/转换 | fmtlib、fast-float、google-double-conversion |
 | 脚本 | Python 3.12+，argparse / gettext / polib / pandas |
 | 数据库 | Apache ADBC + SQLAlchemy |
+| AI | Langgraph |
 
 ## 安装部署
 
@@ -263,6 +267,26 @@ python InfoGen.py describe <resource> -n<namespace> [<name>] # 输出<resource>�
 | `-o, --output` | 输出格式，目前支持wide，json和yaml | — |
 
 注：get和describe均不支持模糊查询，如果要模糊查询，请使用`python InfoGen.py get <resource> [-A | -n<namespace>] | grep ...`
+
+### AI创作（如生成文明，矿产，宜居度评级等）
+
+```
+python InfoGen.py generate -S <用户提示词> [-B <输出目录>] [-D<Variable>=<Value>...]
+```
+
+#### `generate` 参数说明
+
+| 参数 | 说明 | 默认值 |
+| --- | --- | --- |
+| `-S, --input` | 用户提示词文件 | — |
+| `-B, --output` | 输出目录 | `./Export` |
+| `-C, --global-prompt` | 全局提示词文件 | `./InfoGen_Data/StreamingAssets/Prompts/Global.txt` |
+| `-D, --define` | 给-S指定的用户提示词里的变量赋值，多个变量重复多次 | — |
+| `-n, --namespace` | 命名空间（必填） | — |
+| `--max-tool-calls` | 最大调用工具次数 | `10` |
+| `-v, --verbose` | 流式输出模型返回的内容 | — |
+
+注：用户提示词中的变量用`{}`定义，详见[模板](./InfoGen_Data/StreamingAssets/Prompts/Template.txt)
 
 ### 查看帮助
 
