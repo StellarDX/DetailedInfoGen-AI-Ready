@@ -42,7 +42,9 @@ def SendMessage(State:IGChatState):
         Response = None
         for Chunk in State["Client"].stream(State["messages"]):
             Response = Chunk if Response is None else Response + Chunk
-            if Chunk.content:
+            if 'reasoning_content' in Chunk.additional_kwargs:
+                print(Chunk.additional_kwargs['reasoning_content'], end = "", flush = True)
+            elif Chunk.content:
                 print(Chunk.content, end = "", flush = True)
         if Response is not None and len(Response.content) != 0:
             print()
