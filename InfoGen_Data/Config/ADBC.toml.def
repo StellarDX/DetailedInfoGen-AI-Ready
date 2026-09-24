@@ -65,3 +65,12 @@ uri = ${URI}
 #     "PRAGMA synchronous = NORMAL",
 # ]
 init_statements = []
+
+[ConnectionPool]
+
+# 数据库连接池最大连接数
+maxconnections = 5
+
+mincached = 5
+
+blocking = true

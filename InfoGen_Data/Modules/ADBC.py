@@ -4,11 +4,14 @@ from adbc_driver_manager import dbapi
 from pathlib import Path
 from copy import deepcopy
 from urllib.parse import urlparse
+from dbutils.pooled_db import PooledDB
 
 import tomllib
 import string
 import sqlparse
 import re
+import warnings
+
 from sqlalchemy.dialects import mssql, mysql, oracle, postgresql, sqlite # 这里应该可以换成动态导入
 
 _SQLVariation = None
@@ -20,6 +23,11 @@ _ROConnection = None
 ConnectionTemplate = "./InfoGen_Data/Config/ADBC.toml.def"
 ConnectionConf = "./InfoGen_Data/Config/ADBC.toml"
 SchemaFile = "./InfoGen_Data/Resources/Schema-ADBC.sql"
+
+warnings.filterwarnings( # 过滤掉一个Warning
+    "ignore",
+    message=".*pandas only supports SQLAlchemy connectable.*"
+)
 
 RegisteredVariation = { # 这是我唯一能想到的办法了
     "mssql": mssql.dialect(),
@@ -64,20 +72,19 @@ def RunInit(Connection):
         with Connection.cursor() as Cursor:
             Cursor.execute(Statement)
 
-def ADBCClient():
+def _ConnectionPool():
     global _Connection
     if _Connection is None:
-        _Connection = dbapi.connect(**(ADBCConfig()["Connection"]))
-        RunInit(_Connection)
+        _Connection = PooledDB(creator = dbapi, **(ADBCConfig()["ConnectionPool"]), **ADBCConfig()["Connection"])
     return _Connection
+
+def ADBCClient():
+    Connection = _ConnectionPool().connection()
+    RunInit(Connection)
+    return Connection
 
 def ADBCROClient():
     raise NotImplementedError("部分数据库不支持此方式设置只读链接")
-    global _ROConnection
-    if _ROConnection is None:
-        _ROConnection = dbapi.connect(**(ADBCROConfig()["Connection"]))
-        RunInit(_ROConnection)
-    return _ROConnection
 
 def TomlQuote(Value: str) -> str:
     return '"' + Value.replace('\\', '\\\\').replace('"', '\\"') + '"'

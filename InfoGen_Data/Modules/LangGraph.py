@@ -78,7 +78,7 @@ def InitState(args, Tools:Sequence[BaseTool | Callable]):
     State:IGChatState = {"messages": []}
 
     print("创建客户端...")
-    State["Client"] = ChatClient().bind_tools(Tools, parallel_tool_calls = False)
+    State["Client"] = ChatClient().bind_tools(Tools)
     
     print("读取全局提示词...")
     GlobalPrompt = Path(args.global_prompt).read_text(encoding = 'utf-8')

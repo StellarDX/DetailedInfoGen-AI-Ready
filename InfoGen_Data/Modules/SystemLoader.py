@@ -116,6 +116,7 @@ class Uploader():
         self._CompositionsDataFrame = read_sql("select * from ig_composition where 1 = 0;", Connection)
         self._TableSchema["ig_composition"] = self._CompositionsDataFrame.dtypes.to_dict()
         self._CompositionsDataFrame.set_index(["object_id", "kind", "component"], inplace=True)
+        Connection.close()
 
     def _System_To_DataFrame(self):
         SystemID = self.SystemID(self._Src["MainID"])
@@ -530,6 +531,7 @@ class Uploader():
                 for i in InsertStatements:
                     Cursor.execute(i)
             Connection.commit()
+        Connection.close()
 
     def Run(self):
         # 先准备表

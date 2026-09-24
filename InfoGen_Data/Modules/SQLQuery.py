@@ -66,7 +66,9 @@ def _QuerySystem_Unchecked(Namespace, SystemName):
             .where(or_(Tbl.c.main_id == SystemName, Tbl.c.system_id == SystemName)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     Connection = ADBCClient()
-    return read_sql(Statement, Connection)
+    Result = read_sql(Statement, Connection)
+    Connection.close()
+    return Result
 
 def _QuerySystem(Namespace, SystemName, OutFmt):
     _PreCheck(Namespace, SystemName)
@@ -133,7 +135,9 @@ def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName):
         .where(SysTbl.c.main_id == SystemName))
         .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     Connection = ADBCClient()
-    return read_sql(Query, Connection)
+    Result = read_sql(Query, Connection)
+    Connection.close()
+    return Result
 
 def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     SysCols = [Column(i, j) for i, j in [
@@ -467,7 +471,8 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         for i in Result:
             if i["object_id"] in SubDict.keys():
                 i["sub_systems"] = SubDict[i["object_id"]]
-
+    
+    Connection.close()
     return Result
 
 def _QueryObject(Namespace, ObjectName, OutFmt):
