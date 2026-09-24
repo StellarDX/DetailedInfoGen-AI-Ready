@@ -164,7 +164,7 @@ source ./venv/bin/activate                 # Windows: .\venv\Scripts\activate
 pip install -r <安装前缀>/InfoGen_Data/requirements-linux.txt   # Windows 改用 requirements-win.txt
 ```
 
-依赖清单包含argparse之外的中文帮助、国际化（`polib`）、数据处理（`pandas`），以及后续AI/向量化功能所需的`langchain`、`chromadb`等组件。
+依赖清单包含argparse之外的中文帮助、国际化（`polib`）、数据处理（`pandas`），以及后续AI所需的`langchain`等组件。
 
 #### 6. 验证安装
 
