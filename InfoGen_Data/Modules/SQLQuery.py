@@ -1,5 +1,5 @@
 from InfoGen_Data import InfoGenHelpFormatter
-from InfoGen_Data import ADBCClient, CurrentSQLVariation
+from InfoGen_Data import ADBCClient, CurrentSQLVariation, ReadSQLToDataFrame
 from InfoGen_Data import CheckNamespace
 
 import yaml, json
@@ -8,7 +8,7 @@ from typing import Literal
 from sqlalchemy import Table, MetaData, Column, select, and_, or_, not_, case
 from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger, Text
 from sqlalchemy.orm import aliased
-from pandas import read_sql, notna
+from pandas import notna
 from pandas.api.types import is_dict_like
 from tabulate import tabulate
 from langchain.tools import tool
@@ -66,7 +66,7 @@ def _QuerySystem_Unchecked(Namespace, SystemName):
             .where(or_(Tbl.c.main_id == SystemName, Tbl.c.system_id == SystemName)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     Connection = ADBCClient()
-    Result = read_sql(Statement, Connection)
+    Result = ReadSQLToDataFrame(Statement, Connection)
     Connection.close()
     return Result
 
@@ -135,7 +135,7 @@ def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName):
         .where(SysTbl.c.main_id == SystemName))
         .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     Connection = ADBCClient()
-    Result = read_sql(Query, Connection)
+    Result = ReadSQLToDataFrame(Query, Connection)
     Connection.close()
     return Result
 
@@ -375,14 +375,14 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
 
     Connection = ADBCClient()
-    MainFrame = read_sql(MainStatement, Connection)
+    MainFrame = ReadSQLToDataFrame(MainStatement, Connection)
 
     # 主表生成以后处理一对多查询
 
     ObjList = MainFrame["object_id"].to_list()
     IdentQuery = str((select(IdentTbl).where(IdentTbl.c.object_id.in_(ObjList)))
         .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
-    IdentFrame = read_sql(IdentQuery, Connection)
+    IdentFrame = ReadSQLToDataFrame(IdentQuery, Connection)
     IdentFrame.set_index("object_id", inplace = True)
     IdentDict = IdentFrame.groupby("object_id")["alias"].apply(list).to_dict()
 
@@ -397,7 +397,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         CompTbl = Table("ig_composition", MetaData(), *CompCols)
         CompQuery = str((select(CompTbl).where(CompTbl.c.object_id.in_(ObjList)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
-        CompFrame = read_sql(CompQuery, Connection)
+        CompFrame = ReadSQLToDataFrame(CompQuery, Connection)
         CompFrame.set_index(["object_id", "kind"], inplace = True)
         CompDict = CompFrame.groupby(["object_id", "kind"])[["component", "fraction"]].apply(lambda x: x.to_dict('records')).to_dict()
     
@@ -410,7 +410,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         BiomeTbl = Table("ig_biosphere_biome", MetaData(), *BiomeCols)
         BiomeQuery = str((select(BiomeTbl).where(BiomeTbl.c.object_id.in_(ObjList)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
-        BiomeFrame = read_sql(BiomeQuery, Connection)
+        BiomeFrame = ReadSQLToDataFrame(BiomeQuery, Connection)
         BiomeFrame.set_index(["object_id"], inplace = True)
         BiomeDict = BiomeFrame.groupby("object_id")["biome"].apply(list).to_dict()
 
@@ -421,7 +421,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
             .select_from(Tbl.join(STbl, STbl.c.parent_object_id == Tbl.c.object_id))
             .where(Tbl.c.object_id.in_(ObjList)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
-        SubFrame = read_sql(SubQuery, Connection)
+        SubFrame = ReadSQLToDataFrame(SubQuery, Connection)
         SubFrame.set_index("object_id", inplace = True)
         SubDict = SubFrame.groupby("object_id")["subsystem"].apply(list).to_dict()
 

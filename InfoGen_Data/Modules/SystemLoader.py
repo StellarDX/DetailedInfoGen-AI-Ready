@@ -2,7 +2,7 @@ from InfoGen_Data import InfoGen
 from InfoGen_Data import InfoGenHelpFormatter
 from InfoGen_Data import LoadLocale
 from InfoGen_Data import Classifications
-from InfoGen_Data import ADBCClient
+from InfoGen_Data import ADBCClient, ReadSQLToDataFrame
 from InfoGen_Data import UserConfirm
 from InfoGen_Data import CurrentSQLVariation
 
@@ -10,7 +10,7 @@ import argparse
 import re
 
 from abc import ABC, abstractmethod
-from pandas import DataFrame, read_sql, Timestamp
+from pandas import DataFrame, Timestamp
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from uuid import uuid5, NAMESPACE_URL
@@ -86,34 +86,34 @@ class Uploader():
     def _Load_Table(self):
         Connection = ADBCClient()
         # 此处使用select * from table where 1 = 0获取表数据，多数数据库都支持且这种方法是多数ORM都在用的方法
-        self._SystemDataFrame = read_sql("select * from ig_system where 1 = 0;", Connection)
+        self._SystemDataFrame = ReadSQLToDataFrame("select * from ig_system where 1 = 0;", Connection)
         self._TableSchema["ig_system"] = self._SystemDataFrame.dtypes.to_dict()
         self._SystemDataFrame.set_index("system_id", inplace=True)
-        self._ObjectsDataFrame = read_sql("select * from ig_object where 1 = 0;", Connection)
+        self._ObjectsDataFrame = ReadSQLToDataFrame("select * from ig_object where 1 = 0;", Connection)
         self._TableSchema["ig_object"] = self._ObjectsDataFrame.dtypes.to_dict()
         self._ObjectsDataFrame.set_index("object_id", inplace=True)
-        self._IdentifiersDataFrame = read_sql("select * from ig_identifiers where 1 = 0;", Connection)
+        self._IdentifiersDataFrame = ReadSQLToDataFrame("select * from ig_identifiers where 1 = 0;", Connection)
         self._TableSchema["ig_identifiers"] = self._IdentifiersDataFrame.dtypes.to_dict()
         self._IdentifiersDataFrame.set_index(["object_id", "alias"], inplace=True)
-        self._PhysicalDataFrame = read_sql("select * from ig_physical where 1 = 0;", Connection)
+        self._PhysicalDataFrame = ReadSQLToDataFrame("select * from ig_physical where 1 = 0;", Connection)
         self._TableSchema["ig_physical"] = self._PhysicalDataFrame.dtypes.to_dict()
         self._PhysicalDataFrame.set_index("object_id", inplace=True)
-        self._OrbitDataFrame = read_sql("select * from ig_orbit where 1 = 0;", Connection)
+        self._OrbitDataFrame = ReadSQLToDataFrame("select * from ig_orbit where 1 = 0;", Connection)
         self._TableSchema["ig_orbit"] = self._OrbitDataFrame.dtypes.to_dict()
         self._OrbitDataFrame.set_index("object_id", inplace=True)
-        self._AtmosphereDataFrame = read_sql("select * from ig_atmosphere where 1 = 0;", Connection)
+        self._AtmosphereDataFrame = ReadSQLToDataFrame("select * from ig_atmosphere where 1 = 0;", Connection)
         self._TableSchema["ig_atmosphere"] = self._AtmosphereDataFrame.dtypes.to_dict()
         self._AtmosphereDataFrame.set_index("object_id", inplace=True)
-        self._HydrosphereDataFrame = read_sql("select * from ig_hydrosphere where 1 = 0;", Connection)
+        self._HydrosphereDataFrame = ReadSQLToDataFrame("select * from ig_hydrosphere where 1 = 0;", Connection)
         self._TableSchema["ig_hydrosphere"] = self._HydrosphereDataFrame.dtypes.to_dict()
         self._HydrosphereDataFrame.set_index("object_id", inplace=True)
-        self._BiosphereDataFrame = read_sql("select * from ig_biosphere where 1 = 0;", Connection)
+        self._BiosphereDataFrame = ReadSQLToDataFrame("select * from ig_biosphere where 1 = 0;", Connection)
         self._TableSchema["ig_biosphere"] = self._BiosphereDataFrame.dtypes.to_dict()
         self._BiosphereDataFrame.set_index("object_id", inplace=True)
-        self._BioBiomeDataFrame = read_sql("select * from ig_biosphere_biome where 1 = 0;", Connection)
+        self._BioBiomeDataFrame = ReadSQLToDataFrame("select * from ig_biosphere_biome where 1 = 0;", Connection)
         self._TableSchema["ig_biosphere_biome"] = self._BioBiomeDataFrame.dtypes.to_dict()
         self._BioBiomeDataFrame.set_index(["object_id", "biome"], inplace=True)
-        self._CompositionsDataFrame = read_sql("select * from ig_composition where 1 = 0;", Connection)
+        self._CompositionsDataFrame = ReadSQLToDataFrame("select * from ig_composition where 1 = 0;", Connection)
         self._TableSchema["ig_composition"] = self._CompositionsDataFrame.dtypes.to_dict()
         self._CompositionsDataFrame.set_index(["object_id", "kind", "component"], inplace=True)
         Connection.close()
@@ -488,7 +488,7 @@ class Uploader():
             .where(ExistingSystemTable.c.namespace == self._Args.namespace)
             .where(ExistingSystemTable.c.main_id == self._Src["MainID"])
         ).compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
-        ExistingSystem = read_sql(ExistingSystemQuery, Connection)
+        ExistingSystem = ReadSQLToDataFrame(ExistingSystemQuery, Connection)
         ExistingSystem.set_index("system_id", inplace = True)
 
         Upload = True if len(ExistingSystem) == 0 else UserConfirm(f"当前命名空间已存在系统\"{self._Src["MainID"]}\"，是否更新？(y/n)：")

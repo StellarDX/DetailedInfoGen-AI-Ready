@@ -5,6 +5,7 @@ from pathlib import Path
 from copy import deepcopy
 from urllib.parse import urlparse
 from dbutils.pooled_db import PooledDB
+from pandas.io._util import arrow_table_to_pandas
 
 import tomllib
 import string
@@ -82,6 +83,12 @@ def ADBCClient():
     Connection = _ConnectionPool().connection()
     RunInit(Connection)
     return Connection
+
+def ReadSQLToDataFrame(Query: str, Connection, dtype_backend: str = "numpy"):
+    with Connection.cursor() as Cursor:
+        Cursor.execute(Query)
+        ArrowTable = Cursor.fetch_arrow_table()
+    return arrow_table_to_pandas(ArrowTable, dtype_backend = dtype_backend)
 
 def ADBCROClient():
     raise NotImplementedError("部分数据库不支持此方式设置只读链接")
