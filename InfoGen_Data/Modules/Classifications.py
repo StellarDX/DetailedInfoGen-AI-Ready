@@ -111,7 +111,7 @@ def PlanetClassification(OClass:str, Physical:dict, Ocean:dict = None):
             return "碳质行星"
         case "Aquaria":
             if Ocean != None and len(Ocean) != 0:
-                if Ocean["Height"] > 10:
+                if Ocean["Height"] > 10000:
                     return "海洋行星"
                 else:
                     return "水质行星"
