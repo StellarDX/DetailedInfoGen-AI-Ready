@@ -18,8 +18,8 @@ CREATE TABLE ig_system (
     n_comets         INTEGER,
     spectral_types   TEXT,                         -- StarSpectralType（‘+’号分隔）
     create_date      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_date    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (main_id, source_hash)
+    modified_date    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    -- UNIQUE (main_id, source_hash)
 );
 
 CREATE TABLE ig_object (
@@ -31,8 +31,8 @@ CREATE TABLE ig_object (
     class            VARCHAR(64),                  -- PhysicalCharacteristics.Class，热过滤列（Terra/Jupiter/...）
     depth            INTEGER NOT NULL DEFAULT 0,   -- 根为0
     sibling_index    INTEGER,                      -- SubSystems 内序号，保留 --sort-system 的顺序
-    is_minor         BOOLEAN NOT NULL DEFAULT FALSE,
-    UNIQUE (system_id, parent_object_id, primary_name)
+    is_minor         BOOLEAN NOT NULL DEFAULT FALSE
+    -- UNIQUE (system_id, parent_object_id, primary_name)
 );
 -- CREATE INDEX ix_ig_object_name  ON ig_object (system_id, primary_name);
 -- CREATE INDEX ix_ig_object_otype ON ig_object (otype);

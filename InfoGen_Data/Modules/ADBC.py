@@ -104,10 +104,21 @@ def ExecuteScript(Connection, Text: str):
     Connection.commit()
 
 def ListTables(Connection):
-    Reader = Connection.adbc_get_objects(depth = "tables")
+    # 用驱动自报的当前库当边界
+    # PG的catalog为连接串里的 database，MySQL的catalog为DATABASE()
+    try:
+        CurrentCatalog = Connection.adbc_current_catalog or None
+    except Exception: # 驱动未实现该选项（例如MySQL未选库时会报InvalidState）
+        CurrentCatalog = None
+
+    # MySQL的db_schema是合成的空串
+    # 传非空值会把表全部过滤掉
+    Reader = Connection.adbc_get_objects(depth = "tables", catalog_filter = CurrentCatalog)
     try:
         Tables = []
         for Catalog in Reader.read_all().to_pylist():
+            if CurrentCatalog and Catalog["catalog_name"] not in (None, "", CurrentCatalog):
+                continue    # MySQL把catalog过滤实现成了LIKE，允许有通配符歧义
             for DbSchema in Catalog["catalog_db_schemas"] or []:
                 for Table in DbSchema["db_schema_tables"] or []:
                     Tables.append(Table["table_name"])
