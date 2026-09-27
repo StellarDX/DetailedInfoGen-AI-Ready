@@ -596,13 +596,17 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
                 压强类字段单位为帕斯卡；
                 成分类字段为体积分数；
                 角度类字段单位为度；
-             另外，返回的字符串里只会包含对应物体“拥有”的属性，例如只有在那个物体有“大气”时才会出现atmosphere及相关字段
+             另外，返回的字符串里只会包含对应物体“拥有”的属性，例如只有在那个物体有“大气”时才会出现atmosphere及相关字段；
     """
 
     print(f"查询物体：{SystemName} -> {ObjectName} （类型：{ObjectType}）")
 
     ObjectDict = _QueryObject_Unchecked(GetNamespace(), ObjectName, 
         ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere", "subsystems"])
+    # 实测在针对彗星的生成中，部分模型扫描到以后会过度在意这个字段并影响到输出，因此在查询小卫星，小行星和彗星时，直接把这个字段改掉
+    for i in ObjectDict:
+        if i["otype"] in ["DwarfMoon", "Asteroid", "Comet"]:
+            i["class"] = None
     if SystemName != None:
         ObjectDict = [i for i in ObjectDict if i["system"] == SystemName]
     if ObjectType != None:
