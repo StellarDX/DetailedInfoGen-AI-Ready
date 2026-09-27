@@ -175,12 +175,18 @@ void LoadBasicData(const SETable& RawData, OIDType CurrentID, const OrbitTableTy
 void LoadLuminosity(const SETable& Data, PhysicalCharacteristics* Table)
 {
     Table->Luminosity = GetObjectS(Data, "LumBol", 0, std::numeric_limits<double>::quiet_NaN());
-    auto NoAccDisk = GetObjectS(Data, "NoAccretionDisk", 0, true);
-    if (!NoAccDisk)
+    if (!GetObjectS(Data, "NoAccretionDisk", 0, false))
     {
-        auto AccDiskTable = Data.find("AccretionDisk")->second[0].As<SETable>();
-        if (isnan(Table->Luminosity)) {Table->Luminosity = 0;}
-        Table->Luminosity += GetObjectS(AccDiskTable, "LuminosityBol", 0, std::numeric_limits<double>::quiet_NaN());
+        auto it = Data.find("AccretionDisk");
+        bool HasTable = it != Data.end();
+        SETable AccDiskTable;
+        try {if (HasTable) {AccDiskTable = it->second[0].As<SETable>();}}
+        catch (...) {HasTable = 0;}
+        if (HasTable)
+        {
+            if (isnan(Table->Luminosity)) {Table->Luminosity = 0;}
+            Table->Luminosity += GetObjectS(AccDiskTable, "LuminosityBol", 0, std::numeric_limits<double>::quiet_NaN());
+        }
     }
     Table->Luminosity *= SolarLuminosity;
     Table->AbsMagnBol = -2.5 * log10(Table->Luminosity / LumBolZeroPoint);
@@ -203,6 +209,7 @@ void LoadStar(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTa
         Table->MeanRadius = SchwarzschildRadius(Table->Mass);
         Table->KerrSpin = GetObjectS(RawData, "KerrSpin", 0, 0.);
         Table->KerrCharge = GetObjectS(RawData, "KerrCharge", 0, 0.);
+        LoadLuminosity(RawData, Table);
     }
     else
     {
@@ -402,6 +409,10 @@ PhysicalCharTableType gbuffer_basic()
             Dst["MeanRadius"] = PhysicalTable[i].MeanRadius;
             Dst["KerrSpin"] = PhysicalTable[i].KerrSpin;
             Dst["KerrCharge"] = PhysicalTable[i].KerrCharge;
+            if (PhysicalTable[i].Luminosity != 0)
+            {
+                Dst["Luminosity"] = PhysicalTable[i].Luminosity;
+            }
         }
         else
         {

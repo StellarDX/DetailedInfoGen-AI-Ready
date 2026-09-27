@@ -163,41 +163,78 @@ class Uploader():
 
         if "PhysicalCharacteristics" in CurrentObject:
             PhysicalCharacteristics = CurrentObject["PhysicalCharacteristics"]
-            self._PhysicalDataFrame.loc[CurrentHash] = [
-                PhysicalCharacteristics["AbsMagnBol"] if ObjType == "Star" else None,
-                PhysicalCharacteristics["MeanRadius"],
-                PhysicalCharacteristics["Dimensions"][0],
-                PhysicalCharacteristics["Dimensions"][1],
-                PhysicalCharacteristics["Dimensions"][2],
-                PhysicalCharacteristics["Flattening"][0],
-                PhysicalCharacteristics["Flattening"][1],
-                PhysicalCharacteristics["Flattening"][2],
-                PhysicalCharacteristics["Circumference"][0],
-                PhysicalCharacteristics["Circumference"][1],
-                PhysicalCharacteristics["SurfaceArea"],
-                PhysicalCharacteristics["Volume"],
-                PhysicalCharacteristics["Mass"],
-                PhysicalCharacteristics["MeanDensity"],
-                PhysicalCharacteristics["Age"] if ObjType == "Star" else None,
-                PhysicalCharacteristics["SurfaceGravity"],
-                PhysicalCharacteristics["MomentOfInertiaFactor"],
-                PhysicalCharacteristics["EscapeVelocity"],
-                PhysicalCharacteristics["SynodicRotationPeriod"] if ObjType not in ["Barycenter", "Star"] else None,
-                PhysicalCharacteristics["SiderealRotationPeriod"],
-                PhysicalCharacteristics["EquatorialRotationVelocity"],
-                PhysicalCharacteristics["AxialTilt"],
-                PhysicalCharacteristics["Albedo"][0] if ObjType not in ["Barycenter", "Star"] else None,
-                PhysicalCharacteristics["Albedo"][1] if ObjType not in ["Barycenter", "Star"] else None,
-                PhysicalCharacteristics["Luminosity"] if ObjType == "Star" else None,
-                PhysicalCharacteristics["Temperature"],
-                PhysicalCharacteristics["RadiantFlux"] if ObjType not in ["Barycenter", "Star"] else None,
-                PhysicalCharacteristics["KerrSpin"] if ObjType == "Star" and (PhysicalCharacteristics["Class"] == "X" or PhysicalCharacteristics["Class"] == "BlackHole") else None,
-                PhysicalCharacteristics["KerrCharge"] if ObjType == "Star" and (PhysicalCharacteristics["Class"] == "X" or PhysicalCharacteristics["Class"] == "BlackHole") else None,
-                PhysicalCharacteristics["CometTotalMagn"] if ObjType == "Comet" else None,
-                PhysicalCharacteristics["CometTotalMagnSlope"] if ObjType == "Comet" else None,
-                PhysicalCharacteristics["ESI"] if ObjType in ["Planet", "Moon"] else None,
-                ""
-            ]
+            if ObjType == "Star" and (PhysicalCharacteristics["Class"] == "X" or PhysicalCharacteristics["Class"] == "BlackHole"):
+                self._PhysicalDataFrame.loc[CurrentHash] = [
+                    None,
+                    PhysicalCharacteristics["MeanRadius"],
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    PhysicalCharacteristics["Mass"],
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    PhysicalCharacteristics["Luminosity"] if "Luminosity" in PhysicalCharacteristics.keys() else None,
+                    None,
+                    None,
+                    PhysicalCharacteristics["KerrSpin"],
+                    PhysicalCharacteristics["KerrCharge"],
+                    None,
+                    None,
+                    None,
+                    ""
+                ]
+            else:
+                self._PhysicalDataFrame.loc[CurrentHash] = [
+                    PhysicalCharacteristics["AbsMagnBol"] if ObjType == "Star" else None,
+                    PhysicalCharacteristics["MeanRadius"],
+                    PhysicalCharacteristics["Dimensions"][0],
+                    PhysicalCharacteristics["Dimensions"][1],
+                    PhysicalCharacteristics["Dimensions"][2],
+                    PhysicalCharacteristics["Flattening"][0],
+                    PhysicalCharacteristics["Flattening"][1],
+                    PhysicalCharacteristics["Flattening"][2],
+                    PhysicalCharacteristics["Circumference"][0],
+                    PhysicalCharacteristics["Circumference"][1],
+                    PhysicalCharacteristics["SurfaceArea"],
+                    PhysicalCharacteristics["Volume"],
+                    PhysicalCharacteristics["Mass"],
+                    PhysicalCharacteristics["MeanDensity"],
+                    PhysicalCharacteristics["Age"] if ObjType == "Star" else None,
+                    PhysicalCharacteristics["SurfaceGravity"],
+                    PhysicalCharacteristics["MomentOfInertiaFactor"],
+                    PhysicalCharacteristics["EscapeVelocity"],
+                    PhysicalCharacteristics["SynodicRotationPeriod"] if ObjType not in ["Barycenter", "Star"] else None,
+                    PhysicalCharacteristics["SiderealRotationPeriod"],
+                    PhysicalCharacteristics["EquatorialRotationVelocity"],
+                    PhysicalCharacteristics["AxialTilt"],
+                    PhysicalCharacteristics["Albedo"][0] if ObjType not in ["Barycenter", "Star"] else None,
+                    PhysicalCharacteristics["Albedo"][1] if ObjType not in ["Barycenter", "Star"] else None,
+                    PhysicalCharacteristics["Luminosity"] if ObjType == "Star" else None,
+                    PhysicalCharacteristics["Temperature"],
+                    PhysicalCharacteristics["RadiantFlux"] if ObjType not in ["Barycenter", "Star"] else None,
+                    None,
+                    None,
+                    PhysicalCharacteristics["CometTotalMagn"] if ObjType == "Comet" else None,
+                    PhysicalCharacteristics["CometTotalMagnSlope"] if ObjType == "Comet" else None,
+                    PhysicalCharacteristics["ESI"] if ObjType in ["Planet", "Moon"] else None,
+                    ""
+                ]
 
         if "OrbitalCharacteristics" in CurrentObject:
             OrbitalCharacteristics = CurrentObject["OrbitalCharacteristics"]
@@ -625,6 +662,8 @@ class Generator(ABC):
                     PhysicalCharacteristics[LOC("史瓦西半径")] = f"{Object["PhysicalCharacteristics"]["MeanRadius"]:.{self._Prec}g} m"
                     PhysicalCharacteristics[LOC("自旋")] = f"{Object["PhysicalCharacteristics"]["KerrSpin"]:.{self._Prec}g}"
                     PhysicalCharacteristics[LOC("电荷量")] = f"{Object["PhysicalCharacteristics"]["KerrCharge"]:.{self._Prec}g}"
+                    if "Luminosity" in Object["PhysicalCharacteristics"].keys():
+                        PhysicalCharacteristics[LOC("吸积盘光度")] = f"{Object["PhysicalCharacteristics"]["Luminosity"]:.{self._Prec}g} W"
                     ObjectInfo[LOC("物理数据")] = DataFrame([PhysicalCharacteristics])
                 else:
                     ObjectInfo[LOC("物体类型")] = LOC(Classifications.RegexStellarClassification(OClass))
@@ -753,8 +792,8 @@ class Generator(ABC):
                     Life[LOC("生物种类")] = LOC(Object["Biosphere"]["Type"])
                     Life[LOC("生物群系")] = ", ".join([LOC(i) for i in Object["Biosphere"]["Biome"]])
                     ObjectInfo[LOC("生物圈")] = DataFrame([Life])
-                if "SubSystems" in Object.keys():
-                    ObjectInfo[LOC("卫星列表")] = self._Subsystem_To_DataFrame(Object["SubSystems"], ParentBody)
+                if "SubSystemsList" in Object["PhysicalCharacteristics"].keys():
+                    ObjectInfo[LOC("卫星列表")] = self._Subsystem_To_DataFrame(Object["PhysicalCharacteristics"]["SubSystemsList"], ParentBody)
             case "Moon":
                 ObjectInfo[LOC("物体类型")] = LOC(Classifications.PlanetClassification(
                     Object["PhysicalCharacteristics"]["Class"],

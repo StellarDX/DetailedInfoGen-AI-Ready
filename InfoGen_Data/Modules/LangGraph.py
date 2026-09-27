@@ -9,6 +9,7 @@ import httpx
 from pathlib import Path
 from typing import Sequence, Callable
 from datetime import datetime
+from time import perf_counter
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_core.tools import BaseTool
@@ -137,4 +138,7 @@ def Generate(args):
     print("初始化完成")
 
     print("开始生成（按ctrl+C中止）")
+    Start = perf_counter()
     State = WorkFlow.invoke(State)
+    End = perf_counter()
+    print(f"执行完毕，延迟 {End - Start} s")

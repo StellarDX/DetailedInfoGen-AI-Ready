@@ -204,6 +204,9 @@ msgstr "Angular momentum"
 msgid "电荷量"
 msgstr "Electric charge"
 
+msgid "吸积盘光度"
+msgstr "Accretion disc luminosity"
+
 # -------------------------------大气数据--------------------------------
 msgid "大气"
 msgstr "Atmosphere"
