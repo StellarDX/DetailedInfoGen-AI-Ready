@@ -606,7 +606,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
     # 实测在针对彗星的生成中，部分模型扫描到以后会过度在意这个字段并影响到输出，因此在查询小卫星，小行星和彗星时，直接把这个字段改掉
     for i in ObjectDict:
         if i["otype"] in ["DwarfMoon", "Asteroid", "Comet"]:
-            i["class"] = None
+            del i["class"]
     if SystemName != None:
         ObjectDict = [i for i in ObjectDict if i["system"] == SystemName]
     if ObjectType != None:
