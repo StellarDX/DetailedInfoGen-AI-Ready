@@ -364,7 +364,7 @@ PhysicalCharTableType gbuffer_basic()
         {
             return std::find(v.second.begin(), v.second.end(), i) != v.second.end();
         });
-        std::vector<int> IsStarBarycenter;
+        std::vector<OIDType> IsStarBarycenter;
         std::ranges::set_intersection(StarList, SystemTable[ParentBody->first], std::back_inserter(IsStarBarycenter));
         if (BaryenterList.contains(ParentBody->first) && IsStarBarycenter.empty())
         {

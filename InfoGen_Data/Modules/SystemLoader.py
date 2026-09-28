@@ -792,6 +792,19 @@ class Generator(ABC):
                     Life[LOC("生物种类")] = LOC(Object["Biosphere"]["Type"])
                     Life[LOC("生物群系")] = ", ".join([LOC(i) for i in Object["Biosphere"]["Biome"]])
                     ObjectInfo[LOC("生物圈")] = DataFrame([Life])
+                if "Rings" in Object.keys():
+                    ObjectInfo[LOC("环系统")] = DataFrame(Object["Rings"]).rename(columns = {
+                        "Type": LOC("类型"),
+                        "InnerRadius": LOC("半径"),
+                        "Width": LOC("宽度"),
+                        "Thickness": LOC("厚度"),
+                        "RockMaxSize": LOC("最大物体直径"),
+                        "ObjectCount": LOC("物体数量")
+                    })
+                    ObjectInfo[LOC("环系统")][LOC("半径")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("半径")].tolist()]
+                    ObjectInfo[LOC("环系统")][LOC("宽度")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("宽度")].tolist()]
+                    ObjectInfo[LOC("环系统")][LOC("厚度")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("厚度")].tolist()]
+                    ObjectInfo[LOC("环系统")][LOC("最大物体直径")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("最大物体直径")].tolist()]
                 if "SubSystemsList" in Object["PhysicalCharacteristics"].keys():
                     ObjectInfo[LOC("卫星列表")] = self._Subsystem_To_DataFrame(Object["PhysicalCharacteristics"]["SubSystemsList"], ParentBody)
             case "Moon":
@@ -872,6 +885,19 @@ class Generator(ABC):
                     Life[LOC("生物种类")] = LOC(Object["Biosphere"]["Type"])
                     Life[LOC("生物群系")] = ", ".join([LOC(i) for i in Object["Biosphere"]["Biome"]])
                     ObjectInfo[LOC("生物圈")] = DataFrame([Life])
+                if "Rings" in Object.keys():
+                    ObjectInfo[LOC("环系统")] = DataFrame(Object["Rings"]).rename(columns = {
+                        "Type": LOC("类型"),
+                        "InnerRadius": LOC("半径"),
+                        "Width": LOC("宽度"),
+                        "Thickness": LOC("厚度"),
+                        "RockMaxSize": LOC("最大物体直径"),
+                        "ObjectCount": LOC("物体数量")
+                    })
+                    ObjectInfo[LOC("环系统")][LOC("半径")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("半径")].tolist()]
+                    ObjectInfo[LOC("环系统")][LOC("宽度")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("宽度")].tolist()]
+                    ObjectInfo[LOC("环系统")][LOC("厚度")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("厚度")].tolist()]
+                    ObjectInfo[LOC("环系统")][LOC("最大物体直径")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("最大物体直径")].tolist()]
         return ObjectInfo
 
     def _Minor_Object_List_Has_Comet(self):
@@ -960,7 +986,7 @@ class MarkdownGenerator(Generator): # 大模型推荐使用，因为模型训练
 
         if Store:
             ObjData = self._Object_To_Table(self._Src["Objects"][Ident], self._Src["Objects"][ParentBody])
-            OrbitTable, PhysicalTable, AtmosphereTable, OceanTable, LifeTable, SubSystemTable = "", "", "", "", "", ""
+            OrbitTable, PhysicalTable, AtmosphereTable, OceanTable, LifeTable, RingsTable, SubSystemTable = "", "", "", "", "", "", ""
             if LOC("轨道数据") in ObjData.keys():
                 OrbitTable = f"#### {LOC("轨道数据")}\n\n"
                 OrbitVerticalLayout = ObjData[LOC("轨道数据")].iloc[0].to_frame(name=" ")
@@ -981,10 +1007,13 @@ class MarkdownGenerator(Generator): # 大模型推荐使用，因为模型训练
                 LifeTable = f"#### {LOC("生物圈")}\n\n"
                 LifeVerticalLayout = ObjData[LOC("生物圈")].iloc[0].to_frame(name=" ")
                 LifeTable += LifeVerticalLayout.to_markdown() + "\n\n"
+            if LOC("环系统") in ObjData.keys():
+                RingsTable = f"#### {LOC("环系统")}\n\n"
+                RingsTable += ObjData[LOC("环系统")].to_markdown() + "\n\n"
             if LOC("卫星列表") in ObjData.keys():
                 SubSystemTable = f"#### {LOC("卫星列表")}\n\n"
                 SubSystemTable += ObjData[LOC("卫星列表")].to_markdown() + "\n\n"
-            Objs[Ident] = {"Type": ObjData[LOC("物体类型")], "Content": OrbitTable + PhysicalTable + AtmosphereTable + OceanTable + LifeTable + SubSystemTable}
+            Objs[Ident] = {"Type": ObjData[LOC("物体类型")], "Content": OrbitTable + PhysicalTable + AtmosphereTable + OceanTable + LifeTable + RingsTable + SubSystemTable}
 
         if "SubSystems" in self._Src["Objects"][Ident]:
             for i in self._Src["Objects"][Ident]["SubSystems"]:
@@ -1115,6 +1144,9 @@ def LoadObjectsFromSC(args):
     LOC = I18N.gettext
 
     Objects = InfoGen.InfoGen_Main(**vars(args))
+
+    if len(Objects) == 0:
+        raise ValueError("未读取到任何物体，可能是C++侧抛出了异常")
 
     if args.store == True:
         print("上传行星系统到数据库...")

@@ -14,6 +14,7 @@ using PhysicalCharTableType = std::flat_map<OIDType, py::dict>;
 using AtmosphereTableType   = std::flat_map<OIDType, py::dict>;
 using HydrosphereTableType  = std::flat_map<OIDType, py::dict>;
 using BiosphereTableType    = std::flat_map<OIDType, py::dict>;
+using RingsTableType        = std::flat_map<OIDType, py::dict>;
 
 extern StaticPosTableType          StaticPosTable;
 
@@ -24,6 +25,7 @@ extern PhysicalCharTableType       PhysicalCharacteristicsTable;
 extern AtmosphereTableType         AtmosphereTable;
 extern HydrosphereTableType        HydrosphereTable;
 extern BiosphereTableType          BiosphereTable;
+extern RingsTableType              RingsTable;
 
 void Composite1(ReturnType* Result);
 
