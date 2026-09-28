@@ -371,6 +371,7 @@ PhysicalCharTableType gbuffer_basic()
             for (auto j : SystemTable[ParentBody->first])
             {
                 if (i == j) {continue;}
+                if (MinorPlanetList.contains(j)) {continue;}
                 Table.SubSystemsList.push_back(IDENT[j].front());
             }
         }
@@ -378,6 +379,7 @@ PhysicalCharTableType gbuffer_basic()
         {
             for (auto j : SystemTable[i])
             {
+                if (MinorPlanetList.contains(j)) {continue;}
                 Table.SubSystemsList.push_back(IDENT[j].front());
             }
         }
