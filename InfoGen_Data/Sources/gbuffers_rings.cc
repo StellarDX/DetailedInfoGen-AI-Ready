@@ -85,14 +85,19 @@ void LoadRings(const BasicTableType& BasicTable, const SystemType& System, OIDTy
             MainRing.Width = GetObjectS<SEReal>(RingsData, "EdgeRadius", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km - MainRing.InnerRadius;
             MainRing.Thickness = GetObjectS<SEReal>(RingsData, "Thickness", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
             MainRing.RockMaxSize = GetObjectS<SEReal>(RingsData, "RocksMaxSize", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
-            if (MainRing.Width) {Result.Details.push_back(MainRing);}
+
             // 类似木星内侧环和土星E环的部分，背光可见
             RingsDetails DuskyRing;
-            DuskyRing.Type = "SaturnELikeRing";
+            DuskyRing.Type = "Halo";
             DuskyRing.InnerRadius = GetObjectS<SEReal>(RingsData, "EdgeRadius", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
             DuskyRing.Width = GetObjectS<SEReal>(RingsData, "OuterRadius", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km - DuskyRing.InnerRadius;
             DuskyRing.Thickness = GetObjectS<SEReal>(RingsData, "Thickness", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
             DuskyRing.RockMaxSize = GetObjectS<SEReal>(RingsData, "RocksMaxSize", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
+
+            // SE控制星环长相的几个参数似乎都是正态分布生成的，这里也只能拟合个大概了
+            // TODO
+
+            if (MainRing.Width) {Result.Details.push_back(MainRing);}
             if (DuskyRing.Width) {Result.Details.push_back(DuskyRing);}
         }
     }

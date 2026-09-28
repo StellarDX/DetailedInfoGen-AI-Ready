@@ -1,6 +1,5 @@
 #pragma once
 
-#include <vector>
 #ifndef __GBUF_RINGS__
 #define __GBUF_RINGS__
 
@@ -16,7 +15,7 @@ namespace py = pybind11;
 
 struct RingsDetails
 {
-    SEString  Type;
+    SEString  Type; // "CircumPlanetaryDisc", "Halo", "SaturnELike", "JupiterTransparent", "NeptuneNarrow", "UranusSparse", "Colorful"
     SEReal    InnerRadius;
     SEReal    Width;
     SEReal    Thickness;
