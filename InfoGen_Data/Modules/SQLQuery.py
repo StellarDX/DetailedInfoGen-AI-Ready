@@ -623,6 +623,13 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
                 成分类字段为体积分数；
                 角度类字段单位为度；
              另外，返回的字符串里只会包含对应物体“拥有”的属性，例如只有在那个物体有“大气”时才会出现atmosphere及相关字段；
+             环系统类型（Type）字段解释：
+                CircumplanetaryDisk：由小行星组成的星周盘
+                SaturnELike：类似土星E环的渐变环
+                JupiterTransparent：类似木星环的暗环
+                NeptuneNarrow：类似海王星环的窄环
+                UranusSparse：类似天王星环的稀疏环
+                Colorful: 颜色鲜艳的彩色环
     """
 
     print(f"查询物体：{SystemName} -> {ObjectName} （类型：{ObjectType}）")
