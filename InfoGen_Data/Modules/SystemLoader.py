@@ -10,7 +10,7 @@ import argparse
 import re
 
 from abc import ABC, abstractmethod
-from pandas import DataFrame, Timestamp
+from pandas import DataFrame, Timestamp, NA
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from uuid import uuid5, NAMESPACE_URL
@@ -65,6 +65,7 @@ class Uploader():
         self._BiosphereDataFrame = None
         self._BioBiomeDataFrame = None
         self._CompositionsDataFrame = None
+        self._RingsDataFrame = None
         self._RootID = self.StrToRootNamespace(self._Args.namespace)
         self._SysID = ""
         self._ObjectIDs = {}
@@ -116,6 +117,9 @@ class Uploader():
         self._CompositionsDataFrame = ReadSQLToDataFrame("select * from ig_composition where 1 = 0;", Connection)
         self._TableSchema["ig_composition"] = self._CompositionsDataFrame.dtypes.to_dict()
         self._CompositionsDataFrame.set_index(["object_id", "kind", "component"], inplace=True)
+        self._RingsDataFrame = ReadSQLToDataFrame("select * from ig_rings where 1 = 0;", Connection)
+        self._TableSchema["ig_rings"] = self._RingsDataFrame.dtypes.to_dict()
+        self._RingsDataFrame.set_index(["object_id", "ring_type"], inplace=True)
         Connection.close()
 
     def _System_To_DataFrame(self):
@@ -311,6 +315,16 @@ class Uploader():
                 self._BioBiomeDataFrame.loc[(CurrentHash, i), :] = None
 
         self._ObjectIDs[Ident] = CurrentHash
+
+        if "Rings" in CurrentObject:
+            for i in CurrentObject["Rings"]:
+                self._RingsDataFrame.loc[(CurrentHash, i["Type"]), :] = [
+                    i["InnerRadius"],
+                    i["Width"],
+                    i["Thickness"],
+                    i["RockMaxSize"],
+                    i["ObjectCount"] if "ObjectCount" in i.keys() else 0 # DataFrame不能这样传入Int类型的None（会自动转成float），只能写0
+                ]
         
         if "SubSystems" in CurrentObject:
             j = 0
@@ -563,6 +577,8 @@ class Uploader():
                 InsertStatements.append(self.DataFrameToSQL("ig_biosphere_biome", self._BioBiomeDataFrame, self._TableSchema["ig_biosphere_biome"]))
             if (len(self._CompositionsDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_composition", self._CompositionsDataFrame, self._TableSchema["ig_composition"]))
+            if (len(self._RingsDataFrame) != 0):
+                InsertStatements.append(self.DataFrameToSQL("ig_rings", self._RingsDataFrame, self._TableSchema["ig_rings"]))
         
             with Connection.cursor() as Cursor:
                 for i in InsertStatements:

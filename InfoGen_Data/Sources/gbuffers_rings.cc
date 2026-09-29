@@ -11,12 +11,43 @@
 
 RingsPrevTableType RingsPrevTable;
 
+static const auto SaturnOuterEdgeRatio = 1.05;
+static const auto UranusFreqThreshold     = 50;
+static const auto JupiterShadowRatio   = 0.75;
+static const auto NeptuneDensityPower  = 4.5;
+static const auto ColorfulCCThreshold  = 0.097;
+
 double MaxOrbitalHeight(double SemiMajorAxis, double Inclination, double Eccentricity, double ArgOfPercenter)
 {
     // 参考文献：Rodet L , Beust H , Bonnefoy M ,et al.ODEA: Orbital Dynamics in a complex 
     // Evolving Architecture - Application to the planetary system HD 106906[J].Astronomy 
     // and Astrophysics, 2019, 631.DOI:10.1051/0004-6361/201935728.
     return SemiMajorAxis * sind(Inclination) * (sqrt(1. - pow(Eccentricity, 2) * pow(cosd(ArgOfPercenter), 2)) + Eccentricity * std::abs(sind(ArgOfPercenter)));
+}
+
+std::string RingClassify(double EdgeRadius, double OuterRadius, double frequency, double SelfShadow, double Density, double densityPower, double colorContrast)
+{
+    if ((OuterRadius / EdgeRadius) > SaturnOuterEdgeRatio)
+    {
+        return "SaturnELike";
+    }
+    if (frequency > UranusFreqThreshold)
+    {
+        return "UranusSparse";
+    }
+    if ((SelfShadow / Density) < JupiterShadowRatio)
+    {
+        return "JupiterTransparent";
+    }
+    if (densityPower < NeptuneDensityPower)
+    {
+        return "Colorful";
+    }
+    if (colorContrast > ColorfulCCThreshold)
+    {
+        return "Colorful";
+    }
+    else {return "NeptuneNarrow";}
 }
 
 void LoadRings(const BasicTableType& BasicTable, const SystemType& System, OIDType CurrentID, const PhysicalTableType& PhysTable, const OrbitTableType& OrbTable, RingsPrevTableType* Table)
@@ -95,7 +126,14 @@ void LoadRings(const BasicTableType& BasicTable, const SystemType& System, OIDTy
             DuskyRing.RockMaxSize = GetObjectS<SEReal>(RingsData, "RocksMaxSize", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
 
             // SE控制星环长相的几个参数似乎都是正态分布生成的，这里也只能拟合个大概了
-            // TODO
+            double EdgeRadius = GetObjectS<SEReal>(RingsData, "EdgeRadius", 0, std::numeric_limits<SEReal>::quiet_NaN());
+            double OuterRadius = GetObjectS<SEReal>(RingsData, "OuterRadius", 0, std::numeric_limits<SEReal>::quiet_NaN());
+            double frequency = GetObjectS<SEReal>(RingsData, "frequency", 0, std::numeric_limits<SEReal>::quiet_NaN());
+            double SelfShadow = GetObjectS<SEReal>(RingsData, "SelfShadow", 0, std::numeric_limits<SEReal>::quiet_NaN());
+            double Density = GetObjectS<SEReal>(RingsData, "Density", 0, std::numeric_limits<SEReal>::quiet_NaN());
+            double densityPower = GetObjectS<SEReal>(RingsData, "densityPower", 0, std::numeric_limits<SEReal>::quiet_NaN());
+            double colorContrast = GetObjectS<SEReal>(RingsData, "colorContrast", 0, std::numeric_limits<SEReal>::quiet_NaN());
+            MainRing.Type = RingClassify(EdgeRadius, OuterRadius, frequency, SelfShadow, Density, densityPower, colorContrast);
 
             if (MainRing.Width) {Result.Details.push_back(MainRing);}
             if (DuskyRing.Width) {Result.Details.push_back(DuskyRing);}

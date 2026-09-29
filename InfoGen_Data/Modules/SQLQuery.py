@@ -414,6 +414,28 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         BiomeFrame.set_index(["object_id"], inplace = True)
         BiomeDict = BiomeFrame.groupby("object_id")["biome"].apply(list).to_dict()
 
+    RingsDict = None
+    if "rings" in Info:
+        RingsCols = [Column(i, j) for i, j in [
+            ["object_id",     String(512)],
+            ["ring_type",     String(64)],
+            ["inner_radius",  Double],
+            ["width",         Double],
+            ["thickness",     Double],
+            ["rock_max_size", Double],
+            ["object_count",  Integer]
+        ]]
+        RingsTbl = Table("ig_rings", MetaData(), *RingsCols)
+        RingsQuery = str((select(RingsTbl).where(RingsTbl.c.object_id.in_(ObjList)))
+            .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+        RingsFrame = ReadSQLToDataFrame(RingsQuery, Connection)
+        RingsFrame.set_index(["object_id"], inplace = True)
+        RingsDict = RingsFrame.groupby("object_id")[["ring_type", "inner_radius", "width", "thickness", "rock_max_size", "object_count"]].apply(lambda x: x.to_dict('records')).to_dict()
+        for i, j in RingsDict.items():
+            for k in j:
+                if k["object_count"] == 0:
+                    del k["object_count"]
+
     SubDict = None
     if "subsystems" in Info:
         STbl = aliased(Tbl, name = "subsystems")
@@ -467,6 +489,10 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
                 if Result[i]["object_id"] in BiomeDict.keys(): # 直接变JSON了
                     j["biome"] = BiomeDict[Result[i]["object_id"]]
                 Result[i]["bioSphere"] = j
+    if "rings" in Info:
+        for i in Result:
+            if i["object_id"] in RingsDict.keys():
+                i["rings"] = RingsDict[i["object_id"]]
     if "subsystems" in Info:
         for i in Result:
             if i["object_id"] in SubDict.keys():
@@ -478,7 +504,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
 def _QueryObject(Namespace, ObjectName, OutFmt):
     _PreCheck(Namespace, ObjectName)
     FullOutputFormats = ["json", "yaml"]
-    ObjectList = _QueryObject_Unchecked(Namespace, ObjectName, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere"] if OutFmt in FullOutputFormats else [])
+    ObjectList = _QueryObject_Unchecked(Namespace, ObjectName, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere", "rings"] if OutFmt in FullOutputFormats else [])
 
     if len(ObjectList) == 0:
         return "没找到任何资源"
@@ -602,7 +628,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
     print(f"查询物体：{SystemName} -> {ObjectName} （类型：{ObjectType}）")
 
     ObjectDict = _QueryObject_Unchecked(GetNamespace(), ObjectName, 
-        ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere", "subsystems"])
+        ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere", "rings", "subsystems"])
     # 实测在针对彗星的生成中，部分模型扫描到以后会过度在意这个字段并影响到输出，因此在查询小卫星，小行星和彗星时，直接把这个字段改掉
     for i in ObjectDict:
         if i["otype"] in ["DwarfMoon", "Asteroid", "Comet"]:
@@ -649,7 +675,7 @@ def DescribeSystem(args):
 
 def DescribeObject(args):
     _PreCheck(args.namespace, args.name)
-    ObjectDict = _QueryObject_Unchecked(args.namespace, args.name, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere", "subsystems"])
+    ObjectDict = _QueryObject_Unchecked(args.namespace, args.name, ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere", "rings", "subsystems"])
     if len(ObjectDict) == 0:
         print("没找到任何资源")
         return

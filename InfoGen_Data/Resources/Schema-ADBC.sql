@@ -161,4 +161,15 @@ CREATE TABLE ig_composition (
 );
 -- CREATE INDEX ix_ig_composition_lookup ON ig_composition (kind, component);
 
+CREATE TABLE ig_rings (
+    object_id     VARCHAR(512) NOT NULL REFERENCES ig_object (object_id) ON DELETE CASCADE,
+    ring_type     VARCHAR(64)  NOT NULL,
+    inner_radius  DOUBLE PRECISION,
+    width         DOUBLE PRECISION,
+    thickness     DOUBLE PRECISION,
+    rock_max_size DOUBLE PRECISION,
+    object_count  INTEGER,
+    PRIMARY KEY (object_id, ring_type)
+);
+
 COMMIT;
