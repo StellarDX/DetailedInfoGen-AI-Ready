@@ -22,7 +22,7 @@ double MaxOrbitalHeight(double SemiMajorAxis, double Inclination, double Eccentr
     // 参考文献：Rodet L , Beust H , Bonnefoy M ,et al.ODEA: Orbital Dynamics in a complex 
     // Evolving Architecture - Application to the planetary system HD 106906[J].Astronomy 
     // and Astrophysics, 2019, 631.DOI:10.1051/0004-6361/201935728.
-    return SemiMajorAxis * sind(Inclination) * (sqrt(1. - pow(Eccentricity, 2) * pow(cosd(ArgOfPercenter), 2)) + Eccentricity * std::abs(sind(ArgOfPercenter)));
+    return SemiMajorAxis * std::abs(sind(Inclination)) * (sqrt(1. - pow(Eccentricity, 2) * pow(cosd(ArgOfPercenter), 2)) + Eccentricity * std::abs(sind(ArgOfPercenter)));
 }
 
 std::string RingClassify(double EdgeRadius, double OuterRadius, double frequency, double SelfShadow, double Density, double densityPower, double colorContrast)

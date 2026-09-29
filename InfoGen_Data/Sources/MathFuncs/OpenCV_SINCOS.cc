@@ -282,7 +282,7 @@ void __cdecl __CV_CHEBYSHEV_SINCOS(double _X, double* _SIN, double* _COS)
     if (absx < SINCOS_BOUNDARY)
     {
         // 参数足够小，可以近似地用16阶（和17阶）切比雪夫多项式表示。
-        if (tix < 0x3fc60000) // |x| < 2^-57
+        if (tix < 0x3cb00000) // |x| < 2^-57
         {
             if (!(int(x))) // 下溢出
             {

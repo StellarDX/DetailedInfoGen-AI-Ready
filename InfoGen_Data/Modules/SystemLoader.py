@@ -817,10 +817,10 @@ class Generator(ABC):
                         "RockMaxSize": LOC("最大物体直径"),
                         "ObjectCount": LOC("物体数量")
                     })
-                    ObjectInfo[LOC("环系统")][LOC("半径")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("半径")].tolist()]
-                    ObjectInfo[LOC("环系统")][LOC("宽度")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("宽度")].tolist()]
-                    ObjectInfo[LOC("环系统")][LOC("厚度")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("厚度")].tolist()]
-                    ObjectInfo[LOC("环系统")][LOC("最大物体直径")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("最大物体直径")].tolist()]
+                    ObjectInfo[LOC("环系统")][LOC("半径")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("半径")].tolist()]
+                    ObjectInfo[LOC("环系统")][LOC("宽度")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("宽度")].tolist()]
+                    ObjectInfo[LOC("环系统")][LOC("厚度")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("厚度")].tolist()]
+                    ObjectInfo[LOC("环系统")][LOC("最大物体直径")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("最大物体直径")].tolist()]
                 if "SubSystemsList" in Object["PhysicalCharacteristics"].keys():
                     ObjectInfo[LOC("卫星列表")] = self._Subsystem_To_DataFrame(Object["PhysicalCharacteristics"]["SubSystemsList"], ParentBody)
             case "Moon":
