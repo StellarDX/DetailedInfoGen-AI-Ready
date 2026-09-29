@@ -1,0 +1,769 @@
+Rings
+{
+    InnerRadius     1.1e+05
+    OuterRadius     1.59e+05
+    EdgeRadius      1.59e+05
+    MeanRadius      1.26e+05
+    Thickness       0.347
+    RocksMaxSize    0.0139
+    RocksSpacing    1
+    DustDrawDist    1.04e+03
+    ChartRadius     1.59e+05
+    RotationPeriod  5.12
+    Brightness      1
+    FrontBright     2.41
+    BackBright      4.64
+    Density         0.968
+    Opacity         0.968
+    SelfShadow      0.968
+    PlanetShadow    0.968
+    Hapke           1
+    SpotBright      2.48
+    SpotWidth       0.0237
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       702
+    densityScale    2.18
+    densityOffset   -1.6
+    densityPower    0.985
+    colorContrast   0.0702
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     9.15e+03
+    OuterRadius     2.54e+04
+    EdgeRadius      2.54e+04
+    MeanRadius      1.45e+04
+    Thickness       0.0513
+    RocksMaxSize    0.00205
+    RocksSpacing    1
+    DustDrawDist    154
+    ChartRadius     2.54e+04
+    RotationPeriod  4.62
+    Brightness      1
+    FrontBright     2.86
+    BackBright      4.43
+    Density         0.981
+    Opacity         0.981
+    SelfShadow      0.981
+    PlanetShadow    0.981
+    Hapke           1
+    SpotBright      2.51
+    SpotWidth       0.012
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       750
+    densityScale    2.42
+    densityOffset   -1.52
+    densityPower    1.01
+    colorContrast   0.0775
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     2.48e+04
+    OuterRadius     3.88e+04
+    EdgeRadius      3.88e+04
+    MeanRadius      2.95e+04
+    Thickness       0.125
+    RocksMaxSize    0.00501
+    RocksSpacing    1
+    DustDrawDist    376
+    ChartRadius     3.88e+04
+    RotationPeriod  5.76
+    Brightness      1
+    FrontBright     2.44
+    BackBright      4.96
+    Density         0.994
+    Opacity         0.994
+    SelfShadow      0.994
+    PlanetShadow    0.994
+    Hapke           1
+    SpotBright      2.63
+    SpotWidth       0.024
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       717
+    densityScale    2.17
+    densityOffset   -1.71
+    densityPower    0.995
+    colorContrast   0.0598
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     1.71e+03
+    OuterRadius     2.67e+03
+    EdgeRadius      2.67e+03
+    MeanRadius      2.03e+03
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     2.67e+03
+    RotationPeriod  4.13
+    Brightness      1
+    FrontBright     2.48
+    BackBright      4.37
+    Density         0.977
+    Opacity         0.977
+    SelfShadow      0.977
+    PlanetShadow    0.977
+    Hapke           1
+    SpotBright      2.2
+    SpotWidth       0.0325
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       736
+    densityScale    2.46
+    densityOffset   -1.51
+    densityPower    1.04
+    colorContrast   0.0816
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     91.6
+    OuterRadius     116
+    EdgeRadius      116
+    MeanRadius      99.8
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     116
+    RotationPeriod  4.6
+    Brightness      1
+    FrontBright     2.49
+    BackBright      4.94
+    Density         1
+    Opacity         1
+    SelfShadow      1
+    PlanetShadow    1
+    Hapke           1
+    SpotBright      2.35
+    SpotWidth       0.0228
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       735
+    densityScale    2.23
+    densityOffset   -1.88
+    densityPower    4.87
+    colorContrast   0.0683
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     8.93e+03
+    OuterRadius     2.16e+04
+    EdgeRadius      2.16e+04
+    MeanRadius      1.32e+04
+    Thickness       0.0506
+    RocksMaxSize    0.00203
+    RocksSpacing    1
+    DustDrawDist    152
+    ChartRadius     2.16e+04
+    RotationPeriod  8.2
+    Brightness      1
+    FrontBright     2.47
+    BackBright      4.28
+    Density         0.954
+    Opacity         0.954
+    SelfShadow      0.954
+    PlanetShadow    0.954
+    Hapke           1
+    SpotBright      2.33
+    SpotWidth       0.0106
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       713
+    densityScale    2.32
+    densityOffset   -1.57
+    densityPower    1.02
+    colorContrast   0.0705
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     130
+    OuterRadius     157
+    EdgeRadius      157
+    MeanRadius      139
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     157
+    RotationPeriod  8.38
+    Brightness      1
+    FrontBright     2.91
+    BackBright      4.85
+    Density         0.987
+    Opacity         0.987
+    SelfShadow      0.987
+    PlanetShadow    0.987
+    Hapke           1
+    SpotBright      2.49
+    SpotWidth       0.0168
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       690
+    densityScale    2.08
+    densityOffset   -1.45
+    densityPower    4.86
+    colorContrast   0.065
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     116
+    OuterRadius     151
+    EdgeRadius      151
+    MeanRadius      127
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     151
+    RotationPeriod  12.7
+    Brightness      1
+    FrontBright     2.95
+    BackBright      4.03
+    Density         0.971
+    Opacity         0.971
+    SelfShadow      0.971
+    PlanetShadow    0.971
+    Hapke           1
+    SpotBright      2.66
+    SpotWidth       0.0327
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       699
+    densityScale    2.21
+    densityOffset   -1.77
+    densityPower    4.99
+    colorContrast   0.0916
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     139
+    OuterRadius     165
+    EdgeRadius      165
+    MeanRadius      148
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     165
+    RotationPeriod  9.35
+    Brightness      1
+    FrontBright     2.9
+    BackBright      4.38
+    Density         0.972
+    Opacity         0.972
+    SelfShadow      0.972
+    PlanetShadow    0.972
+    Hapke           1
+    SpotBright      2.32
+    SpotWidth       0.0204
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       668
+    densityScale    2.22
+    densityOffset   -1.73
+    densityPower    4.86
+    colorContrast   0.0804
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     133
+    OuterRadius     157
+    EdgeRadius      157
+    MeanRadius      141
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     157
+    RotationPeriod  12.9
+    Brightness      1
+    FrontBright     2.73
+    BackBright      4.8
+    Density         0.957
+    Opacity         0.957
+    SelfShadow      0.957
+    PlanetShadow    0.957
+    Hapke           1
+    SpotBright      2.6
+    SpotWidth       0.024
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       746
+    densityScale    2.35
+    densityOffset   -1.47
+    densityPower    4.9
+    colorContrast   0.0561
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     153
+    OuterRadius     395
+    EdgeRadius      395
+    MeanRadius      234
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     395
+    RotationPeriod  17.2
+    Brightness      1
+    FrontBright     2.81
+    BackBright      4.43
+    Density         0.978
+    Opacity         0.978
+    SelfShadow      0.978
+    PlanetShadow    0.978
+    Hapke           1
+    SpotBright      2.62
+    SpotWidth       0.0214
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       714
+    densityScale    2.45
+    densityOffset   -1.62
+    densityPower    5.04
+    colorContrast   0.0961
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     1.1e+04
+    OuterRadius     1.97e+04
+    EdgeRadius      1.97e+04
+    MeanRadius      1.39e+04
+    Thickness       0.0362
+    RocksMaxSize    0.00145
+    RocksSpacing    1
+    DustDrawDist    109
+    ChartRadius     1.97e+04
+    RotationPeriod  4.17
+    Brightness      1
+    FrontBright     2.47
+    BackBright      4.18
+    Density         0.967
+    Opacity         0.967
+    SelfShadow      0.967
+    PlanetShadow    0.967
+    Hapke           1
+    SpotBright      2.21
+    SpotWidth       0.0364
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       688
+    densityScale    2.32
+    densityOffset   -1.75
+    densityPower    0.988
+    colorContrast   0.0625
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     91.7
+    OuterRadius     115
+    EdgeRadius      115
+    MeanRadius      99.4
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     115
+    RotationPeriod  8.83
+    Brightness      1
+    FrontBright     2.8
+    BackBright      4.84
+    Density         0.998
+    Opacity         0.998
+    SelfShadow      0.998
+    PlanetShadow    0.998
+    Hapke           1
+    SpotBright      2.33
+    SpotWidth       0.03
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       713
+    densityScale    2.16
+    densityOffset   -1.49
+    densityPower    5.05
+    colorContrast   0.0747
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     128
+    OuterRadius     151
+    EdgeRadius      151
+    MeanRadius      136
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     151
+    RotationPeriod  9.4
+    Brightness      1
+    FrontBright     2.71
+    BackBright      4.83
+    Density         0.993
+    Opacity         0.993
+    SelfShadow      0.993
+    PlanetShadow    0.993
+    Hapke           1
+    SpotBright      2.29
+    SpotWidth       0.0179
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       695
+    densityScale    2.21
+    densityOffset   -1.58
+    densityPower    4.85
+    colorContrast   0.0924
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     179
+    OuterRadius     434
+    EdgeRadius      434
+    MeanRadius      264
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     434
+    RotationPeriod  18.2
+    Brightness      1
+    FrontBright     2.59
+    BackBright      4.2
+    Density         0.964
+    Opacity         0.964
+    SelfShadow      0.964
+    PlanetShadow    0.964
+    Hapke           1
+    SpotBright      2.56
+    SpotWidth       0.0127
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       699
+    densityScale    2.15
+    densityOffset   -1.81
+    densityPower    4.96
+    colorContrast   0.0606
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     192
+    OuterRadius     431
+    EdgeRadius      431
+    MeanRadius      271
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     431
+    RotationPeriod  18.2
+    Brightness      1
+    FrontBright     2.74
+    BackBright      4.39
+    Density         0.986
+    Opacity         0.986
+    SelfShadow      0.986
+    PlanetShadow    0.986
+    Hapke           1
+    SpotBright      2.39
+    SpotWidth       0.0154
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       750
+    densityScale    2.2
+    densityOffset   -1.6
+    densityPower    4.88
+    colorContrast   0.0775
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     5.05e+03
+    OuterRadius     6.73e+03
+    EdgeRadius      6.73e+03
+    MeanRadius      5.61e+03
+    Thickness       0.0217
+    RocksMaxSize    0.000866
+    RocksSpacing    1
+    DustDrawDist    65
+    ChartRadius     6.73e+03
+    RotationPeriod  4.01
+    Brightness      1
+    FrontBright     2.76
+    BackBright      4.57
+    Density         0.988
+    Opacity         0.988
+    SelfShadow      0.988
+    PlanetShadow    0.988
+    Hapke           1
+    SpotBright      2.34
+    SpotWidth       0.0136
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       699
+    densityScale    2.3
+    densityOffset   -1.79
+    densityPower    1.01
+    colorContrast   0.0637
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     164
+    OuterRadius     301
+    EdgeRadius      301
+    MeanRadius      210
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     301
+    RotationPeriod  10.2
+    Brightness      1
+    FrontBright     2.88
+    BackBright      4.37
+    Density         0.965
+    Opacity         0.965
+    SelfShadow      0.965
+    PlanetShadow    0.965
+    Hapke           1
+    SpotBright      2.4
+    SpotWidth       0.0133
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       698
+    densityScale    2.34
+    densityOffset   -1.57
+    densityPower    4.98
+    colorContrast   0.0512
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     173
+    OuterRadius     304
+    EdgeRadius      304
+    MeanRadius      217
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     304
+    RotationPeriod  8.8
+    Brightness      1
+    FrontBright     2.98
+    BackBright      4.11
+    Density         0.964
+    Opacity         0.964
+    SelfShadow      0.964
+    PlanetShadow    0.964
+    Hapke           1
+    SpotBright      2.38
+    SpotWidth       0.0284
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       709
+    densityScale    2.45
+    densityOffset   -1.56
+    densityPower    5.12
+    colorContrast   0.0805
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     1.05e+04
+    OuterRadius     2.29e+04
+    EdgeRadius      2.29e+04
+    MeanRadius      1.46e+04
+    Thickness       0.0339
+    RocksMaxSize    0.00136
+    RocksSpacing    1
+    DustDrawDist    102
+    ChartRadius     2.29e+04
+    RotationPeriod  5.23
+    Brightness      1
+    FrontBright     2.66
+    BackBright      4.75
+    Density         0.979
+    Opacity         0.979
+    SelfShadow      0.979
+    PlanetShadow    0.979
+    Hapke           1
+    SpotBright      2.54
+    SpotWidth       0.0131
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       700
+    densityScale    2.56
+    densityOffset   -1.64
+    densityPower    0.995
+    colorContrast   0.0801
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     68.1
+    OuterRadius     94.7
+    EdgeRadius      94.7
+    MeanRadius      76.9
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     94.7
+    RotationPeriod  6.15
+    Brightness      1
+    FrontBright     2.75
+    BackBright      4.65
+    Density         0.951
+    Opacity         0.951
+    SelfShadow      0.951
+    PlanetShadow    0.951
+    Hapke           1
+    SpotBright      2.56
+    SpotWidth       0.035
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       702
+    densityScale    2.36
+    densityOffset   -1.51
+    densityPower    4.85
+    colorContrast   0.0581
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
+
+Rings
+{
+    InnerRadius     101
+    OuterRadius     142
+    EdgeRadius      142
+    MeanRadius      114
+    Thickness       0.0125
+    RocksMaxSize    0.0005
+    RocksSpacing    1
+    DustDrawDist    37.5
+    ChartRadius     142
+    RotationPeriod  9.57
+    Brightness      1
+    FrontBright     2.85
+    BackBright      4.39
+    Density         0.999
+    Opacity         0.999
+    SelfShadow      0.999
+    PlanetShadow    0.999
+    Hapke           1
+    SpotBright      2.54
+    SpotWidth       0.0201
+    SpotBrightCB    0
+    SpotWidthCB     0.001
+    frequency       712
+    densityScale    2.48
+    densityOffset   -1.5
+    densityPower    5.01
+    colorContrast   0.0874
+    FrontColor      (0.700 0.700 0.700)
+    BackThickColor  (0.800 0.600 0.400)
+    BackIceColor    (0.300 0.700 1.000)
+    BackDustColor   (1.000 0.980 0.880)
+}
