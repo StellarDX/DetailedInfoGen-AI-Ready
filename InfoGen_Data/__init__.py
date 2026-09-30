@@ -32,6 +32,7 @@ from InfoGen_Data.Modules.ADBC import ADBCClient, ReadSQLToDataFrame
 from InfoGen_Data.Modules.ADBC import Register as ADBCRegister
 from InfoGen_Data.Modules.ADBC import ADBCAdmin
 from InfoGen_Data.Modules.ADBC import CurrentSQLVariation
+from InfoGen_Data.Modules.ADBC import RegisterSQLVariation
 
 from InfoGen_Data.Modules.SystemLoader import LoadObjectsFromSC
 from InfoGen_Data.Modules.SystemLoader import CheckNamespace
@@ -48,3 +49,5 @@ from InfoGen_Data.Modules.SQLQuery import QuerySystem, QueryAllObjectsInSystem, 
 
 from InfoGen_Data.Modules.LangGraph import Register as LangGraphRegister
 from InfoGen_Data.Modules.LangGraph import Generate
+
+__import__("InfoGen_Data.Plug-ins")

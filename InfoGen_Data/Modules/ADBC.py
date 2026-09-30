@@ -13,6 +13,7 @@ import sqlparse
 import re
 import warnings
 
+from sqlalchemy import Dialect
 from sqlalchemy.dialects import mssql, mysql, oracle, postgresql, sqlite # 这里应该可以换成动态导入
 
 _SQLVariation = None
@@ -37,6 +38,9 @@ RegisteredVariation = { # 这是我唯一能想到的办法了
     "postgresql": postgresql.dialect(),
     "sqlite": sqlite.dialect()
 }
+
+def RegisterSQLVariation(Name:str, Variation:Dialect):
+    RegisteredVariation[Name] = Dialect
 
 def UserConfirm(Question:str):
     Confirm = ''

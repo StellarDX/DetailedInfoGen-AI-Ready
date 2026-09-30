@@ -34,6 +34,7 @@ class IGChatState(MessagesState):
     Client:ChatOpenAI
     QueryCount:int
     MaxQueryCount:int
+    MaxLength:int
     OutputFile:Path
     Verbose:bool
 
@@ -97,6 +98,9 @@ def InitState(args, Tools:Sequence[BaseTool | Callable]):
     UserPromptTemplate = ChatPromptTemplate.from_messages([("human", UserPrompt)])
     FinalUserPrompt = UserPromptTemplate.invoke({i: j for i, j in args.define}).to_messages()[0] # 按理来说这里只会返回格式化后的提示词
     State["messages"].append(FinalUserPrompt)
+
+    if args.max_length != 0:
+        State["messages"].append(HumanMessage(f"输出长度应限制在{args.max_length}词以内"))
     
     State["OutputFile"] = Path(args.output) / ("InfoGen-" + datetime.now().strftime("%Y-%m-%dT%H-%M-%S") + ".md")
     State["QueryCount"] = 0
@@ -134,6 +138,7 @@ def Register(MainArgParser):
     ParserLLM.add_argument("-n", "--namespace", type = str, required = True, help = "命名空间")
     ParserLLM.add_argument("--max-tool-calls", type = int, default = 10, help = "最大调用工具次数")
     ParserLLM.add_argument("-v", "--verbose", action='store_true', help = "流式输出模型返回的内容")
+    ParserLLM.add_argument("-l", "--max-length", type = int, default = 0, help = "输出最大长度（0为不限，推荐限制在800-1200左右以节省时间和Token）")
 
 def Generate(args):
     SetNamespace(args.namespace)
