@@ -19,11 +19,13 @@ from langgraph.prebuilt import ToolNode
 
 _ChatClient = None
 
-def ChatClient():
+def ChatClient(_Verbose:bool = False):
     global _ChatClient
     if _ChatClient == None:
         with Path("./InfoGen_Data/Config/Chat.toml").open("rb") as Conf:
             CliConfig = tomllib.load(Conf)
+        if _Verbose:
+            CliConfig["output_version"] = "responses/v1"
         CliConfig["http_client"] = httpx.Client(proxy = None, trust_env = False)
         _ChatClient = ChatOpenAI(**CliConfig)
     return _ChatClient
@@ -43,10 +45,12 @@ def SendMessage(State:IGChatState):
         Response = None
         for Chunk in State["Client"].stream(State["messages"]):
             Response = Chunk if Response is None else Response + Chunk
-            if 'reasoning_content' in Chunk.additional_kwargs:
-                print(Chunk.additional_kwargs['reasoning_content'], end = "", flush = True)
-            elif Chunk.content:
-                print(Chunk.content, end = "", flush = True)
+            for Content in Chunk.content:
+                if Content["type"] == "reasoning":
+                    for i in Content["summary"]:
+                        print(i["text"], end = "", flush = True)
+                elif Content["type"] == "text":
+                    print(Content["text"], end = "", flush = True)
         if Response is not None and len(Response.content) != 0:
             print()
         if Response is None:
@@ -69,7 +73,8 @@ def ToolCallInc(State:IGChatState):
 
 def WriteFile(State:IGChatState):
     with open(State["OutputFile"], "w", encoding = "utf-8") as fout:
-        fout.write(State["messages"][-1].content)
+        fout.write(State["messages"][-1].content[1]["text"] 
+            if State["Verbose"] else State["messages"][-1].content)
     print(f"文件已写入：{State["OutputFile"]}")
     return {}
 
@@ -81,7 +86,7 @@ def InitState(args, Tools:Sequence[BaseTool | Callable]):
     State:IGChatState = {"messages": []}
 
     print("创建客户端...")
-    State["Client"] = ChatClient().bind_tools(Tools)
+    State["Client"] = ChatClient(args.verbose).bind_tools(Tools)
     
     print("读取全局提示词...")
     GlobalPrompt = Path(args.global_prompt).read_text(encoding = 'utf-8')
