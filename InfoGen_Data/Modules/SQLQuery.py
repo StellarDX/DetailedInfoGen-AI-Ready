@@ -600,6 +600,33 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
     返回格式化后的 JSON 字符串，便于直接阅读或继续解析。
     适用场景：需要了解某个已知天体/物体的具体参数与属性时调用。
 
+    所有字段的单位均遵循国际单位制，即：
+        长度类字段单位为米，即面积为平方米，体积单位为立方米；
+        质量类字段单位为千克，即密度单位为千克每立方米；
+        时间类字段单位为秒（age为年，轨道数据的Epoch单位是JD），即重力单位为米每平方秒，速度单位为米每秒；
+        光度类字段单位为瓦特；
+        温度类字段单位为开氏度；
+        压强类字段单位为帕斯卡；
+        成分类字段为体积分数；
+        角度类字段单位为度；
+
+    行星类型（/class）字段解释：
+        Ferria：铁质行星
+        Terra：岩质行星（类地行星）
+        Aquaria：水质行星
+        Carbonia：碳质行星
+        Neptune / IceGiant：冰巨星
+        Jupiter / GasGiant：气态行星
+        Chthonia / HeliumGiant：氦行星
+
+    环系统类型（/rings/ring_type）字段解释：
+        CircumplanetaryDisk：由小行星组成的星周盘；
+        SaturnELike：类似土星E环的渐变环；
+        JupiterTransparent：类似木星环的暗环；
+        NeptuneNarrow：类似海王星环的窄环；
+        UranusSparse：类似天王星环的稀疏环；
+        Colorful: 颜色鲜艳的彩色环；
+
     Args:
         ObjectName (str): 物体名称、别名或 object_id（必填）。
         SystemName (str): 行星系统名称，用于限定检索范围；不指定时搜索所有系统。
@@ -613,23 +640,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
         str: 命中时返回该物体信息的 JSON 字符串（ensure_ascii=False，indent=4）；
              匹配到多个物体时返回提示文本 「匹配到多个物体」 和候选物体列表，此时需询问用户具体指代哪一个物体；
              未命中（系统或物体不存在）时返回提示文本 「没有那个系统或物体」。
-             所有字段的单位均遵循国际单位制，即：
-                长度类字段单位为米，即面积为平方米，体积单位为立方米；
-                质量类字段单位为千克，即密度单位为千克每立方米；
-                时间类字段单位为秒（age为年，轨道数据的Epoch单位是JD），即重力单位为米每平方秒，速度单位为米每秒；
-                光度类字段单位为瓦特；
-                温度类字段单位为开氏度；
-                压强类字段单位为帕斯卡；
-                成分类字段为体积分数；
-                角度类字段单位为度；
-             另外，返回的字符串里只会包含对应物体“拥有”的属性，例如只有在那个物体有“大气”时才会出现atmosphere及相关字段；
-             环系统类型（Type）字段解释：
-                CircumplanetaryDisk：由小行星组成的星周盘
-                SaturnELike：类似土星E环的渐变环
-                JupiterTransparent：类似木星环的暗环
-                NeptuneNarrow：类似海王星环的窄环
-                UranusSparse：类似天王星环的稀疏环
-                Colorful: 颜色鲜艳的彩色环
+             返回的字符串里只会包含对应物体“拥有”的属性，例如只有在那个物体有“大气”时才会出现atmosphere及相关字段；
     """
 
     print(f"查询物体：{SystemName} -> {ObjectName} （类型：{ObjectType}）")
