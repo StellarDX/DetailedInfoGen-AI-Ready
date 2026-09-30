@@ -618,6 +618,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
         Neptune / IceGiant：冰巨星
         Jupiter / GasGiant：气态行星
         Chthonia / HeliumGiant：氦行星
+        Asteroid：小型物体（无实际意义）
 
     环系统类型（/rings/ring_type）字段解释：
         CircumplanetaryDisk：由小行星组成的星周盘；
@@ -647,9 +648,9 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
 
     ObjectDict = _QueryObject_Unchecked(GetNamespace(), ObjectName, 
         ["orbit", "physic", "atmosphere", "hydrosphere", "biosphere", "rings", "subsystems"])
-    # 实测在针对彗星的生成中，部分模型扫描到以后会过度在意这个字段并影响到输出，因此在查询小卫星，小行星和彗星时，直接把这个字段改掉
+    # 实测在针对彗星的生成中，部分模型扫描到以后会过度在意这个字段并影响到输出，因此在查询小行星和彗星时，直接把这个字段改掉
     for i in ObjectDict:
-        if i["otype"] in ["DwarfMoon", "Asteroid", "Comet"]:
+        if i["otype"] in ["Asteroid", "Comet"]:
             del i["class"]
     if SystemName != None:
         ObjectDict = [i for i in ObjectDict if i["system"] == SystemName]
