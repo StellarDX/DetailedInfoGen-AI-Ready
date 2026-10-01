@@ -46,7 +46,7 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
 | 日志 | spdlog（复用外部 fmtlib，避免重复符号） |
 | 格式化/转换 | fmtlib、fast-float、google-double-conversion |
 | 脚本 | Python 3.12+，argparse / gettext / polib / pandas |
-| 数据库 | Apache ADBC + SQLAlchemy |
+| 数据库 | Apache ADBC + DBUtils + SQLAlchemy |
 | AI | Langgraph |
 
 ## 安装部署
