@@ -295,14 +295,9 @@ python InfoGen.py --help          # 查看全部命令
 python InfoGen.py create --help   # 查看某命令的详细参数
 ```
 
-## 在做的功能
-
-1. 国际化翻译管理系统
-2. ChromaDB持久化
-
 ## 计划添加的功能
 
-2. AI模型接入
+1. 向量数据库持久化
 
 ## 许可证
 
