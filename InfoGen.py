@@ -25,7 +25,7 @@ def Hello(args):
 ++-----------------------------------------------------------------------------------++""")
 
 def Egg(MainArgParser):
-    ParserLocale = MainArgParser.add_parser("hello", help = SUPPRESS, formatter_class = InfoGenHelpFormatter)
+    ParserLocale = MainArgParser.add_parser("hello", help = "浪漫一如初见♪", formatter_class = InfoGenHelpFormatter)
 
 ModuleList = {
     "create": {"Register": ResourceCreatorRegister, "Invoke": CreateResource},
