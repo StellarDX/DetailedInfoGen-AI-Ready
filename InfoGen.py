@@ -7,7 +7,25 @@ from InfoGen_Data import LangGraphRegister, Generate
 from InfoGen_Data import InfoGenHelpFormatter
 import sys
 import os
-from argparse import ArgumentParser
+from argparse import ArgumentParser, SUPPRESS
+
+def Hello(args):
+    print(r"""++-----------------------------------------------------------------------------------++
+|| 回环的涟漪，守候在昨日的岁月。                                                    ||
+++-----------------------------------------------------------------------------------++
+||   _    _                                                                          ||
+||  | |  | |         _   _                                           _       _   _   ||
+||  | |__| |  ____  | | | |  _____       __        __  _____   ___  | |  ___| | | |  ||
+||  |  __  | / __ \ | | | | /  _  \      \ \  /\  / / /  _  \ |  _| | | /  _  | | |  ||
+||  | |  | | | ___/ | | | | | |_| |  _    \ \/  \/ /  | |_| | | |   | | | |_| | |_|  ||
+||  |_|  |_| \____| |_| |_| \_____/ ( )    \__/\__/   \_____/ |_|   |_| \___,_| (_)  ||
+||                                  |/                                               ||
+++-----------------------------------------------------------------------------------++
+|| 开拓的罗盘，指引明天滚滚向前。                                                    ||
+++-----------------------------------------------------------------------------------++""")
+
+def Egg(MainArgParser):
+    ParserLocale = MainArgParser.add_parser("hello", help = SUPPRESS, formatter_class = InfoGenHelpFormatter)
 
 ModuleList = {
     "create": {"Register": ResourceCreatorRegister, "Invoke": CreateResource},
@@ -15,7 +33,8 @@ ModuleList = {
     "describe": {"Register": DescribeRegister, "Invoke": Describe},
     "generate": {"Register": LangGraphRegister, "Invoke": Generate},
     "adbc": {"Register": ADBCRegister, "Invoke": ADBCAdmin},
-    "lcadmin": {"Register": LCAdminRegister, "Invoke": LocaleAdmin}
+    "lcadmin": {"Register": LCAdminRegister, "Invoke": LocaleAdmin},
+    "hello": {"Register": Egg, "Invoke": Hello}
 }
 
 MainArgParser = ArgumentParser(prog = 'InfoGen', description='SpaceEngine详细信息生成器 (AI-Ready)', formatter_class = InfoGenHelpFormatter)
