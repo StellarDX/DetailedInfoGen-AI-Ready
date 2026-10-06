@@ -104,7 +104,7 @@ def _QuerySystem(Namespace, SystemName, OutFmt):
                 showindex = False
             ))
 
-def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName):
+def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName, ObjectType):
     SysCols = [Column(i, j) for i, j in [
         ["system_id",              String(512)],
         ["main_id",                String(255)],
@@ -125,7 +125,7 @@ def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName):
     PTbl = aliased(Tbl, name = "primaries")
     CTbl = aliased(Tbl, name = "companions")
 
-    Query = str((select(SysTbl.c.main_id.label("system"), CTbl.c.object_id, CTbl.c.otype, 
+    Query = (select(SysTbl.c.main_id.label("system"), CTbl.c.object_id, CTbl.c.otype, 
         CTbl.c.primary_name.label("ident"), PTbl.c.primary_name.label("parent_body"),
         CTbl.c["class"], CTbl.c.depth)
         .select_from(CTbl
@@ -133,7 +133,9 @@ def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName):
             .outerjoin(PTbl, CTbl.c.parent_object_id == PTbl.c.object_id))
         .where(SysTbl.c.namespace == Namespace)
         .where(SysTbl.c.main_id == SystemName))
-        .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+    if ObjectType != None and ObjectType != "":
+        Query = Query.where(CTbl.c.otype == ObjectType)
+    Query = str(Query.compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     Connection = ADBCClient()
     Result = ReadSQLToDataFrame(Query, Connection)
     Connection.close()
@@ -571,21 +573,31 @@ def QuerySystem(SystemName:str) -> str: # 这个是给AI看的
     return _QuerySystem(GetNamespace(), SystemName, "json")
 
 @tool(parse_docstring = True)
-def QueryAllObjectsInSystem(SystemName:str) -> str:
+def QueryAllObjectsInSystem(SystemName:str, ObjectType:Literal[
+        "Barycenter", "Star", "Planet", "DwarfPlanet",
+        "Moon", "DwarfMoon", "Asteroid", "Comet"
+    ] = None) -> str:
     """查询指定系统内的所有物体。
 
     根据系统名称查询该系统下包含的全部对象，并以 TSV（制表符分隔）格式返回。
 
     Args:
         SystemName (str): 要查询的系统名称。
+        ObjectType (str): 物体类型，用于进一步过滤。可选值：
+                          "Barycenter"（质心）、"Star"（恒星）、"Planet"（行星）、
+                          "DwarfPlanet"（矮行星）、"Moon"（卫星）、"DwarfMoon"（小卫星）、
+                          "Asteroid"（小行星）、"Comet"（彗星）。
+                          不指定时不限制类型。
 
     Returns:
         str: 该系统内所有对象的数据表，以 TSV 格式的字符串返回（列之间以制表符 \t 分隔，不含行索引）。
     """
 
-    print(f"查询行星系统：{SystemName} 内的所有物体")
+    print(f"查询行星系统：{SystemName} 内的所有 {ObjectType if ObjectType != None and ObjectType != "" else "物体"}")
 
-    SystemFrame = _QueryAllObjectsInSystem_Unchecked(GetNamespace(), SystemName)
+    SystemFrame = _QueryAllObjectsInSystem_Unchecked(GetNamespace(), SystemName, ObjectType)
+
+    print(f"已查询 {len(SystemFrame)} 个物体")
     return SystemFrame.to_csv(index = False, sep = '\t')
 
 @tool(parse_docstring = True)
@@ -656,6 +668,8 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
         ObjectDict = [i for i in ObjectDict if i["system"] == SystemName]
     if ObjectType != None:
         ObjectDict = [i for i in ObjectDict if i["otype"] == ObjectType]
+
+    print(f"已查询 {len(ObjectDict)} 个物体")
 
     if len(ObjectDict) == 0:
         return "没有那个系统或物体"
