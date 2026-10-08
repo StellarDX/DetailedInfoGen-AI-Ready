@@ -58,12 +58,6 @@ uri = ${URI}
 
 [InitStatements]
 # 按顺序执行的初始化语句，驱动默认关闭的特性要靠这里打开。
-# 例如SQLite的外键约束需要每个连接单独开（若不开启删除时会留下脏数据）：
-# init_statements = [
-#     "PRAGMA foreign_keys = ON",
-#     "PRAGMA journal_mode = WAL",
-#     "PRAGMA synchronous = NORMAL",
-# ]
 init_statements = []
 
 [ConnectionPool]
