@@ -6,7 +6,6 @@
 #       通过ADBC以Apache Arrow格式取数，可直接落进DataFrame，省掉中间反序列化。
 #
 # 注意：adbc-driver-manager只是驱动管理器，必须另外安装一个具体驱动，否则无法连接：
-#       SQLite     ->  adbc-driver-sqlite
 #       MySQL      ->  adbc-driver-mysql
 #       PostgreSQL ->  adbc-driver-postgresql
 #       ...以此类推
@@ -43,7 +42,7 @@
 driver = ${DRIVER}
 
 # 连接目标，形态由驱动决定：
-#   sqlite等文件数据源：文件路径，相对路径以进程工作目录为基准（与IGAppData同级）
+#   文件数据源（如果支持）：文件路径，相对路径以进程工作目录为基准（与IGAppData同级）
 #   postgresql等关系型数据库：DSN，例如"postgresql://user:password@localhost:5432/infogen"
 uri = ${URI}
 
