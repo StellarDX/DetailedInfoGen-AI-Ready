@@ -6,6 +6,7 @@ from copy import deepcopy
 from urllib.parse import urlparse
 from dbutils.pooled_db import PooledDB
 from pandas.io._util import arrow_table_to_pandas
+from pyarrow import Table
 
 import tomllib
 import string
@@ -20,7 +21,7 @@ _SQLVariation = None
 _ADBCConf = None
 _ADBCROConf = None
 _Connection = None
-_ROConnection = None
+_RawConnection = None
 
 ConnectionTemplate = "./InfoGen_Data/Config/ADBC.toml.def"
 ConnectionConf = "./InfoGen_Data/Config/ADBC.toml"
@@ -88,14 +89,26 @@ def ADBCClient():
     RunInit(Connection)
     return Connection
 
+def LoadTableSchemaToDataFrame(TableName:str, Connection, dtype_backend: str = "numpy"):
+    Schema = Connection.adbc_get_table_schema(table_name = TableName)
+    ArrowTable = Table.from_pydict(
+        {i: [] for i in Schema.names},
+        schema = Schema
+    )
+    return arrow_table_to_pandas(ArrowTable, dtype_backend = dtype_backend)
+
 def ReadSQLToDataFrame(Query: str, Connection, dtype_backend: str = "numpy"):
     with Connection.cursor() as Cursor:
         Cursor.execute(Query)
         ArrowTable = Cursor.fetch_arrow_table()
     return arrow_table_to_pandas(ArrowTable, dtype_backend = dtype_backend)
 
-def ADBCROClient():
-    raise NotImplementedError("部分数据库不支持此方式设置只读链接")
+def ADBCRawClient():
+    global _RawConnection
+    if _RawConnection == None:
+        _RawConnection = dbapi.connect(**ADBCConfig()["Connection"])
+        RunInit(_RawConnection)
+    return _RawConnection
 
 def TomlQuote(Value: str) -> str:
     return '"' + Value.replace('\\', '\\\\').replace('"', '\\"') + '"'

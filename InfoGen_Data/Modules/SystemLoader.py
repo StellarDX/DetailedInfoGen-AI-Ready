@@ -2,7 +2,7 @@ from InfoGen_Data import InfoGen
 from InfoGen_Data import InfoGenHelpFormatter
 from InfoGen_Data import LoadLocale
 from InfoGen_Data import Classifications
-from InfoGen_Data import ADBCClient, ReadSQLToDataFrame
+from InfoGen_Data import ADBCClient, ADBCRawClient, ReadSQLToDataFrame, LoadTableSchemaToDataFrame
 from InfoGen_Data import UserConfirm
 from InfoGen_Data import CurrentSQLVariation
 
@@ -85,39 +85,39 @@ class Uploader():
         return sha256(Path(Source).read_bytes()).hexdigest()
 
     def _Load_Table(self):
-        Connection = ADBCClient()
+        Connection = ADBCRawClient()
         # 此处使用select * from table where 1 = 0获取表数据，多数数据库都支持且这种方法是多数ORM都在用的方法
-        self._SystemDataFrame = ReadSQLToDataFrame("select * from ig_system where 1 = 0;", Connection)
+        self._SystemDataFrame = LoadTableSchemaToDataFrame("ig_system", Connection)
         self._TableSchema["ig_system"] = self._SystemDataFrame.dtypes.to_dict()
         self._SystemDataFrame.set_index("system_id", inplace=True)
-        self._ObjectsDataFrame = ReadSQLToDataFrame("select * from ig_object where 1 = 0;", Connection)
+        self._ObjectsDataFrame = LoadTableSchemaToDataFrame("ig_object", Connection)
         self._TableSchema["ig_object"] = self._ObjectsDataFrame.dtypes.to_dict()
         self._ObjectsDataFrame.set_index("object_id", inplace=True)
-        self._IdentifiersDataFrame = ReadSQLToDataFrame("select * from ig_identifiers where 1 = 0;", Connection)
+        self._IdentifiersDataFrame = LoadTableSchemaToDataFrame("ig_identifiers", Connection)
         self._TableSchema["ig_identifiers"] = self._IdentifiersDataFrame.dtypes.to_dict()
         self._IdentifiersDataFrame.set_index(["object_id", "alias"], inplace=True)
-        self._PhysicalDataFrame = ReadSQLToDataFrame("select * from ig_physical where 1 = 0;", Connection)
+        self._PhysicalDataFrame = LoadTableSchemaToDataFrame("ig_physical", Connection)
         self._TableSchema["ig_physical"] = self._PhysicalDataFrame.dtypes.to_dict()
         self._PhysicalDataFrame.set_index("object_id", inplace=True)
-        self._OrbitDataFrame = ReadSQLToDataFrame("select * from ig_orbit where 1 = 0;", Connection)
+        self._OrbitDataFrame = LoadTableSchemaToDataFrame("ig_orbit", Connection)
         self._TableSchema["ig_orbit"] = self._OrbitDataFrame.dtypes.to_dict()
         self._OrbitDataFrame.set_index("object_id", inplace=True)
-        self._AtmosphereDataFrame = ReadSQLToDataFrame("select * from ig_atmosphere where 1 = 0;", Connection)
+        self._AtmosphereDataFrame = LoadTableSchemaToDataFrame("ig_atmosphere", Connection)
         self._TableSchema["ig_atmosphere"] = self._AtmosphereDataFrame.dtypes.to_dict()
         self._AtmosphereDataFrame.set_index("object_id", inplace=True)
-        self._HydrosphereDataFrame = ReadSQLToDataFrame("select * from ig_hydrosphere where 1 = 0;", Connection)
+        self._HydrosphereDataFrame = LoadTableSchemaToDataFrame("ig_hydrosphere", Connection)
         self._TableSchema["ig_hydrosphere"] = self._HydrosphereDataFrame.dtypes.to_dict()
         self._HydrosphereDataFrame.set_index("object_id", inplace=True)
-        self._BiosphereDataFrame = ReadSQLToDataFrame("select * from ig_biosphere where 1 = 0;", Connection)
+        self._BiosphereDataFrame = LoadTableSchemaToDataFrame("ig_biosphere", Connection)
         self._TableSchema["ig_biosphere"] = self._BiosphereDataFrame.dtypes.to_dict()
         self._BiosphereDataFrame.set_index("object_id", inplace=True)
-        self._BioBiomeDataFrame = ReadSQLToDataFrame("select * from ig_biosphere_biome where 1 = 0;", Connection)
+        self._BioBiomeDataFrame = LoadTableSchemaToDataFrame("ig_biosphere_biome", Connection)
         self._TableSchema["ig_biosphere_biome"] = self._BioBiomeDataFrame.dtypes.to_dict()
         self._BioBiomeDataFrame.set_index(["object_id", "biome"], inplace=True)
-        self._CompositionsDataFrame = ReadSQLToDataFrame("select * from ig_composition where 1 = 0;", Connection)
+        self._CompositionsDataFrame = LoadTableSchemaToDataFrame("ig_composition", Connection)
         self._TableSchema["ig_composition"] = self._CompositionsDataFrame.dtypes.to_dict()
         self._CompositionsDataFrame.set_index(["object_id", "kind", "component"], inplace=True)
-        self._RingsDataFrame = ReadSQLToDataFrame("select * from ig_rings where 1 = 0;", Connection)
+        self._RingsDataFrame = LoadTableSchemaToDataFrame("ig_rings", Connection)
         self._TableSchema["ig_rings"] = self._RingsDataFrame.dtypes.to_dict()
         self._RingsDataFrame.set_index(["object_id", "ring_type"], inplace=True)
         Connection.close()
