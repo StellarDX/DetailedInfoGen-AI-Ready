@@ -1,4 +1,4 @@
-BEGIN;
+--BEGIN; --BEGIN和COMMIT是驱动侧管理的，脚本里最好不出现
 
 CREATE TABLE ig_system (
     system_id        VARCHAR(512) PRIMARY KEY,     -- 预留足够多的空间
@@ -172,4 +172,4 @@ CREATE TABLE ig_rings (
     PRIMARY KEY (object_id, ring_type)
 );
 
-COMMIT;
+--COMMIT;
