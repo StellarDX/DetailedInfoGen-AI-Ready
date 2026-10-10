@@ -17,6 +17,10 @@ for _stream in (sys.stdout, sys.stderr):
     except (AttributeError, ValueError, OSError):
         pass
 
+def ArgToDict(s):
+    k, v = s.split('=', 1)
+    return k, v
+
 from InfoGen_Data import InfoGen
 
 from InfoGen_Data.Modules.ChineseHelpFormatter import InfoGenHelpFormatter
@@ -34,12 +38,20 @@ from InfoGen_Data.Modules.ADBC import ADBCAdmin
 from InfoGen_Data.Modules.ADBC import CurrentSQLVariation
 from InfoGen_Data.Modules.ADBC import RegisterSQLVariation
 
-from InfoGen_Data.Modules.SystemLoader import LoadObjectsFromSC
-from InfoGen_Data.Modules.SystemLoader import CheckNamespace
+def CheckNamespace(Namespace):
+    from re import fullmatch
+    if fullmatch("^[a-z0-9]([-a-z0-9]*[a-z0-9])?$", Namespace) is not None and len(Namespace) <= 63:
+        return;
+    else:
+        raise ValueError("命名空间只能以只能包含小写字母（a-z）、数字（0-9）以及连字符/中划线（-），必须以字母或数字开头和结尾，不能以连字符（-）开头或结尾，且最大长度不能超过63个字符。")
 
-from InfoGen_Data.Modules.ResourceCreator import Register as ResourceCreatorRegister
-from InfoGen_Data.Modules.ResourceCreator import CreateResource
-from InfoGen_Data.Modules.ResourceCreator import ArgToDict
+from InfoGen_Data.Modules.SystemLoader import LoadObjectsFromSC
+from InfoGen_Data.Modules.SystemLoader import Register as SystemLoaderRegister
+    
+from InfoGen_Data.Modules.ResourceManager import CreateRegister as ResourceManagerCRegister
+from InfoGen_Data.Modules.ResourceManager import CreateResource
+from InfoGen_Data.Modules.ResourceManager import DeleteRegister as ResourceManagerDRegister
+from InfoGen_Data.Modules.ResourceManager import DeleteResource
 
 from InfoGen_Data.Modules.SQLQuery import GetRegister as GetterRegister, DescribeRegister as DescribeRegister
 from InfoGen_Data.Modules.SQLQuery import Get, Describe

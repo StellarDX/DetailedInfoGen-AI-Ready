@@ -1,4 +1,5 @@
-from InfoGen_Data import ResourceCreatorRegister, CreateResource
+from InfoGen_Data import ResourceManagerCRegister, CreateResource
+from InfoGen_Data import ResourceManagerDRegister, DeleteResource
 from InfoGen_Data import GetterRegister, Get
 from InfoGen_Data import DescribeRegister, Describe
 from InfoGen_Data import LCAdminRegister, LocaleAdmin
@@ -28,7 +29,8 @@ def Egg(MainArgParser):
     ParserLocale = MainArgParser.add_parser("hello", help = "浪漫一如初见♪", formatter_class = InfoGenHelpFormatter)
 
 ModuleList = {
-    "create": {"Register": ResourceCreatorRegister, "Invoke": CreateResource},
+    "create": {"Register": ResourceManagerCRegister, "Invoke": CreateResource},
+    "delete": {"Register": ResourceManagerDRegister, "Invoke": DeleteResource},
     "get": {"Register": GetterRegister, "Invoke": Get},
     "describe": {"Register": DescribeRegister, "Invoke": Describe},
     "generate": {"Register": LangGraphRegister, "Invoke": Generate},
