@@ -87,7 +87,7 @@ def RegexStellarClassification(OClass:str):
         return Color + Lum
     if OClass[0] in "LTY":
         return "褐矮星"
-    return "特殊的恒星"
+    return OClass
 
 def PlanetClassification(OClass:str, Physical:dict, Ocean:dict = None):
     EarthMass = 5.9721684E+24
@@ -137,4 +137,4 @@ def PlanetClassification(OClass:str, Physical:dict, Ocean:dict = None):
                 return "5类（硅云）气态行星"
         case "Chthonia" | "HeliumGiant":
             return "氦行星"
-    return "未分类"
+    return OClass

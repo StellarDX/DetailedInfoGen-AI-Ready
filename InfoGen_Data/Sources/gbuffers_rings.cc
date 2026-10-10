@@ -27,6 +27,7 @@ double MaxOrbitalHeight(double SemiMajorAxis, double Inclination, double Eccentr
 
 std::string RingClassify(double EdgeRadius, double OuterRadius, double frequency, double SelfShadow, double Density, double densityPower, double colorContrast)
 {
+    if (isnan(EdgeRadius)) {return "MainRing";}
     if ((OuterRadius / EdgeRadius) > SaturnOuterEdgeRatio)
     {
         return "SaturnELike";
@@ -109,23 +110,10 @@ void LoadRings(const BasicTableType& BasicTable, const SystemType& System, OIDTy
         if (HasTable)
         {
             HasValue = 1;
-            // 类似木星主环和土星DCBA环的部分，可见
             RingsDetails MainRing;
-            MainRing.Type = "MainRing";
-            MainRing.InnerRadius = GetObjectS<SEReal>(RingsData, "InnerRadius", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
-            MainRing.Width = GetObjectS<SEReal>(RingsData, "EdgeRadius", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km - MainRing.InnerRadius;
-            MainRing.Thickness = GetObjectS<SEReal>(RingsData, "Thickness", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
-            MainRing.RockMaxSize = GetObjectS<SEReal>(RingsData, "RocksMaxSize", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
-
-            // 类似木星内侧环和土星E环的部分，背光可见
-            RingsDetails DuskyRing;
-            DuskyRing.Type = "Halo";
-            DuskyRing.InnerRadius = GetObjectS<SEReal>(RingsData, "EdgeRadius", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
-            DuskyRing.Width = GetObjectS<SEReal>(RingsData, "OuterRadius", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km - DuskyRing.InnerRadius;
-            DuskyRing.Thickness = GetObjectS<SEReal>(RingsData, "Thickness", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
-            DuskyRing.RockMaxSize = GetObjectS<SEReal>(RingsData, "RocksMaxSize", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
 
             // SE控制星环长相的几个参数似乎都是正态分布生成的，这里也只能拟合个大概了
+            MainRing.Type = "MainRing";
             double EdgeRadius = GetObjectS<SEReal>(RingsData, "EdgeRadius", 0, std::numeric_limits<SEReal>::quiet_NaN());
             double OuterRadius = GetObjectS<SEReal>(RingsData, "OuterRadius", 0, std::numeric_limits<SEReal>::quiet_NaN());
             double frequency = GetObjectS<SEReal>(RingsData, "frequency", 0, std::numeric_limits<SEReal>::quiet_NaN());
@@ -134,6 +122,25 @@ void LoadRings(const BasicTableType& BasicTable, const SystemType& System, OIDTy
             double densityPower = GetObjectS<SEReal>(RingsData, "densityPower", 0, std::numeric_limits<SEReal>::quiet_NaN());
             double colorContrast = GetObjectS<SEReal>(RingsData, "colorContrast", 0, std::numeric_limits<SEReal>::quiet_NaN());
             MainRing.Type = RingClassify(EdgeRadius, OuterRadius, frequency, SelfShadow, Density, densityPower, colorContrast);
+
+            if (isnan(EdgeRadius)) // 0.980
+            {
+                EdgeRadius = OuterRadius;
+            }
+
+            // 类似木星主环和土星DCBA环的部分，可见
+            MainRing.InnerRadius = GetObjectS<SEReal>(RingsData, "InnerRadius", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
+            MainRing.Width = EdgeRadius * Km - MainRing.InnerRadius;
+            MainRing.Thickness = GetObjectS<SEReal>(RingsData, "Thickness", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
+            MainRing.RockMaxSize = GetObjectS<SEReal>(RingsData, "RocksMaxSize", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
+
+            // 类似木星内侧环和土星E环的部分，背光可见
+            RingsDetails DuskyRing;
+            DuskyRing.Type = "Halo";
+            DuskyRing.InnerRadius = EdgeRadius * Km;
+            DuskyRing.Width = OuterRadius * Km - DuskyRing.InnerRadius;
+            DuskyRing.Thickness = GetObjectS<SEReal>(RingsData, "Thickness", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
+            DuskyRing.RockMaxSize = GetObjectS<SEReal>(RingsData, "RocksMaxSize", 0, std::numeric_limits<SEReal>::quiet_NaN()) * Km;
 
             if (MainRing.Width) {Result.Details.push_back(MainRing);}
             if (DuskyRing.Width) {Result.Details.push_back(DuskyRing);}
@@ -164,8 +171,8 @@ RingsTableType gbuffers_rings()
             Data["Type"] = i.Type;
             Data["InnerRadius"] = i.InnerRadius;
             Data["Width"] = i.Width;
-            Data["Thickness"] = i.Thickness;
-            Data["RockMaxSize"] = i.RockMaxSize;
+            if (!isnan(i.Thickness)) {Data["Thickness"] = i.Thickness;}
+            if (!isnan(i.RockMaxSize)) {Data["RockMaxSize"] = i.RockMaxSize;}
             if (i.Type == "CircumplanetaryDisc") {Data["ObjectCount"] = i.ObjectCount;}
             Details.push_back(Data);
         }

@@ -30,10 +30,14 @@ void LoadOcean(const BasicTableType& BasicTable, OIDType CurrentID, OceanPrevTab
             {
                 Result.Height = GetObjectS(OceanData, "Height", 0, std::numeric_limits<double>::quiet_NaN()) * Km;
             }
-            SETable Compositions = OceanData.find("Composition")->second[0].As<SETable>();
-            for (auto [Material, Percents] : Compositions)
+            auto CompIter = OceanData.find("Composition");
+            if (CompIter != OceanData.end())
             {
-                Result.CompositionByVolume.insert({Material, Percents[0].As<double>()});
+                SETable Compositions = CompIter->second[0].As<SETable>();
+                for (auto [Material, Percents] : Compositions)
+                {
+                    Result.CompositionByVolume.insert({Material, Percents[0].As<double>()});
+                }
             }
             Table->insert({CurrentID, Result});
         }

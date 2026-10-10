@@ -16,6 +16,21 @@
 
 PhysicalTableType PhysicalTable;
 
+static const std::unordered_map<std::string, std::string> __Compatibility_980_To_990
+{
+    {"Selena", "Terra"}, // 官方文档说这种类型包含了水星，月球，木卫一等无大气物体，其中新版本中水星被分到了Ferria中，因此不能一一对应
+    {"Desert", "Terra"},
+    {"Oceania", "Aquaria"},
+    {"Titan", "Aquaria"},
+    {"WaterWorld", "Aquaria"},
+    {"IceWorld", "Aquaria"},
+    {"Titan", "Aquaria"},
+    {"Neptune", "IceGiant"}, // 冰巨星统一映射为IceGiant
+    {"Jupiter", "GasGiant"}, // 气态行星统一映射为GasGiant
+    {"Jovian", "GasGiant"},
+    {"Chthonia", "HeliumGiant"} // 氦行星统一映射为HeliumGiant
+};
+
 void LoadRadiuses(const SETable& Data, PhysicalCharacteristics* Table)
 {
     Table->Dimensions.setConstant(GetObjectS(Data, "Radius", 0, 
@@ -175,6 +190,18 @@ void LoadBasicData(const SETable& RawData, OIDType CurrentID, const OrbitTableTy
 void LoadLuminosity(const SETable& Data, PhysicalCharacteristics* Table)
 {
     Table->Luminosity = GetObjectS(Data, "LumBol", 0, std::numeric_limits<double>::quiet_NaN());
+    if (isnan(Table->Luminosity)) // 0.980
+    {
+        Table->Luminosity = GetObjectS(Data, "LuminosityBol", 0, std::numeric_limits<double>::quiet_NaN());
+    }
+    if (isnan(Table->Luminosity)) // 0.980
+    {
+        Table->Luminosity = GetObjectS(Data, "Luminosity", 0, std::numeric_limits<double>::quiet_NaN());
+    }
+    if (isnan(Table->Luminosity)) // 0.980
+    {
+        Table->Luminosity = GetObjectS(Data, "Lum", 0, std::numeric_limits<double>::quiet_NaN());
+    }
     if (!GetObjectS(Data, "NoAccretionDisk", 0, false))
     {
         auto it = Data.find("AccretionDisk");
@@ -185,7 +212,12 @@ void LoadLuminosity(const SETable& Data, PhysicalCharacteristics* Table)
         if (HasTable)
         {
             if (isnan(Table->Luminosity)) {Table->Luminosity = 0;}
-            Table->Luminosity += GetObjectS(AccDiskTable, "LuminosityBol", 0, std::numeric_limits<double>::quiet_NaN());
+            double AccLuminosity = GetObjectS(AccDiskTable, "LuminosityBol", 0, std::numeric_limits<double>::quiet_NaN());
+            if (isnan(AccLuminosity))
+            {
+                AccLuminosity = GetObjectS(AccDiskTable, "Luminosity", 0, std::numeric_limits<double>::quiet_NaN());
+            }
+            Table->Luminosity += AccLuminosity;
         }
     }
     Table->Luminosity *= SolarLuminosity;
@@ -315,6 +347,10 @@ void LoadPlanet(const BasicTableType& BasicTable, OIDType CurrentID, const Orbit
 {
     auto RawData = BasicTable.at(CurrentID).second[1].As<SETable>();
     LoadBasicData(RawData, CurrentID, Orbit, Table);
+    if (__Compatibility_980_To_990.contains(Table->Class))
+    {
+        Table->Class = __Compatibility_980_To_990.at(Table->Class);
+    }
     ComputeSynodicRotationPeriod(CurrentID, Orbit, Table);
     ComputePlanetTemperature(RawData, CurrentID, Stars, StaticPos, PhysTable, Table);
     if (BasicTable.at(CurrentID).first == "Planet" ||

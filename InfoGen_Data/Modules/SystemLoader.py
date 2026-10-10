@@ -19,7 +19,7 @@ from uuid import uuid5, NAMESPACE_URL
 from hashlib import sha256
 from sqlalchemy import select, delete, insert, MetaData, Table, Column
 from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger
-from numpy import inf
+from numpy import inf, nan
 
 def PrintArgs(args):
     print(f"配置: ")
@@ -317,8 +317,8 @@ class Uploader():
                 self._RingsDataFrame.loc[(CurrentHash, i["Type"]), :] = [
                     i["InnerRadius"],
                     i["Width"],
-                    i["Thickness"],
-                    i["RockMaxSize"],
+                    i["Thickness"] if "Thickness" in i.keys() else None,
+                    i["RockMaxSize"] if "RockMaxSize" in i.keys() else None,
                     i["ObjectCount"] if "ObjectCount" in i.keys() else 0 # DataFrame不能这样传入Int类型的None（会自动转成float），只能写0
                 ]
         
@@ -574,6 +574,7 @@ class Uploader():
             if (len(self._CompositionsDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_composition", self._CompositionsDataFrame, self._TableSchema["ig_composition"]))
             if (len(self._RingsDataFrame) != 0):
+                self._RingsDataFrame.replace([nan], [None], inplace = True)
                 InsertStatements.append(self.DataFrameToSQL("ig_rings", self._RingsDataFrame, self._TableSchema["ig_rings"]))
         
             with Connection.cursor() as Cursor:
@@ -796,7 +797,8 @@ class Generator(ABC):
                     Ocean = {}
                     Ocean[LOC("海洋深度")] = f"{Object["Hydrosphere"]["Height"]:.{self._Prec}g} m"
                     Compositions = Object["Hydrosphere"]["CompositionByVolume"]
-                    Ocean[LOC("海洋成分")] = "\n".join([f"{v:.{self._Prec}g}% {k}" for k, v in Compositions.items()])
+                    if len(Compositions) != 0:
+                        Ocean[LOC("海洋成分")] = "\n".join([f"{v:.{self._Prec}g}% {k}" for k, v in Compositions.items()])
                     ObjectInfo[LOC("海洋")] = DataFrame([Ocean])
                 if "Biosphere" in Object.keys():
                     Life = {}
@@ -815,8 +817,10 @@ class Generator(ABC):
                     })
                     ObjectInfo[LOC("环系统")][LOC("半径")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("半径")].tolist()]
                     ObjectInfo[LOC("环系统")][LOC("宽度")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("宽度")].tolist()]
-                    ObjectInfo[LOC("环系统")][LOC("厚度")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("厚度")].tolist()]
-                    ObjectInfo[LOC("环系统")][LOC("最大物体直径")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("最大物体直径")].tolist()]
+                    if LOC("厚度") in ObjectInfo[LOC("环系统")].columns:
+                        ObjectInfo[LOC("环系统")][LOC("厚度")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("厚度")].tolist()]
+                    if LOC("最大物体直径") in ObjectInfo[LOC("环系统")].columns:
+                        ObjectInfo[LOC("环系统")][LOC("最大物体直径")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("最大物体直径")].tolist()]
                 if "SubSystemsList" in Object["PhysicalCharacteristics"].keys():
                     ObjectInfo[LOC("卫星列表")] = self._Subsystem_To_DataFrame(Object["PhysicalCharacteristics"]["SubSystemsList"], ParentBody)
             case "Moon":
@@ -889,7 +893,8 @@ class Generator(ABC):
                     Ocean = {}
                     Ocean[LOC("海洋深度")] = f"{Object["Hydrosphere"]["Height"]:.{self._Prec}g} m"
                     Compositions = Object["Hydrosphere"]["CompositionByVolume"]
-                    Ocean[LOC("海洋成分")] = "\n".join([f"{v:.{self._Prec}g}% {k}" for k, v in Compositions.items()])
+                    if len(Compositions) != 0:
+                        Ocean[LOC("海洋成分")] = "\n".join([f"{v:.{self._Prec}g}% {k}" for k, v in Compositions.items()])
                     ObjectInfo[LOC("海洋")] = DataFrame([Ocean])
                 if "Biosphere" in Object.keys():
                     Life = {}
@@ -908,8 +913,10 @@ class Generator(ABC):
                     })
                     ObjectInfo[LOC("环系统")][LOC("半径")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("半径")].tolist()]
                     ObjectInfo[LOC("环系统")][LOC("宽度")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("宽度")].tolist()]
-                    ObjectInfo[LOC("环系统")][LOC("厚度")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("厚度")].tolist()]
-                    ObjectInfo[LOC("环系统")][LOC("最大物体直径")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("最大物体直径")].tolist()]
+                    if LOC("厚度") in ObjectInfo[LOC("环系统")].columns:
+                        ObjectInfo[LOC("环系统")][LOC("厚度")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("厚度")].tolist()]
+                    if LOC("最大物体直径") in ObjectInfo[LOC("环系统")].columns:
+                        ObjectInfo[LOC("环系统")][LOC("最大物体直径")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("最大物体直径")].tolist()]
         return ObjectInfo
 
     def _Minor_Object_List_Has_Comet(self):
