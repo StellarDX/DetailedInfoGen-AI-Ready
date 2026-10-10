@@ -18,6 +18,10 @@ from langgraph.graph import StateGraph, MessagesState, START, END
 from langgraph.prebuilt import ToolNode
 
 _ChatClient = None
+_ToolList = [QuerySystem, QueryAllObjectsInSystem, QueryObject]
+
+def RegisterTool(Tool:BaseTool | Callable):
+    _ToolList.append(Tool)
 
 def ChatClient(_Verbose:bool = False):
     global _ChatClient
@@ -142,7 +146,7 @@ def Register(MainArgParser):
 
 def Generate(args):
     SetNamespace(args.namespace)
-    ToolList = [QuerySystem, QueryAllObjectsInSystem, QueryObject]
+    ToolList = _ToolList
     State = InitState(args, ToolList)
     WorkFlow = InitWorkflow(ToolList)
     print("初始化完成")
