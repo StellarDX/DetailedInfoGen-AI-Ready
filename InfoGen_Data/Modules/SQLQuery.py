@@ -12,6 +12,7 @@ from pandas import notna
 from pandas.api.types import is_dict_like
 from tabulate import tabulate
 from langchain.tools import tool
+from numpy import nan
 
 _NamespaceBuffer = ""
 
@@ -433,6 +434,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         RingsFrame = ReadSQLToDataFrame(RingsQuery, Connection)
         RingsFrame.set_index(["object_id"], inplace = True)
         RingsDict = RingsFrame.groupby("object_id")[["ring_type", "inner_radius", "width", "thickness", "rock_max_size", "object_count"]].apply(lambda x: x.to_dict('records')).to_dict()
+        RingsDict = {m: [{i: j for i, j in k.items() if notna(j)} for k in l] for m, l in RingsDict.items() if l}
         for i, j in RingsDict.items():
             for k in j:
                 if k["object_count"] == 0:
