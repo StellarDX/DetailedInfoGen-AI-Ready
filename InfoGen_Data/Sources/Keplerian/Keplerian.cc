@@ -42,7 +42,7 @@ double __Enhanced_Inverse_Keplerian_Equation_Solver::BoundaryHandler(double MRad
     double al = AbsTol / 1E7;
     double be = AbsTol / 0.3;
 
-    while (fb - fa > al + f * be)
+    while (fb - fa > std::abs(al + f * be)) // 二分搜索中fb-fa恒为正但f的值可能为负，因此加个绝对值
     {
         if (f - Eccentricity * sin(f) - MRad > 0)
         {
