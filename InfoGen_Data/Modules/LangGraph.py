@@ -101,7 +101,7 @@ def InitState(args, Tools:Sequence[BaseTool | Callable]):
     UserPrompt = Path(args.input).read_text(encoding = 'utf-8')
     UserPromptTemplate = ChatPromptTemplate.from_messages([("human", UserPrompt)])
     FinalUserPrompt = UserPromptTemplate.invoke({i: j for i, j in args.define}).to_messages()[0] # 按理来说这里只会返回格式化后的提示词
-    print(f"用户提示词：{FinalUserPrompt.content}")
+    print(f"用户提示词：\n{FinalUserPrompt.content}")
     State["messages"].append(FinalUserPrompt)
 
     if args.max_length != 0:
