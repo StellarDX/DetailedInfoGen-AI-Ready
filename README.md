@@ -1,6 +1,6 @@
-# DetailedInfoGen-AI-Ready
+# SpaceEngine 0.990详细信息生成器（含AI能力）
 
-> 基于 **C++26** 与 **Python** 混编的 SpaceEngine 详细信息生成器（含 AI 能力）。
+> 基于 **C++26** 与 **Python** 混编的 SpaceEngine 详细信息生成器，可向下兼容0.980。
 
 从SpaceEngine导出的行星系统文件（`.sc`）解析行星系统结构并生成详细信息文档。
 
