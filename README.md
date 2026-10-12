@@ -139,7 +139,7 @@ cmake --install <构建目录>
 <安装前缀>/
 ├── InfoGen.py                          # 命令行入口
 └── InfoGen_Data/
-    ├── InfoGen.(so|pyd)                # C++ 核心编译出的 Python 扩展模块
+    ├── InfoGen.(so|pyd)                # C++编译的Python模块
     ......
     └── requirements-linux.txt / requirements-win.txt
 ```
