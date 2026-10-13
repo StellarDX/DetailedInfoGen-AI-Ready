@@ -1,5 +1,3 @@
-#include "fmt/format.h"
-#include <string>
 #define _USE_MATH_DEFINES
 #include "gbuffers_basic.h"
 #include "AdvMath/Integral.h"
@@ -11,12 +9,14 @@
 
 #include <limits>
 #include <cctype>
+#include <queue>
 
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
 #include <pybind11/eigen.h>
 #include "spdlog/spdlog.h"
 #include "fast_float/fast_float.h"
+#include "fmt/format.h"
 
 PhysicalTableType PhysicalTable;
 
@@ -508,8 +508,26 @@ PhysicalCharTableType gbuffer_basic()
         {
             return std::find(v.second.begin(), v.second.end(), i) != v.second.end();
         });
+
+        // SE0.980和990的恒星质心判定都有问题，就是在多星系统中只判定了上一级物体里有没有恒星
+        // 如果恒星位于更深层的系统中这方法会失效，因此需要递归收集所有物体然后判定这些物体里有没有恒星
         std::vector<OIDType> IsStarBarycenter;
-        std::ranges::set_intersection(StarList, SystemTable[ParentBody->first], std::back_inserter(IsStarBarycenter));
+        std::vector<OIDType> ObjectList;
+        std::queue<OIDType> ObjectsQueue;
+        ObjectsQueue.push(ParentBody->first);
+        while (!ObjectsQueue.empty())
+        {
+            OIDType CurrentObject = ObjectsQueue.front();
+            ObjectsQueue.pop();
+            for (auto i : SystemTable.at(CurrentObject))
+            {
+                ObjectList.push_back(i);
+                ObjectsQueue.push(i);
+            }
+        }
+
+        std::ranges::set_intersection(StarList, ObjectList, std::back_inserter(IsStarBarycenter));
+
         if (BaryenterList.contains(ParentBody->first) && IsStarBarycenter.empty())
         {
             for (auto j : SystemTable[ParentBody->first])
