@@ -443,13 +443,14 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     SubDict = None
     if "subsystems" in Info:
         STbl = aliased(Tbl, name = "subsystems")
-        SubQuery = str((select(Tbl.c.object_id, STbl.c.primary_name.label("subsystem"))
+        SubQuery = str((select(Tbl.c.object_id, STbl.c.primary_name.label("subsystem_name"), 
+            STbl.c.otype.label("subsystem_otype"), STbl.c["class"].label("subsystem_class"))
             .select_from(Tbl.join(STbl, STbl.c.parent_object_id == Tbl.c.object_id))
             .where(Tbl.c.object_id.in_(ObjList)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
         SubFrame = ReadSQLToDataFrame(SubQuery, Connection)
         SubFrame.set_index("object_id", inplace = True)
-        SubDict = SubFrame.groupby("object_id")["subsystem"].apply(list).to_dict()
+        SubDict = SubFrame.groupby("object_id")[["subsystem_name", "subsystem_otype", "subsystem_class"]].apply(lambda x: x.to_dict('records')).to_dict()
 
     Result = MainFrame[BasicLabels].to_dict(orient = 'records')
 
