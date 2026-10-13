@@ -168,16 +168,5 @@ void Composite(ReturnType* Result)
     (*Result)["NMinorPlanets"] = MinorPlanetList.size();
     (*Result)["NComets"] = CometList.size();
 
-    std::vector<std::string> SpTypes;
-    for (auto i : StarList)
-    {
-        auto SpClass = GetObjectS(BASIC[i].second[1].As<SETable>(), "Class", 0, std::string("?"));
-        if (SpClass == "Q") {SpClass = "Pulsar";}
-        else if (SpClass == "X") {SpClass = "BlackHole";}
-        else if (SpClass == "Z") {SpClass = "WormHole";}
-        SpTypes.push_back(SpClass);
-    }
-    (*Result)["StarSpectralType"] = SpTypes;
-
     spdlog::info("完成");
 }

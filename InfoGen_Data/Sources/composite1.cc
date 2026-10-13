@@ -101,6 +101,14 @@ void Composite1(ReturnType* Result)
 
     spdlog::info("生成物体列表...");
 
+    std::vector<std::string> SpTypes;
+    for (auto i : StarList)
+    {
+        auto SpClass = PhysicalTable.at(i).Class;
+        SpTypes.push_back(SpClass);
+    }
+    (*Result)["StarSpectralType"] = SpTypes;
+
     auto MinorObjs = std::ranges::views::concat(MinorPlanetList, CometList);
     MinorObjectList.insert(MinorObjs.begin(), MinorObjs.end());
     ReturnType ObjectList;

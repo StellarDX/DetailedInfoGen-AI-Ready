@@ -1,3 +1,5 @@
+#include "fmt/format.h"
+#include <string>
 #define _USE_MATH_DEFINES
 #include "gbuffers_basic.h"
 #include "AdvMath/Integral.h"
@@ -8,11 +10,13 @@
 #include "gbuffers_orbit.h"
 
 #include <limits>
+#include <cctype>
 
 #include <pybind11/pytypes.h>
 #include <pybind11/stl.h>
 #include <pybind11/eigen.h>
 #include "spdlog/spdlog.h"
+#include "fast_float/fast_float.h"
 
 PhysicalTableType PhysicalTable;
 
@@ -229,6 +233,108 @@ double SchwarzschildRadius(double Mass)
     return (2. * GravConstant * Mass) / (SpeedOfLight * SpeedOfLight);
 }
 
+void ReclassifyMassiveStars(PhysicalCharacteristics* Table)
+{
+    // 做到这一步依然可能会有漏网之鱼，因此如果遇到质量小于上限但被划分为O0和O1的恒星单独限到O2
+    if (Table->Class.front() == 'O' && ::isdigit(Table->Class.subview(1, 1).front()))
+    {
+        if (Table->Mass > 97.6 * SolarMass)
+        {
+            // SE对大质量恒星的分类十分的模糊并且还会出O0和O1这类未定义类型，因此这里重新分类一下
+            // 这个分界线以恒星BI 253的质量（97.6太阳）作为O型恒星的质量上限，再大的分到沃尔夫-拉叶星（SE没有WNh类型）
+            if (Table->Temperature <= 35000) {Table->Class = "WN9h";}
+            else if (Table->Temperature <= 40000) {Table->Class = "WN8h";}
+            else if (Table->Temperature <= 45000) {Table->Class = "WN7h";}
+            else if (Table->Temperature <= 50000) {Table->Class = "WN6h";}
+            else {Table->Class = "WN5h";}
+        }
+        else
+        {
+            auto View = Table->Class.subview(1);
+            double Sub;
+            auto Result = fast_float::from_chars(View.data(), View.data() + View.size(), Sub);
+            if (Sub < 2)
+            {
+                Table->Class = std::string("O2") + Result.ptr;
+            }
+        }
+        return;
+    }
+
+    // WR星光谱限幅（WR光谱分级是根据特定谱线强度划分的，而不是依靠温度，因此取个整）
+    if (Table->Class.subview(0, 2) == "WN")
+    {
+        auto View = Table->Class.subview(2);
+        double Sub;
+        auto Result = fast_float::from_chars(View.data(), View.data() + View.size(), Sub);
+        Sub = ::floor(Sub);
+        if (Sub < 2) // WN在WN2-WN11之间有定义
+        {
+            Table->Class = std::string("WN2") + Result.ptr;
+        }
+        else
+        {
+            Table->Class = std::string("WN") + fmt::format("{}", Sub) + Result.ptr;
+        }
+        return;
+    }
+
+    if (Table->Class.subview(0, 2) == "WNC" || Table->Class.subview(0, 2) == "WN/C")
+    {
+        auto View = Table->Class.subview(Table->Class.subview(0, 2) == "WN/C" ? 4 : 3);
+        double Sub;
+        auto Result = fast_float::from_chars(View.data(), View.data() + View.size(), Sub);
+        Sub = ::floor(Sub);
+        if (Sub < 2) // WN在WN2-WN11之间有定义
+        {
+            Table->Class = std::string("WNC2") + Result.ptr;
+        }
+        else
+        {
+            Table->Class = std::string("WNC") + fmt::format("{}", Sub) + Result.ptr;
+        }
+        return;
+    }
+
+    if (Table->Class.subview(0, 2) == "WC")
+    {
+        auto View = Table->Class.subview(2);
+        double Sub;
+        auto Result = fast_float::from_chars(View.data(), View.data() + View.size(), Sub);
+        Sub = ::floor(Sub);
+        if (Sub < 1) // WC在WC1-WC11之间有定义
+        {
+            Table->Class = std::string("WC1") + Result.ptr;
+        }
+        else
+        {
+            Table->Class = std::string("WC") + fmt::format("{}", Sub) + Result.ptr;
+        }
+        return;
+    }
+
+    if (Table->Class.subview(0, 2) == "WO")
+    {
+        auto View = Table->Class.subview(2);
+        double Sub;
+        auto Result = fast_float::from_chars(View.data(), View.data() + View.size(), Sub);
+        Sub = ::floor(Sub);
+        if (Sub < 1) // WO在WO1-WO4之间有定义
+        {
+            Table->Class = std::string("WO1") + Result.ptr;
+        }
+        else if (Sub > 4) // WO在WO1-WO4之间有定义
+        {
+            Table->Class = std::string("WO4") + Result.ptr;
+        }
+        else
+        {
+            Table->Class = std::string("WO") + fmt::format("{}", Sub) + Result.ptr;
+        }
+        return;
+    }
+}
+
 void LoadStar(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTableType& Orbit, PhysicalCharacteristics* Table)
 {
     auto RawData = BasicTable.at(CurrentID).second[1].As<SETable>();
@@ -257,6 +363,8 @@ void LoadStar(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTa
             Table->Temperature = GetObjectS(RawData, "Teff", 0, std::numeric_limits<double>::quiet_NaN());
         }
     }
+
+    ReclassifyMassiveStars(Table);
 }
 
 void ComputePlanetTemperature(const SETable& RawData, OIDType CurrentID, const ObjectListType& Stars, const StaticPosTableType& StaticPos, const PhysicalTableType& PhysTable, PhysicalCharacteristics* Table)

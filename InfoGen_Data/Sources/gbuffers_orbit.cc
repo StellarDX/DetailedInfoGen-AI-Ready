@@ -318,7 +318,7 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
 
         auto& Barycen = (*Table)[CurrentID], 
             &Primary = (*Table)[SubSystems[0]], &Companion = (*Table)[SubSystems[1]];
-        if (std::abs(Primary.ArgOfPericenter - Companion.ArgOfPericenter) - 180 < 1E-5) // 文件->数字这一过程发生了3次精度丢失，因此不能设的太高
+        if (std::abs(Primary.ArgOfPericenter - Companion.ArgOfPericenter) - 180 < 5E-4) // 文件->数字这一过程发生了3次精度丢失，因此不能设的太高
         {
             Companion.BinaryOrbit = 1;
             Companion.IsPrimary = 0;
