@@ -1,5 +1,6 @@
 #define _USE_MATH_DEFINES
 #include "gbuffers_basic.h"
+#include "gbuffers_orbit.h"
 #include "AdvMath/Integral.h"
 #include "CONSTANTS.INC"
 #include "Mini-NeoCSE/ISCStream.h"
@@ -528,19 +529,28 @@ PhysicalCharTableType gbuffer_basic()
 
         std::ranges::set_intersection(StarList, ObjectList, std::back_inserter(IsStarBarycenter));
 
-        if (BaryenterList.contains(ParentBody->first) && IsStarBarycenter.empty())
+        for (auto j : SystemTable[i])
+        {
+            if (MinorPlanetList.contains(j)) {continue;}
+            OIDType SubSys = j;
+            if (BaryenterList.contains(j))
+            {
+                auto& SubSystem = SystemTable.at(j);
+                auto it = std::find_if(SubSystem.begin(), SubSystem.end(), [](OIDType v)
+                {
+                    return OrbitTable.at(v).BinaryOrbit && OrbitTable.at(v).IsPrimary;
+                });
+                if (it != SubSystem.end()) {SubSys = *it;}
+                else {spdlog::warn("没有找到质心 {}:{} 的主星", IDENT[j].front(), j);}
+            }
+            Table.SubSystemsList.push_back(IDENT[SubSys].front());
+        }
+        if (BaryenterList.contains(ParentBody->first) && IsStarBarycenter.empty()
+            && OrbitTable.at(i).BinaryOrbit && OrbitTable.at(i).IsPrimary)
         {
             for (auto j : SystemTable[ParentBody->first])
             {
                 if (i == j) {continue;}
-                if (MinorPlanetList.contains(j)) {continue;}
-                Table.SubSystemsList.push_back(IDENT[j].front());
-            }
-        }
-        else
-        {
-            for (auto j : SystemTable[i])
-            {
                 if (MinorPlanetList.contains(j)) {continue;}
                 Table.SubSystemsList.push_back(IDENT[j].front());
             }

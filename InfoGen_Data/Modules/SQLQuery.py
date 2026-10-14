@@ -450,6 +450,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
         SubFrame = ReadSQLToDataFrame(SubQuery, Connection)
         SubFrame.set_index("object_id", inplace = True)
+        # SubDict = SubFrame.groupby("object_id")["subsystem_name"].apply(list).to_dict()
         SubDict = SubFrame.groupby("object_id")[["subsystem_name", "subsystem_otype", "subsystem_class"]].apply(lambda x: x.to_dict('records')).to_dict()
 
     Result = MainFrame[BasicLabels].to_dict(orient = 'records')
