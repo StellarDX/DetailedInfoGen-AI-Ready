@@ -629,7 +629,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
     行星类型（/class）字段解释：
         Ferria：铁质行星
         Terra：岩质行星（类地行星）
-        Aquaria：水质行星
+        Aquaria：水/冰质行星
         Carbonia：碳质行星
         Neptune / IceGiant：冰巨星
         Jupiter / GasGiant：气态行星
