@@ -585,6 +585,16 @@ def QueryAllObjectsInSystem(SystemName:str, ObjectType:Literal[
 
     根据系统名称查询该系统下包含的全部对象，并以 TSV（制表符分隔）格式返回。
 
+    行星类型（/class）字段解释：
+        Ferria：铁质行星
+        Terra：岩质行星（类地行星）
+        Aquaria：水/冰质行星
+        Carbonia：碳质行星
+        Neptune / IceGiant：冰巨星
+        Jupiter / GasGiant：气态行星，此值可能也会出现于恒星(otype为"Star"时)，出现于恒星时表示此物体为Free-floating gas giant(Sub-brown dwarf)
+        Chthonia / HeliumGiant：氦行星
+        Asteroid：小型物体（无实际意义）
+
     Args:
         SystemName (str): 要查询的系统名称。
         ObjectType (str): 物体类型，用于进一步过滤。可选值：
