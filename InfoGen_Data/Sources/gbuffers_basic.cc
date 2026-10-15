@@ -234,9 +234,8 @@ double SchwarzschildRadius(double Mass)
     return (2. * GravConstant * Mass) / (SpeedOfLight * SpeedOfLight);
 }
 
-void ReclassifyMassiveStars(PhysicalCharacteristics* Table)
+void ReclassifyStars(PhysicalCharacteristics* Table)
 {
-    // 做到这一步依然可能会有漏网之鱼，因此如果遇到质量小于上限但被划分为O0和O1的恒星单独限到O2
     if (Table->Class.front() == 'O' && ::isdigit(Table->Class.subview(1, 1).front()))
     {
         if (Table->Mass > 97.6 * SolarMass)
@@ -334,6 +333,24 @@ void ReclassifyMassiveStars(PhysicalCharacteristics* Table)
         }
         return;
     }
+
+    // Sub-STellar Object限幅
+    if (Table->Mass < 13 * JupiterMass) // 这两个条件的关系为不充分也不必要条件，Return放在哪里属实难搞
+    {
+        Table->Class = "GasGiant"; // Sub-brown dwarf
+    }
+    if (Table->Class.front() == 'Y' && ::isdigit(Table->Class.subview(1, 1).front()))
+    {
+        // Y型褐矮星的下限为13木星质量，对应Y4，再小就是气态行星了
+        auto View = Table->Class.subview(1);
+        double Sub;
+        auto Result = fast_float::from_chars(View.data(), View.data() + View.size(), Sub);
+        if (Sub < 4)
+        {
+            Table->Class = std::string("Y4") + Result.ptr;
+        }
+        return;
+    }
 }
 
 void LoadStar(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTableType& Orbit, PhysicalCharacteristics* Table)
@@ -365,7 +382,7 @@ void LoadStar(const BasicTableType& BasicTable, OIDType CurrentID, const OrbitTa
         }
     }
 
-    ReclassifyMassiveStars(Table);
+    ReclassifyStars(Table);
 }
 
 void ComputePlanetTemperature(const SETable& RawData, OIDType CurrentID, const ObjectListType& Stars, const StaticPosTableType& StaticPos, const PhysicalTableType& PhysTable, PhysicalCharacteristics* Table)

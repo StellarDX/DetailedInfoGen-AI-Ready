@@ -15,6 +15,8 @@ def RegexStellarClassification(OClass:str):
         return "黑洞"
     if OClass == "Z" or OClass == "WormHole":
         return "虫洞"
+    if OClass == "GasGiant" or "P" in OClass:
+        return "Free-floating gas giant"
     if OClass[0] in "OBAFGKM":
         # 此处使用SE的标准，兼容性非常低，真实光谱字符串会比这复杂的多
         SpectralRegex = r"^(?P<Sp>O|B|A|F|G|K|M)(?P<Sub>([0-9](\.[0-9])?)|10)? ?(?P<Lum>0|Ia|Iab|Ib|II|III|IV|V|VI)?$"

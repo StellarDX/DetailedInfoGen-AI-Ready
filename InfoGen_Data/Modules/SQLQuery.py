@@ -632,7 +632,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
         Aquaria：水/冰质行星
         Carbonia：碳质行星
         Neptune / IceGiant：冰巨星
-        Jupiter / GasGiant：气态行星
+        Jupiter / GasGiant：气态行星，此值可能也会出现于恒星(otype为"Star"时)，出现于恒星时表示此物体为Free-floating gas giant(Sub-brown dwarf)
         Chthonia / HeliumGiant：氦行星
         Asteroid：小型物体（无实际意义）
 

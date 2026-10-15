@@ -558,10 +558,10 @@ class Uploader():
             if (len(self._IdentifiersDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_identifiers", self._IdentifiersDataFrame, self._TableSchema["ig_identifiers"]))
             if (len(self._PhysicalDataFrame) != 0):
-                self._PhysicalDataFrame.replace([inf, -inf], [None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
+                self._PhysicalDataFrame.replace([inf, -inf, nan], [None, None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
                 InsertStatements.append(self.DataFrameToSQL("ig_physical", self._PhysicalDataFrame, self._TableSchema["ig_physical"]))
             if (len(self._OrbitDataFrame) != 0):
-                self._OrbitDataFrame.replace([inf, -inf], [None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
+                self._OrbitDataFrame.replace([inf, -inf, nan], [None, None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
                 InsertStatements.append(self.DataFrameToSQL("ig_orbit", self._OrbitDataFrame, self._TableSchema["ig_orbit"]))
             if (len(self._AtmosphereDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_atmosphere", self._AtmosphereDataFrame, self._TableSchema["ig_atmosphere"]))
