@@ -494,7 +494,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
             if len(j) != 0:
                 if Result[i]["object_id"] in BiomeDict.keys(): # 直接变JSON了
                     j["biome"] = BiomeDict[Result[i]["object_id"]]
-                Result[i]["bioSphere"] = j
+                Result[i]["biosphere"] = j
     if "rings" in Info:
         for i in Result:
             if i["object_id"] in RingsDict.keys():
@@ -653,6 +653,11 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
         NeptuneNarrow：类似海王星环的窄环；
         UranusSparse：类似天王星环的稀疏环；
         Colorful: 颜色鲜艳的彩色环；
+
+    生命字段解释：
+        生命类型（/biosphere/class）：Organic - 有机生命；Exotic - 奇异生命
+        生物形态（/biosphere/type）：Unicellular - 单细胞；Multicellular - 多细胞
+        生物群系（/biosphere/biome）：Marine - 海洋；Terrestrial - 陆地；Aerial/Floaters - 空中；Subglacial - 冰下；
 
     Args:
         ObjectName (str): 物体名称、别名或 object_id（必填）。
