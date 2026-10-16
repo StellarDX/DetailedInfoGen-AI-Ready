@@ -13,10 +13,15 @@
 
 namespace py = pybind11;
 
-struct Atmosphere
+struct Atmosphere // 气候字段不单独建表，合并到大气表中（TODO，热力学的水实在太深了）
 {
     double SurfacePressure;
     double ScaleHeight;
+    double Density;
+    double GlobalWindSpeed;
+    double MaxTemperature;
+    double MeanTemperature;
+    double MinTemperature;
     std::map<std::string, double> CompositionByVolume;
 };
 

@@ -413,15 +413,30 @@ void ComputePlanetTemperature(const SETable& RawData, OIDType CurrentID, const O
     SEVec3 CurrentPos = StaticPos.at(CurrentID);
     double Equilibrium = 0;
     double Fluxes = 0;
+    OIDType ParentBody;
+    if (std::isinf(Table->SynodicRotationPeriod))
+    {
+        ParentBody = std::find_if(SystemTable.begin(), SystemTable.end(), 
+        [CurrentID](SystemType::value_type v)
+        {
+            return std::find(v.second.begin(), v.second.end(), CurrentID) != v.second.end();
+        })->first;
+    }
     for (auto i : Stars)
     {
+        double f = 4;
+        if (std::isinf(Table->SynodicRotationPeriod) && ParentBody == i)
+        {
+            f = 2;
+        }
         double StarLuminosity = PhysTable.at(i).Luminosity;
         double Distance = (CurrentPos - StaticPos.at(i)).lpNorm<2>();
         double AlbedoBond = Table->Albedo.x();
         double Flux = StarLuminosity / (4. * M_PI * Distance * Distance);
         Fluxes += Flux;
-        Equilibrium += pow((Flux * (1. - AlbedoBond)) / (4. * StefanBoltzmann), 1. / 4.);
+        Equilibrium += (Flux * (1. - AlbedoBond)) / (f * StefanBoltzmann); // 先把所有恒星的能量叠加起来
     }
+    Equilibrium = pow(Equilibrium, 1. / 4.); // 然后开4次根
 
     // 暂时只统计这四个热源，如果是卫星还有个潮汐加热，那个要用热力学模型才能计算，这里先不计了
     // （奈何热力学水实在太深了）
