@@ -635,6 +635,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
         压强类字段单位为帕斯卡；
         成分类字段为体积分数；
         角度类字段单位为度；
+        所有成分的fraction为体积分数的百分比
 
     行星类型（/class）字段解释：
         Ferria：铁质行星
