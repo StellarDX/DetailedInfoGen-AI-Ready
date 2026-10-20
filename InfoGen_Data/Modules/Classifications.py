@@ -1,11 +1,13 @@
 import re
 
 def RegexStellarClassification(OClass:str):
-    if OClass[0] == "C" or OClass[0:1] == "SC":
+    if not OClass:
+        return "特殊的恒星"
+    if OClass[0] == "C" or OClass.startswith("SC"):
         return "碳星"
-    if OClass[0] == "S" or OClass[0:1] == "MS":
+    if OClass[0] == "S" or OClass.startswith("MS"):
         return "S型恒星"
-    if OClass[0] == "D" or OClass[0:1] == "WD":
+    if OClass[0] == "D" or OClass.startswith("WD"):
         return "白矮星"
     if OClass[0] == "W":
         return "沃尔夫-拉叶星"
@@ -20,7 +22,10 @@ def RegexStellarClassification(OClass:str):
     if OClass[0] in "OBAFGKM":
         # 此处使用SE的标准，兼容性非常低，真实光谱字符串会比这复杂的多
         SpectralRegex = r"^(?P<Sp>O|B|A|F|G|K|M)(?P<Sub>([0-9](\.[0-9])?)|10)? ?(?P<Lum>0|Ia|Iab|Ib|II|III|IV|V|VI)?$"
-        SMatch = re.search(SpectralRegex, OClass).groupdict()
+        Match = re.search(SpectralRegex, OClass)
+        if Match is None:
+            return OClass
+        SMatch = Match.groupdict()
         Color = ""
         Lum = ""
         match SMatch["Lum"]:

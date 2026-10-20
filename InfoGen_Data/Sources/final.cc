@@ -6,6 +6,12 @@
 #include "composite1.h"
 #include "composite2.h"
 #include "final.h"
+#include "gbuffers_orbit.h"
+#include "gbuffers_basic.h"
+#include "gbuffers_atmosphere.h"
+#include "gbuffers_hydrosphere.h"
+#include "gbuffers_biosphere.h"
+#include "gbuffers_rings.h"
 
 std::string InputFile;
 uint16_t    IFCodePage;
@@ -17,6 +23,36 @@ std::string AsteroidsTablePred;
 uint64_t    AsteroidsTableLimit;
 
 SETable     RawData;
+
+namespace
+{
+// Python-valued scratch tables must release their references while the caller's
+// interpreter/GIL is alive, not during DLL/global destruction after shutdown.
+struct PythonBufferScope
+{
+    ~PythonBufferScope()
+    {
+        OrbitalCharacteristicsTable.clear();
+        PhysicalCharacteristicsTable.clear();
+        AtmosphereTable.clear();
+        HydrosphereTable.clear();
+        BiosphereTable.clear();
+        RingsTable.clear();
+    }
+};
+
+void ResetImportState()
+{
+    // These are per-import scratch data, not a cross-file cache. Retaining them
+    // lets flat_map::insert silently keep a previous object's identity/values.
+    RawData.clear(); BASIC.clear(); IDENT.clear(); SystemTable.clear();
+    BarycenterID = 0;
+    BaryenterList.clear(); StarList.clear(); PlanetList.clear(); DwarfPlanetList.clear();
+    SatelliteList.clear(); MinorPlanetList.clear(); CometList.clear(); MinorObjectList.clear();
+    OrbitTable.clear(); StaticPosTable.clear(); PhysicalTable.clear();
+    AtmospherePrevTable.clear(); OceanPrevTable.clear(); LifePrevTable.clear(); RingsPrevTable.clear();
+}
+}
 
 template<typename Tp>
 Tp GetArgFromPy(const py::kwargs& args, char const* Key, Tp Default)
@@ -42,6 +78,8 @@ void LoadArguments(const py::kwargs& args)
 
 ReturnType InfoGen_Main(const py::kwargs& args)
 {
+    PythonBufferScope PythonBuffers;
+    ResetImportState();
     LoadArguments(args);
     if (InputFile.empty())[[unlikely]]
     {

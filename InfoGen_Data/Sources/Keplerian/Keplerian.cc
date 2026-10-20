@@ -61,11 +61,11 @@ double __Enhanced_Inverse_Keplerian_Equation_Solver::operator()(double MeanAnoma
     double RealAbsTol = pow(10, -AbsoluteTolerence);
     double RealRelTol = pow(10, -RelativeTolerence);
 
-    double M = MeanAnomaly, Mr = M;
-    if (M > 360)
-    {
-        Mr = fmod(M, 360);
-    }
+    double M = MeanAnomaly;
+    // 内部求解使用规约后的正异常角，最终保留方向和完整圈数。
+    double Mr = fmod(M, 360.);
+    double Direction = std::signbit(Mr) ? -1. : 1.;
+    Mr = std::abs(Mr);
     double Flip = 0;
     if (Mr > 180)
     {
@@ -83,7 +83,7 @@ double __Enhanced_Inverse_Keplerian_Equation_Solver::operator()(double MeanAnoma
     }
     else {Tmp = Run(MRad, RealAbsTol, RealRelTol);}
 
-    return (M * __DEG2RAD + Flip * (MRad - Tmp)) * __RAD2DEG;
+    return (M * __DEG2RAD + Direction * Flip * (MRad - Tmp)) * __RAD2DEG;
 }
 
 //////////////////////////////////// ENRKE ////////////////////////////////////

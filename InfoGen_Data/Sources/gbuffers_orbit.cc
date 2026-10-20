@@ -196,6 +196,13 @@ void MakeEclipticalReferencedOrbit(OrbitTableType* OrbitTable, const SystemType&
 
             SEMat3 Q  = Rz(Inc.AscendingNode) * Rx(Inc.Inclination) * Rz(Inc.ArgOfPericenter);
             SEMat3 Qr = Mchild * Q;
+            if (!Qr.allFinite())
+            {
+                Inc.InclinationEcliptic = Inc.AscNodeEcliptic = Inc.ArgOfPeriEcliptic =
+                    std::numeric_limits<SEReal>::quiet_NaN();
+                OIDQueue.push(i);
+                continue;
+            }
             double sinI = ::sqrt(Qr(0,2)*Qr(0,2) + Qr(1,2)*Qr(1,2));
             if(sinI > ::pow(10, -CommonPlaneThreshold))
             {
@@ -205,10 +212,11 @@ void MakeEclipticalReferencedOrbit(OrbitTableType* OrbitTable, const SystemType&
             } 
             else
             {
-                // 接近共面时：Ω接近0，保留ω
-                Inc.InclinationEcliptic = 0;
-                Inc.AscNodeEcliptic = 0;
-                Inc.ArgOfPeriEcliptic = arctan2d(Qr(2,0), Qr(2,1));
+                // Euler 角退化时从面内第一基向量保留方向；区分平行/反平行法向。
+                const bool RetrogradePlane = Qr(2,2) < 0.;
+                Inc.InclinationEcliptic = RetrogradePlane ? 180. : 0.;
+                Inc.AscNodeEcliptic = 0.;
+                Inc.ArgOfPeriEcliptic = arctan2d(RetrogradePlane ? -Qr(1,0) : Qr(1,0), Qr(0,0));
             }
             OIDQueue.push(i);
         }
@@ -242,6 +250,13 @@ void OrbitParamsToStateVectors(OrbitTableType* Table, const SystemType& SysTable
             ArgOfPeri = Table.ArgOfPeriEcliptic;
         }
 
+        if (!std::isfinite(Inclin) || !std::isfinite(AscNode) || !std::isfinite(ArgOfPeri) ||
+            !std::isfinite(Table.Eccentricity) || !std::isfinite(Table.MeanAnomaly) ||
+            !std::isfinite(Table.PericenterDist))
+        {
+            Table.Position.setConstant(std::numeric_limits<SEReal>::quiet_NaN());
+            continue;
+        }
         double EccentricAnomaly = InverseKeplerianEquation(
             Table.Eccentricity, Table.MeanAnomaly);
         double TrueAnomaly = GetTrueAnomalyFromEccentricAnomaly(
@@ -282,48 +297,51 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
 
     if (BasicTable.at(CurrentID).first == "Barycenter")
     {
+        auto canonicalName = [&](OIDType id)
+        {
+            auto name=BasicTable.at(id).second[0].As<SEString>();
+            return name.substr(0,name.find('/')); // Same canonical first alias as IDENT.
+        };
         auto SubSystems = SysTable.at(CurrentID);
-        std::sort(SubSystems.begin(), SubSystems.end(), 
-            [Table](OIDType L, OIDType R)
+        // Only finite candidates can establish a pair. This remains a nearest-pair
+        // heuristic, not a proof of dynamical stability.
+        std::erase_if(SubSystems,[&](OIDType id) {return !std::isfinite(Table->at(id).PericenterDist);});
+        std::sort(SubSystems.begin(),SubSystems.end(),[&](OIDType l,OIDType r)
         {
-            // 这三个条件比对下来，多星系统里面必然会出现一组三个值全部相等的物体且位于相邻位置
-            // 到时只需要检验两个近日点幅角是否相差180就行
-            // 丹霞 2026.09.14：事实上不需要这么复杂的条件，因为长期稳定的多星系统有一个二级结论：
-            // 一个稳定多恒星行星系统中，每一级子系统中最靠近子系统质心的两个下级子系统必然是相互绕行的（需要证明）
-            return (*Table)[L].PericenterDist < (*Table)[R].PericenterDist;// &&
-                // (*Table)[L].Inclination < (*Table)[R].Inclination &&
-                // (*Table)[L].AscendingNode < (*Table)[R].AscendingNode &&
-                // (*Table)[L].MeanAnomaly < (*Table)[R].MeanAnomaly;
+            auto lv=Table->at(l).PericenterDist,rv=Table->at(r).PericenterDist;
+            return lv==rv ? l<r : lv<rv;
         });
-
-        // uint64_t i = 1;
-        // for (; i < SubSystems.size(); ++i)
-        // {
-        //     if (((*Table)[SubSystems[i]].Inclination - (*Table)[SubSystems[i - 1]].Inclination < 1E-12) &&
-        //         ((*Table)[SubSystems[i]].AscendingNode - (*Table)[SubSystems[i - 1]].AscendingNode < 1E-12) &&
-        //         ((*Table)[SubSystems[i]].MeanAnomaly - (*Table)[SubSystems[i - 1]].MeanAnomaly < 1E-12))
-        //     {
-        //         break;
-        //     }
-        // }
-        // if (i == SubSystems.size())
-        if (!(((*Table)[SubSystems[1]].Inclination - (*Table)[SubSystems[0]].Inclination < 1E-12) &&
-            ((*Table)[SubSystems[1]].AscendingNode - (*Table)[SubSystems[0]].AscendingNode < 1E-12) &&
-            ((*Table)[SubSystems[1]].MeanAnomaly - (*Table)[SubSystems[0]].MeanAnomaly < 1E-12)))
+        if(SubSystems.size()<2) return;
+        const auto& left=Table->at(SubSystems[0]); const auto& right=Table->at(SubSystems[1]);
+        auto angleEqual=[](double l,double r,double tolerance=1E-12)
+        {return std::isfinite(l) && std::isfinite(r) && std::abs(std::remainder(l-r,360.))<=tolerance;};
+        auto valueEqual=[](double l,double r)
+        {return std::isfinite(l) && std::isfinite(r) && std::abs(l-r)<=1E-12*std::max({1.,std::abs(l),std::abs(r)});};
+        // A real pair may export Period in years and PeriodDays in days, each
+        // rounded to about nine significant digits. Compare normalized seconds
+        // with a bounded relative tolerance, without altering either value.
+        auto periodEqual=[](double l,double r)
+        {return std::isfinite(l) && std::isfinite(r) && std::abs(l)>0. &&
+            std::abs(l-r)<=1E-8*std::max(std::abs(l),std::abs(r));};
+        if (!(left.RefPlane == right.RefPlane && angleEqual(left.Inclination,right.Inclination) &&
+            angleEqual(left.AscendingNode,right.AscendingNode) && angleEqual(left.MeanAnomaly,right.MeanAnomaly) &&
+            periodEqual(left.Period,right.Period) &&
+            valueEqual(left.Eccentricity,right.Eccentricity) && valueEqual(left.Epoch,right.Epoch)))
         {
-            spdlog::warn("质心 {}:{} 下一级没有找到两个互相绕行的物体（i，Ω和M0不相等）",
-                BasicTable.at(CurrentID).second[0].As<SEString>(), CurrentID);
+            spdlog::warn("Barycenter {}: no compatible nearest pair",CurrentID);
             return;
         }
 
         auto& Barycen = (*Table)[CurrentID], 
             &Primary = (*Table)[SubSystems[0]], &Companion = (*Table)[SubSystems[1]];
-        if (std::abs(Primary.ArgOfPericenter - Companion.ArgOfPericenter) - 180 < 5E-4) // 文件->数字这一过程发生了3次精度丢失，因此不能设的太高
+        if (angleEqual(Primary.ArgOfPericenter + 180., Companion.ArgOfPericenter, 1E-5)) // 文件->数字这一过程发生了3次精度丢失，因此不能设的太高
         {
+            Primary.Primary = canonicalName(SubSystems[0]);
+            Primary.Companion = canonicalName(SubSystems[1]);
             Companion.BinaryOrbit = 1;
             Companion.IsPrimary = 0;
-            Companion.Primary = BasicTable.at(SubSystems[0]).second[0].As<SEString>();
-            Companion.Companion = BasicTable.at(SubSystems[1]).second[0].As<SEString>();
+            Companion.Primary = canonicalName(SubSystems[0]);
+            Companion.Companion = canonicalName(SubSystems[1]);
             Companion.BPeriod = Primary.Period;
             Companion.BPericenterDist = Primary.PericenterDist + Companion.PericenterDist;
             Companion.BAphelionDist = Primary.AphelionDist + Companion.AphelionDist;
@@ -357,7 +375,7 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
         else
         {
             spdlog::warn("质心 {}:{} 下一级没有找到两个互相绕行的物体（ω1-ω2!=180）",
-                BasicTable.at(CurrentID).second[0].As<SEString>(), CurrentID);
+                canonicalName(CurrentID), CurrentID);
         }
     }
 }

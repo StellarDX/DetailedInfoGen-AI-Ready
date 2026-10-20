@@ -183,7 +183,7 @@ void LoadBasicData(const SETable& RawData, OIDType CurrentID, const OrbitTableTy
         Table->SiderealRotationPeriod = Orbit.at(CurrentID).Period;
     }
     else {Table->SiderealRotationPeriod = GetObjectS(RawData, "RotationPeriod", 0, std::numeric_limits<double>::quiet_NaN()) * 3600;}
-    Table->EquatorialRotationVelocity = RotationVelocity(std::max(Table->Dimensions.x(), Table->Dimensions.z()), Table->SiderealRotationPeriod);
+    Table->EquatorialRotationVelocity = RotationVelocity(std::max(Table->Dimensions.x(), Table->Dimensions.z()) / 2., Table->SiderealRotationPeriod);
     Table->AxialTilt = GetObjectS(RawData, "Obliquity", 0, 0.);
     if ((Table->AxialTilt > 90 && Table->AxialTilt < 270) || 
         (Table->AxialTilt < -90 && Table->AxialTilt > -270))
@@ -480,7 +480,7 @@ double ExtrasolarESI(double RadiantFlux, double MeanRadius)
 
 void ComputeESI(OIDType CurrentID, PhysicalCharacteristics* Table)
 {
-    if (ESIEstimator == "Extrasolar") {ExtrasolarESI(Table->RadiantFlux, Table->MeanRadius);}
+    if (ESIEstimator == "Extrasolar") {Table->ESI = ExtrasolarESI(Table->RadiantFlux, Table->MeanRadius);}
     else {Table->ESI = SolarSysESI(Table->MeanRadius, Table->MeanDensity, Table->EscapeVelocity, Table->Temperature);}
 }
 
