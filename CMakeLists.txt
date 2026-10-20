@@ -48,6 +48,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Python 环境（pybind11 在 add_subdirectory 前需要 Python 开发组件）
 # ----------------------------------------------------------------------------
 find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
+option(INFOGEN_BUILD_PARSER_TESTS "构建 parser 回归测试" OFF)
 
 # ----------------------------------------------------------------------------
 # 自动查找第三方依赖（InfoGen_Data/3rdParty）
@@ -308,4 +309,9 @@ if(IS_DIRECTORY "${INFOGEN_STREAMING_ASSETS_DIR}")
     message(STATUS "[${PROJECT_NAME}] 将安装资源目录: ${INFOGEN_STREAMING_ASSETS_DIR} -> InfoGen_Data/StreamingAssets")
 else()
     message(WARNING "[${PROJECT_NAME}] 未找到 StreamingAssets 目录: ${INFOGEN_STREAMING_ASSETS_DIR}")
+endif()
+
+if(INFOGEN_BUILD_PARSER_TESTS)
+    enable_testing()
+    include("${CMAKE_CURRENT_SOURCE_DIR}/tests/parser.cmake")
 endif()
