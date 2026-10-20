@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from InfoGen_Data import InfoGen
 from InfoGen_Data import InfoGenHelpFormatter
 from InfoGen_Data import LoadLocale
@@ -82,41 +84,43 @@ class Uploader():
 
     def _Load_Table(self):
         Connection = ADBCRawClient()
-        # 此处使用select * from table where 1 = 0获取表数据，多数数据库都支持且这种方法是多数ORM都在用的方法
-        self._SystemDataFrame = LoadTableSchemaToDataFrame("ig_system", Connection)
-        self._TableSchema["ig_system"] = self._SystemDataFrame.dtypes.to_dict()
-        self._SystemDataFrame.set_index("system_id", inplace=True)
-        self._ObjectsDataFrame = LoadTableSchemaToDataFrame("ig_object", Connection)
-        self._TableSchema["ig_object"] = self._ObjectsDataFrame.dtypes.to_dict()
-        self._ObjectsDataFrame.set_index("object_id", inplace=True)
-        self._IdentifiersDataFrame = LoadTableSchemaToDataFrame("ig_identifiers", Connection)
-        self._TableSchema["ig_identifiers"] = self._IdentifiersDataFrame.dtypes.to_dict()
-        self._IdentifiersDataFrame.set_index(["object_id", "alias"], inplace=True)
-        self._PhysicalDataFrame = LoadTableSchemaToDataFrame("ig_physical", Connection)
-        self._TableSchema["ig_physical"] = self._PhysicalDataFrame.dtypes.to_dict()
-        self._PhysicalDataFrame.set_index("object_id", inplace=True)
-        self._OrbitDataFrame = LoadTableSchemaToDataFrame("ig_orbit", Connection)
-        self._TableSchema["ig_orbit"] = self._OrbitDataFrame.dtypes.to_dict()
-        self._OrbitDataFrame.set_index("object_id", inplace=True)
-        self._AtmosphereDataFrame = LoadTableSchemaToDataFrame("ig_atmosphere", Connection)
-        self._TableSchema["ig_atmosphere"] = self._AtmosphereDataFrame.dtypes.to_dict()
-        self._AtmosphereDataFrame.set_index("object_id", inplace=True)
-        self._HydrosphereDataFrame = LoadTableSchemaToDataFrame("ig_hydrosphere", Connection)
-        self._TableSchema["ig_hydrosphere"] = self._HydrosphereDataFrame.dtypes.to_dict()
-        self._HydrosphereDataFrame.set_index("object_id", inplace=True)
-        self._BiosphereDataFrame = LoadTableSchemaToDataFrame("ig_biosphere", Connection)
-        self._TableSchema["ig_biosphere"] = self._BiosphereDataFrame.dtypes.to_dict()
-        self._BiosphereDataFrame.set_index("object_id", inplace=True)
-        self._BioBiomeDataFrame = LoadTableSchemaToDataFrame("ig_biosphere_biome", Connection)
-        self._TableSchema["ig_biosphere_biome"] = self._BioBiomeDataFrame.dtypes.to_dict()
-        self._BioBiomeDataFrame.set_index(["object_id", "biome"], inplace=True)
-        self._CompositionsDataFrame = LoadTableSchemaToDataFrame("ig_composition", Connection)
-        self._TableSchema["ig_composition"] = self._CompositionsDataFrame.dtypes.to_dict()
-        self._CompositionsDataFrame.set_index(["object_id", "kind", "component"], inplace=True)
-        self._RingsDataFrame = LoadTableSchemaToDataFrame("ig_rings", Connection)
-        self._TableSchema["ig_rings"] = self._RingsDataFrame.dtypes.to_dict()
-        self._RingsDataFrame.set_index(["object_id", "ring_type"], inplace=True)
-        Connection.close()
+        try:
+            # 此处使用select * from table where 1 = 0获取表数据，多数数据库都支持且这种方法是多数ORM都在用的方法
+            self._SystemDataFrame = LoadTableSchemaToDataFrame("ig_system", Connection)
+            self._TableSchema["ig_system"] = self._SystemDataFrame.dtypes.to_dict()
+            self._SystemDataFrame.set_index("system_id", inplace=True)
+            self._ObjectsDataFrame = LoadTableSchemaToDataFrame("ig_object", Connection)
+            self._TableSchema["ig_object"] = self._ObjectsDataFrame.dtypes.to_dict()
+            self._ObjectsDataFrame.set_index("object_id", inplace=True)
+            self._IdentifiersDataFrame = LoadTableSchemaToDataFrame("ig_identifiers", Connection)
+            self._TableSchema["ig_identifiers"] = self._IdentifiersDataFrame.dtypes.to_dict()
+            self._IdentifiersDataFrame.set_index(["object_id", "alias"], inplace=True)
+            self._PhysicalDataFrame = LoadTableSchemaToDataFrame("ig_physical", Connection)
+            self._TableSchema["ig_physical"] = self._PhysicalDataFrame.dtypes.to_dict()
+            self._PhysicalDataFrame.set_index("object_id", inplace=True)
+            self._OrbitDataFrame = LoadTableSchemaToDataFrame("ig_orbit", Connection)
+            self._TableSchema["ig_orbit"] = self._OrbitDataFrame.dtypes.to_dict()
+            self._OrbitDataFrame.set_index("object_id", inplace=True)
+            self._AtmosphereDataFrame = LoadTableSchemaToDataFrame("ig_atmosphere", Connection)
+            self._TableSchema["ig_atmosphere"] = self._AtmosphereDataFrame.dtypes.to_dict()
+            self._AtmosphereDataFrame.set_index("object_id", inplace=True)
+            self._HydrosphereDataFrame = LoadTableSchemaToDataFrame("ig_hydrosphere", Connection)
+            self._TableSchema["ig_hydrosphere"] = self._HydrosphereDataFrame.dtypes.to_dict()
+            self._HydrosphereDataFrame.set_index("object_id", inplace=True)
+            self._BiosphereDataFrame = LoadTableSchemaToDataFrame("ig_biosphere", Connection)
+            self._TableSchema["ig_biosphere"] = self._BiosphereDataFrame.dtypes.to_dict()
+            self._BiosphereDataFrame.set_index("object_id", inplace=True)
+            self._BioBiomeDataFrame = LoadTableSchemaToDataFrame("ig_biosphere_biome", Connection)
+            self._TableSchema["ig_biosphere_biome"] = self._BioBiomeDataFrame.dtypes.to_dict()
+            self._BioBiomeDataFrame.set_index(["object_id", "biome"], inplace=True)
+            self._CompositionsDataFrame = LoadTableSchemaToDataFrame("ig_composition", Connection)
+            self._TableSchema["ig_composition"] = self._CompositionsDataFrame.dtypes.to_dict()
+            self._CompositionsDataFrame.set_index(["object_id", "kind", "component"], inplace=True)
+            self._RingsDataFrame = LoadTableSchemaToDataFrame("ig_rings", Connection)
+            self._TableSchema["ig_rings"] = self._RingsDataFrame.dtypes.to_dict()
+            self._RingsDataFrame.set_index(["object_id", "ring_type"], inplace=True)
+        finally:
+            Connection.close()
 
     def _System_To_DataFrame(self):
         SystemID = self.SystemID(self._Src["MainID"])
@@ -250,12 +254,12 @@ class Uploader():
                 OrbitalCharacteristics["SemiMajorAxis"],
                 OrbitalCharacteristics["Eccentricity"],
                 OrbitalCharacteristics["Inclination"],
-                OrbitalCharacteristics["InclEcliptic"],
+                OrbitalCharacteristics.get("InclEcliptic"),
                 OrbitalCharacteristics["AscendingNode"],
-                OrbitalCharacteristics["AscNodeEcliptic"],
+                OrbitalCharacteristics.get("AscNodeEcliptic"),
                 OrbitalCharacteristics["Epoch"],
                 OrbitalCharacteristics["ArgOfPericenter"],
-                OrbitalCharacteristics["ArgOfPeriEcliptic"],
+                OrbitalCharacteristics.get("ArgOfPeriEcliptic"),
                 OrbitalCharacteristics["MeanAnomaly"],
                 OrbitalCharacteristics["SynodicMonth"] if ObjType == "Moon" or (ObjType == "Planet" and OrbitalCharacteristics["BinaryOrbit"] and not OrbitalCharacteristics["IsPrimary"]) else None,
                 OrbitalCharacteristics["BinaryOrbit"],
@@ -319,7 +323,7 @@ class Uploader():
                     i["Width"],
                     i["Thickness"] if "Thickness" in i.keys() else None,
                     i["RockMaxSize"] if "RockMaxSize" in i.keys() else None,
-                    i["ObjectCount"] if "ObjectCount" in i.keys() else 0 # DataFrame不能这样传入Int类型的None（会自动转成float），只能写0
+                    i.get("ObjectCount") # 缺失数量保留 NULL，显式 0 仍是 0。
                 ]
         
         if "SubSystems" in CurrentObject:
@@ -399,12 +403,12 @@ class Uploader():
                     OrbitalCharacteristics["SemiMajorAxis"],
                     OrbitalCharacteristics["Eccentricity"],
                     OrbitalCharacteristics["Inclination"],
-                    OrbitalCharacteristics["InclEcliptic"],
+                    OrbitalCharacteristics.get("InclEcliptic"),
                     OrbitalCharacteristics["AscendingNode"],
-                    OrbitalCharacteristics["AscNodeEcliptic"],
+                    OrbitalCharacteristics.get("AscNodeEcliptic"),
                     OrbitalCharacteristics["Epoch"],
                     OrbitalCharacteristics["ArgOfPericenter"],
-                    OrbitalCharacteristics["ArgOfPeriEcliptic"],
+                    OrbitalCharacteristics.get("ArgOfPeriEcliptic"),
                     OrbitalCharacteristics["MeanAnomaly"],
                     None,
                     False,
@@ -519,37 +523,41 @@ class Uploader():
             for i, j in zip(ColNames, FullTable.dtypes)]
         AlchemyCols = [Column(i, j) for i, j in zip(ColNames, DTypes)]
         AlchemyTable = Table(TblName, MetaData(), *AlchemyCols)
-        Statement = insert(AlchemyTable).values(FullTable.to_dict(orient = "records"))
+        # 所有表统一保留缺失语义；不修改输入 DataFrame 或原 dtypes。
+        Records = FullTable.astype(object).where(FullTable.notna(), None)
+        Records = Records.replace([inf, -inf], None).to_dict(orient = "records")
+        Statement = insert(AlchemyTable).values(Records)
         return str(Statement.compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
 
     def DistUpgrade(self):
-        Connection = ADBCClient()
+        Connection = ADBCRawClient()
+        try:
+            # Own a raw connection: pooled automatic statement replay cannot
+            # preserve a multi-statement replacement transaction.
+            # ADBC DB-API can silently fall back to autocommit for unsupported
+            # drivers. Its commit()/rollback() then do nothing; fail before writes.
+            if Connection._autocommit or not Connection._commit_supported:
+                raise RuntimeError("dist-upgrade requires transactional ADBC with autocommit=False")
+            ExistingSystemTable = Table("ig_system", MetaData(),
+                Column('system_id', String),
+                Column('main_id', String),
+                Column('namespace', String),
+                Column('create_date', DateTime)
+            )
+            ExistingSystemQuery = str((select(ExistingSystemTable)
+                .where(ExistingSystemTable.c.namespace == self._Args.namespace)
+                .where(ExistingSystemTable.c.main_id == self._Src["MainID"])
+            ).compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+            ExistingSystem = ReadSQLToDataFrame(ExistingSystemQuery, Connection)
+            ExistingSystem.set_index("system_id", inplace = True)
 
-        ExistingSystemTable = Table("ig_system", MetaData(), 
-            Column('system_id', String),
-            Column('main_id', String),
-            Column('namespace', String),
-            Column('create_date', DateTime)
-        )
-        ExistingSystemQuery = str((select(ExistingSystemTable)
-            .where(ExistingSystemTable.c.namespace == self._Args.namespace)
-            .where(ExistingSystemTable.c.main_id == self._Src["MainID"])
-        ).compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
-        ExistingSystem = ReadSQLToDataFrame(ExistingSystemQuery, Connection)
-        ExistingSystem.set_index("system_id", inplace = True)
+            Upload = True if len(ExistingSystem) == 0 else UserConfirm(f"当前命名空间已存在系统\"{self._Src["MainID"]}\"，是否更新？(y/n)：")
 
-        Upload = True if len(ExistingSystem) == 0 else UserConfirm(f"当前命名空间已存在系统\"{self._Src["MainID"]}\"，是否更新？(y/n)：")
-
-        if Upload:
+            if not Upload:
+                Connection.rollback()
+                return
             if len(ExistingSystem) != 0:
                 self._SystemDataFrame.loc[self._SysID, "create_date"] = ExistingSystem.at[self._SysID, "create_date"]
-                with Connection.cursor() as Cursor:
-                    DeleteTable = Table("ig_system", MetaData(), Column('system_id', String))
-                    DeleteQuery = str(delete(DeleteTable).where(DeleteTable.c.system_id == self._SysID)
-                        .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
-                    Cursor.execute(DeleteQuery)
-                Connection.commit()
-            
             InsertStatements = []
             if (len(self._SystemDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_system", self._SystemDataFrame, self._TableSchema["ig_system"]))
@@ -558,10 +566,8 @@ class Uploader():
             if (len(self._IdentifiersDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_identifiers", self._IdentifiersDataFrame, self._TableSchema["ig_identifiers"]))
             if (len(self._PhysicalDataFrame) != 0):
-                self._PhysicalDataFrame.replace([inf, -inf, nan], [None, None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
                 InsertStatements.append(self.DataFrameToSQL("ig_physical", self._PhysicalDataFrame, self._TableSchema["ig_physical"]))
             if (len(self._OrbitDataFrame) != 0):
-                self._OrbitDataFrame.replace([inf, -inf, nan], [None, None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
                 InsertStatements.append(self.DataFrameToSQL("ig_orbit", self._OrbitDataFrame, self._TableSchema["ig_orbit"]))
             if (len(self._AtmosphereDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_atmosphere", self._AtmosphereDataFrame, self._TableSchema["ig_atmosphere"]))
@@ -574,14 +580,25 @@ class Uploader():
             if (len(self._CompositionsDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_composition", self._CompositionsDataFrame, self._TableSchema["ig_composition"]))
             if (len(self._RingsDataFrame) != 0):
-                self._RingsDataFrame.replace([nan], [None], inplace = True)
                 InsertStatements.append(self.DataFrameToSQL("ig_rings", self._RingsDataFrame, self._TableSchema["ig_rings"]))
-        
+
             with Connection.cursor() as Cursor:
-                for i in InsertStatements:
-                    Cursor.execute(i)
+                if len(ExistingSystem) != 0:
+                    DeleteTable = Table("ig_system", MetaData(), Column('system_id', String))
+                    DeleteQuery = str(delete(DeleteTable).where(DeleteTable.c.system_id == self._SysID)
+                        .compile(dialect=CurrentSQLVariation(), compile_kwargs={"literal_binds": True}))
+                    Cursor.execute(DeleteQuery)
+                for statement in InsertStatements:
+                    Cursor.execute(statement)
             Connection.commit()
-        Connection.close()
+        except BaseException as error:
+            try:
+                Connection.rollback()
+            except Exception as rollback_error:
+                error.add_note(f"Rollback also failed: {rollback_error}")
+            raise
+        finally:
+            Connection.close()
 
     def Run(self):
         # 先准备表

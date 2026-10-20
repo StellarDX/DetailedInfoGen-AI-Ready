@@ -13,6 +13,22 @@ from pandas.api.types import is_dict_like
 from tabulate import tabulate
 from langchain.tools import tool
 from numpy import nan
+from numbers import Real
+from math import isfinite
+from pandas import NA, NaT
+
+def _JSONSafe(Value):
+    if isinstance(Value, dict):
+        return {Key: _JSONSafe(Item) for Key, Item in Value.items()}
+    if isinstance(Value, (list, tuple)):
+        return [_JSONSafe(Item) for Item in Value]
+    if Value is NA or Value is NaT or isinstance(Value, Real) and not isfinite(Value):
+        return None
+    return Value
+
+def _DumpJSON(Value, **Options):
+    Options["allow_nan"] = False
+    return json.dumps(_JSONSafe(Value), **Options)
 
 _NamespaceBuffer = ""
 
@@ -67,9 +83,11 @@ def _QuerySystem_Unchecked(Namespace, SystemName):
             .where(or_(Tbl.c.main_id == SystemName, Tbl.c.system_id == SystemName)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     Connection = ADBCClient()
-    Result = ReadSQLToDataFrame(Statement, Connection)
-    Connection.close()
-    return Result
+    try:
+        Result = ReadSQLToDataFrame(Statement, Connection)
+        return Result
+    finally:
+        Connection.close()
 
 def _QuerySystem(Namespace, SystemName, OutFmt):
     _PreCheck(Namespace, SystemName)
@@ -138,11 +156,20 @@ def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName, ObjectType):
         Query = Query.where(CTbl.c.otype == ObjectType)
     Query = str(Query.compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     Connection = ADBCClient()
-    Result = ReadSQLToDataFrame(Query, Connection)
-    Connection.close()
-    return Result
+    try:
+        Result = ReadSQLToDataFrame(Query, Connection)
+        return Result
+    finally:
+        Connection.close()
 
 def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
+    Connection = ADBCClient()
+    try:
+        return _ReadObjectRows(Namespace, ObjectName, Info, Connection)
+    finally:
+        Connection.close()
+
+def _ReadObjectRows(Namespace, ObjectName, Info, Connection):
     SysCols = [Column(i, j) for i, j in [
         ["system_id",              String(512)],
         ["main_id",                String(255)],
@@ -184,7 +211,6 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         ["alias",     String(255)]
     ]]
     IdentTbl = Table("ig_identifiers", MetaData(), *IdentCols)
-    JoinQuery = JoinQuery.join(IdentTbl, IdentTbl.c.object_id == Tbl.c.object_id)
 
     OrbitList, OrbitLabels = [], []
     if "orbit" in Info:
@@ -363,21 +389,16 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         SelectList += BiosphereList
         JoinQuery = JoinQuery.outerjoin(BioTbl, BioTbl.c.object_id == Tbl.c.object_id)
 
-    MainStatement = ""
-    if Namespace == "-A":
-        MainStatement = str((select(*SelectList).select_from(JoinQuery))
-            .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
-    elif ObjectName == None or ObjectName == "":
-        MainStatement = str(((select(*SelectList).select_from(JoinQuery))
-            .where(SysTbl.c.namespace == Namespace))
-            .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
-    else:
-        MainStatement = str(((select(*SelectList).select_from(JoinQuery))
-            .where(SysTbl.c.namespace == Namespace)
-            .where(or_(IdentTbl.c.alias == ObjectName, Tbl.c.object_id == ObjectName)))
-            .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+    # identifiers 用 EXISTS 过滤；多个 alias 不应扩大对象行数。
+    Query = select(*SelectList).select_from(JoinQuery)
+    if Namespace != "-A":
+        Query = Query.where(SysTbl.c.namespace == Namespace)
+    if ObjectName is not None and ObjectName != "":
+        AliasMatch = select(1).select_from(IdentTbl).where(
+            IdentTbl.c.object_id == Tbl.c.object_id, IdentTbl.c.alias == ObjectName).exists()
+        Query = Query.where(or_(Tbl.c.object_id == ObjectName, Tbl.c.primary_name == ObjectName, AliasMatch))
+    MainStatement = str(Query.compile(dialect=CurrentSQLVariation(), compile_kwargs={"literal_binds":True}))
 
-    Connection = ADBCClient()
     MainFrame = ReadSQLToDataFrame(MainStatement, Connection)
 
     # 主表生成以后处理一对多查询
@@ -437,7 +458,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         RingsDict = {m: [{i: j for i, j in k.items() if notna(j)} for k in l] for m, l in RingsDict.items() if l}
         for i, j in RingsDict.items():
             for k in j:
-                if k["object_count"] == 0:
+                if k.get("object_count") == 0:
                     del k["object_count"]
 
     SubDict = None
@@ -504,8 +525,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
             if i["object_id"] in SubDict.keys():
                 i["sub_systems"] = SubDict[i["object_id"]]
     
-    Connection.close()
-    return Result
+    return _JSONSafe(Result)
 
 def _QueryObject(Namespace, ObjectName, OutFmt):
     _PreCheck(Namespace, ObjectName)
@@ -517,7 +537,7 @@ def _QueryObject(Namespace, ObjectName, OutFmt):
 
     match OutFmt:
         case "json":
-            return json.dumps(ObjectList,
+            return _DumpJSON(ObjectList,
                 ensure_ascii = False,
                 indent = 4
             )
@@ -699,7 +719,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
             Result += f" {j}. {i["system"]}: {i["ident"]} (Parent Body = {i["parent_object"]})\n"
         return Result
     else:
-        return json.dumps(ObjectDict, ensure_ascii = False)
+        return _DumpJSON(ObjectDict, ensure_ascii = False)
 
 def GetSystem(args):
     print(_QuerySystem("-A" if args.all_namespaces else args.namespace, args.name, args.output))

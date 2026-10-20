@@ -86,8 +86,12 @@ def _ConnectionPool():
 
 def ADBCClient():
     Connection = _ConnectionPool().connection()
-    RunInit(Connection)
-    return Connection
+    try:
+        RunInit(Connection)
+        return Connection
+    except BaseException:
+        Connection.close()
+        raise
 
 def LoadTableSchemaToDataFrame(TableName:str, Connection, dtype_backend: str = "numpy"):
     Schema = Connection.adbc_get_table_schema(table_name = TableName)
@@ -104,11 +108,15 @@ def ReadSQLToDataFrame(Query: str, Connection, dtype_backend: str = "numpy"):
     return arrow_table_to_pandas(ArrowTable, dtype_backend = dtype_backend)
 
 def ADBCRawClient():
-    global _RawConnection
-    if _RawConnection == None:
-        _RawConnection = dbapi.connect(**ADBCConfig()["Connection"])
-        RunInit(_RawConnection)
-    return _RawConnection
+    # The caller owns this connection. Reusing a globally cached, closed raw
+    # connection makes the second uploader fail and shares transaction state.
+    connection = dbapi.connect(**ADBCConfig()["Connection"])
+    try:
+        RunInit(connection)
+        return connection
+    except BaseException:
+        connection.close()
+        raise
 
 def TomlQuote(Value: str) -> str:
     return '"' + Value.replace('\\', '\\\\').replace('"', '\\"') + '"'
