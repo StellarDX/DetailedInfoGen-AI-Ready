@@ -270,13 +270,13 @@ void OrbitParamsToStateVectors(OrbitTableType* Table, const SystemType& SysTable
     spdlog::info("完成");
 }
 
-void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDType CurrentID, const BasicTableType& BasicTable)
+void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDType CurrentID, const BasicTableType& BasicTable, const IdentTableType& IdentTable)
 {
     if (!SysTable.at(CurrentID).empty())
     {
         for (auto OID : SysTable.at(CurrentID))
         {
-            TransferBarycenter(Table, SysTable, OID, BasicTable);
+            TransferBarycenter(Table, SysTable, OID, BasicTable, IdentTable);
         }
     }
 
@@ -312,7 +312,7 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
             ((*Table)[SubSystems[1]].MeanAnomaly - (*Table)[SubSystems[0]].MeanAnomaly < 1E-12)))
         {
             spdlog::warn("质心 {}:{} 下一级没有找到两个互相绕行的物体（i，Ω和M0不相等）",
-                BasicTable.at(CurrentID).second[0].As<SEString>(), CurrentID);
+                IdentTable.at(CurrentID)[0], CurrentID);
             return;
         }
 
@@ -322,8 +322,8 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
         {
             Companion.BinaryOrbit = 1;
             Companion.IsPrimary = 0;
-            Companion.Primary = BasicTable.at(SubSystems[0]).second[0].As<SEString>();
-            Companion.Companion = BasicTable.at(SubSystems[1]).second[0].As<SEString>();
+            Companion.Primary = IdentTable.at(SubSystems[0])[0];
+            Companion.Companion = IdentTable.at(SubSystems[1])[0];
             Companion.BPeriod = Primary.Period;
             Companion.BPericenterDist = Primary.PericenterDist + Companion.PericenterDist;
             Companion.BAphelionDist = Primary.AphelionDist + Companion.AphelionDist;
@@ -357,7 +357,7 @@ void TransferBarycenter(OrbitTableType* Table, const SystemType& SysTable, OIDTy
         else
         {
             spdlog::warn("质心 {}:{} 下一级没有找到两个互相绕行的物体（ω1-ω2!=180）",
-                BasicTable.at(CurrentID).second[0].As<SEString>(), CurrentID);
+                IdentTable.at(CurrentID)[0], CurrentID);
         }
     }
 }
@@ -393,7 +393,7 @@ OrbitCharTableType gbuffer_orbit()
     OrbitParamsToStateVectors(&OrbitTable, SystemTable, BarycenterID);
 
     spdlog::info("迁移多星系统轨道...");
-    TransferBarycenter(&OrbitTable, SystemTable, BarycenterID, BASIC);
+    TransferBarycenter(&OrbitTable, SystemTable, BarycenterID, BASIC, IDENT);
     spdlog::info("完成");
 
     spdlog::info("计算会合周期...");
