@@ -13,22 +13,6 @@ from pandas.api.types import is_dict_like
 from tabulate import tabulate
 from langchain.tools import tool
 from numpy import nan
-from numbers import Real
-from math import isfinite
-from pandas import NA, NaT
-
-def _JSONSafe(Value):
-    if isinstance(Value, dict):
-        return {Key: _JSONSafe(Item) for Key, Item in Value.items()}
-    if isinstance(Value, (list, tuple)):
-        return [_JSONSafe(Item) for Item in Value]
-    if Value is NA or Value is NaT or isinstance(Value, Real) and not isfinite(Value):
-        return None
-    return Value
-
-def _DumpJSON(Value, **Options):
-    Options["allow_nan"] = False
-    return json.dumps(_JSONSafe(Value), **Options)
 
 _NamespaceBuffer = ""
 
@@ -456,6 +440,10 @@ def _ReadObjectRows(Namespace, ObjectName, Info, Connection):
         RingsFrame.set_index(["object_id"], inplace = True)
         RingsDict = RingsFrame.groupby("object_id")[["ring_type", "inner_radius", "width", "thickness", "rock_max_size", "object_count"]].apply(lambda x: x.to_dict('records')).to_dict()
         RingsDict = {m: [{i: j for i, j in k.items() if notna(j)} for k in l] for m, l in RingsDict.items() if l}
+        for rings in RingsDict.values():
+            for ring in rings:
+                if ring.get("object_count") == 0:  # 旧库用 0 表示缺失。
+                    del ring["object_count"]
 
     SubDict = None
     if "subsystems" in Info:
@@ -467,10 +455,14 @@ def _ReadObjectRows(Namespace, ObjectName, Info, Connection):
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
         SubFrame = ReadSQLToDataFrame(SubQuery, Connection)
         SubFrame.set_index("object_id", inplace = True)
+        SubClass = SubFrame["subsystem_class"].astype(object)
+        SubFrame["subsystem_class"] = SubClass.where(SubClass.notna(), None)
         # SubDict = SubFrame.groupby("object_id")["subsystem_name"].apply(list).to_dict()
         SubDict = SubFrame.groupby("object_id")[["subsystem_name", "subsystem_otype", "subsystem_class"]].apply(lambda x: x.to_dict('records')).to_dict()
 
-    Result = MainFrame[BasicLabels].to_dict(orient = 'records')
+    # ADBC/pandas 可能把 SQL NULL（包括全空字符串列）表示成 NaN。
+    BasicFrame = MainFrame[BasicLabels].astype(object)
+    Result = BasicFrame.where(BasicFrame.notna(), None).to_dict(orient = 'records')
 
     for i in Result:
         if i["object_id"] in IdentDict.keys():
@@ -521,7 +513,7 @@ def _ReadObjectRows(Namespace, ObjectName, Info, Connection):
             if i["object_id"] in SubDict.keys():
                 i["sub_systems"] = SubDict[i["object_id"]]
     
-    return _JSONSafe(Result)
+    return Result
 
 def _QueryObject(Namespace, ObjectName, OutFmt):
     _PreCheck(Namespace, ObjectName)
@@ -533,7 +525,7 @@ def _QueryObject(Namespace, ObjectName, OutFmt):
 
     match OutFmt:
         case "json":
-            return _DumpJSON(ObjectList,
+            return json.dumps(ObjectList,
                 ensure_ascii = False,
                 indent = 4
             )
@@ -715,7 +707,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
             Result += f" {j}. {i["system"]}: {i["ident"]} (Parent Body = {i["parent_object"]})\n"
         return Result
     else:
-        return _DumpJSON(ObjectDict, ensure_ascii = False)
+        return json.dumps(ObjectDict, ensure_ascii = False)
 
 def GetSystem(args):
     print(_QuerySystem("-A" if args.all_namespaces else args.namespace, args.name, args.output))

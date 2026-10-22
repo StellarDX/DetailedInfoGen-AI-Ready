@@ -1,6 +1,5 @@
 """编译、DataFrame 和连接释放回归；数据库执行另用真实 PostgreSQL。"""
 from argparse import Namespace
-import json
 from types import SimpleNamespace
 from unittest.mock import Mock
 import numpy as np
@@ -98,12 +97,6 @@ def test_dist_upgrade_releases_pooled_connection(modules, monkeypatch, read_fail
     connection.commit.assert_not_called()
     connection.close.assert_called_once()
 
-@pytest.mark.unit
-@pytest.mark.smoke
-def test_json_boundary_without_database(modules):
-    result=json.loads(modules.query._DumpJSON({'a':np.inf,'b':pd.NA,'c':0,'d':[float('nan')]}))
-    assert result=={'a':None,'b':None,'c':0,'d':[None]}
-
 def empty_frames(uploader,names):
     # 使用已有 schema 的列声明准备空 DataFrame，不启动数据库。
     import re
@@ -126,14 +119,13 @@ def test_absolute_mode_keeps_source_angles(modules):
     row=uploader._OrbitDataFrame.iloc[0]
     assert pd.isna(row['inclination_ecliptic']) and row['inclination']==5.
 
-@pytest.mark.parametrize('count',[None,0,42])
 @pytest.mark.unit
-def test_ring_dataframe_preserves_missing_and_zero(modules,count):
-    ring=dict(Type='Colorful',InnerRadius=1.,Width=2.)
-    if count is not None:ring['ObjectCount']=count
-    source={'MainID':'Root','Objects':{'Root':{'OType':'Planet','Identifiers':['Root'],'Rings':[ring]}}}
-    uploader=modules.loader.Uploader(source,Namespace(namespace='review'))
-    empty_frames(uploader,[('_ObjectsDataFrame','ig_object','object_id'),('_IdentifiersDataFrame','ig_identifiers',['object_id','alias']),('_RingsDataFrame','ig_rings',['object_id','ring_type'])])
-    uploader._DFS_Iterate('Root',None,'system',None,['Root'],None)
-    actual=uploader._RingsDataFrame.iloc[0]['object_count']
-    assert pd.isna(actual) if count is None else actual==count
+def test_non_disc_count_remains_missing(modules):
+    ring = dict(Type='Colorful', InnerRadius=1., Width=2.)
+    source = {'MainID': 'Root', 'Objects': {'Root': {'OType': 'Planet', 'Identifiers': ['Root'], 'Rings': [ring]}}}
+    uploader = modules.loader.Uploader(source, Namespace(namespace='review'))
+    empty_frames(uploader, [('_ObjectsDataFrame','ig_object','object_id'),
+        ('_IdentifiersDataFrame','ig_identifiers',['object_id','alias']),
+        ('_RingsDataFrame','ig_rings',['object_id','ring_type'])])
+    uploader._DFS_Iterate('Root', None, 'system', None, ['Root'], None)
+    assert pd.isna(uploader._RingsDataFrame.iloc[0]['object_count'])

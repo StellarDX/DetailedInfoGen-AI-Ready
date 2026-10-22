@@ -323,7 +323,7 @@ class Uploader():
                     i["Width"],
                     i["Thickness"] if "Thickness" in i.keys() else None,
                     i["RockMaxSize"] if "RockMaxSize" in i.keys() else None,
-                    i.get("ObjectCount") # 缺失数量保留 NULL，显式 0 仍是 0。
+                    i.get("ObjectCount") # native 仅为 CircumplanetaryDisc 提供非零计数，其余保存 NULL。
                 ]
         
         if "SubSystems" in CurrentObject:

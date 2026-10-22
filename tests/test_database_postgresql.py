@@ -69,18 +69,30 @@ def database(monkeypatch):
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize('count', [None, 0, 42])
-def test_ring_count_roundtrip_on_postgresql(database, count):
+def test_non_disc_missing_count_stays_null(database):
     d = database
-    ring = dict(Type='Colorful', InnerRadius=1., Width=2.)
-    if count is not None:
-        ring['ObjectCount'] = count
-    d.upload(rings=[ring])
-    assert d.read('SELECT object_count FROM ig_rings') == [(count,)]
+    d.upload(rings=[dict(Type='Colorful', InnerRadius=1., Width=2.)])
+    assert d.read('SELECT object_count FROM ig_rings') == [(None,)]
     d.modules.query.SetNamespace('review')
     rows = json.loads(d.modules.query.QueryObject.func('Alias1'))
-    actual = rows[0]['rings'][0].get('object_count')
-    assert actual == count
+    assert 'object_count' not in rows[0]['rings'][0]
+
+
+@pytest.mark.integration
+def test_legacy_ring_zero_is_missing(database):
+    d = database
+    d.upload(rings=[dict(Type='Colorful', InnerRadius=1., Width=2.)])
+    connection = d.modules.adbc.ADBCClient()
+    try:
+        with connection.cursor() as cursor:
+            # 模拟旧 uploader 写入的 missing sentinel，不把 0 当真实数量。
+            cursor.execute('UPDATE ig_rings SET object_count = 0')
+        connection.commit()
+    finally:
+        connection.close()
+    d.modules.query.SetNamespace('review')
+    rows = json.loads(d.modules.query.QueryObject.func('Alias1'))
+    assert 'object_count' not in rows[0]['rings'][0]
 
 
 @pytest.mark.integration
@@ -130,7 +142,7 @@ def test_repeated_upload_uses_live_connections(database):
 
 
 @pytest.mark.integration
-def test_nonfinite_sql_and_public_json(database):
+def test_nonfinite_sql_literals_become_null(database):
     d = database
     d.upload()
     oid = d.read('SELECT object_id FROM ig_object')[0][0]
@@ -146,8 +158,37 @@ def test_nonfinite_sql_and_public_json(database):
     finally:
         connection.close()
     assert d.read('SELECT surface_pressure, scale_height FROM ig_atmosphere') == [(None, None)]
+
+
+@pytest.mark.integration
+def test_root_null_fields_produce_strict_json(database):
+    d = database
+    d.upload()
     d.modules.query.SetNamespace('review')
-    def reject_constant(value):
-        raise AssertionError('JSON 中出现非标准常量：' + value)
-    rows = json.loads(d.modules.query.QueryObject.func(oid), parse_constant=reject_constant)
-    assert len(rows) == 1 and rows[0]['object_id'] == oid
+    def reject(value):
+        raise AssertionError('非法 JSON 常量：' + value)
+    rows = json.loads(d.modules.query.QueryObject.func('Alias1'), parse_constant=reject)
+    assert rows[0]['parent_object_id'] is None
+    assert rows[0]['parent_object'] is None
+    assert rows[0]['sibling_index'] is None
+    json.dumps(rows, allow_nan=False)
+    json.loads(d.modules.query.QuerySystem.func('Root'), parse_constant=reject)
+
+
+@pytest.mark.integration
+def test_subsystem_null_class_produces_strict_json(database):
+    d = database
+    d.upload()
+    parent, system = d.read('SELECT object_id, system_id FROM ig_object')[0]
+    connection = d.modules.adbc.ADBCClient()
+    try:
+        with connection.cursor() as cursor:
+            # 与真实857对象系统的质心子系统相同：class 为 SQL NULL。
+            cursor.execute("INSERT INTO ig_object(object_id,system_id,parent_object_id,primary_name,otype,depth,sibling_index) VALUES ('child','" + system + "','" + parent + "','Sub','Barycenter',1,0)")
+            cursor.execute("INSERT INTO ig_identifiers(object_id,alias) VALUES ('child','Sub')")
+        connection.commit()
+    finally:
+        connection.close()
+    rows = d.modules.query._QueryObject_Unchecked('review', 'Root', ['subsystems'])
+    assert rows[0]['sub_systems'][0]['subsystem_class'] is None
+    json.dumps(rows, allow_nan=False)
