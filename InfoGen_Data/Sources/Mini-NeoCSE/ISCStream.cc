@@ -7,6 +7,38 @@
 #include <variant>
 
 #include "ISCStream.h"
+#include <limits>
+#include <stdexcept>
+
+namespace
+{
+template<class T>
+T ReadInteger(const char* begin, const char* end, int base, bool negative)
+{
+    std::string digits(begin, end);
+    if constexpr (std::is_signed_v<T>)
+        if (negative) digits.insert(digits.begin(), '-');
+    T value = 0;
+    auto parsed = fast_float::from_chars(digits.data(), digits.data() + digits.size(), value, base);
+    if (parsed.ec != std::errc{} || parsed.ptr != digits.data() + digits.size())
+        throw std::invalid_argument("Invalid or out-of-range source integer");
+    if constexpr (std::is_unsigned_v<T>)
+        if (negative) value = T(0) - value;
+    if constexpr (sizeof(T) > sizeof(SEInteger))
+    {
+        if constexpr (std::is_signed_v<T>)
+        {
+            if (value < std::numeric_limits<SEInteger>::min() || value > std::numeric_limits<SEInteger>::max())
+                throw std::invalid_argument("Source integer exceeds supported 64-bit storage");
+        }
+        else if (value > std::numeric_limits<SEUInt>::max())
+            throw std::invalid_argument("Source integer exceeds supported 64-bit storage");
+    }
+    return value;
+}
+}
+
+
 
 // 采用Eisel-Lemire+谷歌V8双引擎的字符串到数字转换器（部分为AI生成，腾讯云CodeBuddy提供技术支持）
 SEObject ISCStream::NumericToObject(std::string Context)
@@ -139,7 +171,9 @@ SEObject ISCStream::NumericToObject(std::string Context)
             case Suffix::Bin32:
                 {
                     float Result = 0;
-                    fast_float::from_chars(Begin, End, Result);
+                    auto Parsed = fast_float::from_chars(Begin, End, Result);
+                    if (Parsed.ec != std::errc{} || Parsed.ptr != End)
+                        throw std::invalid_argument("Invalid or out-of-range source real");
                     return SEObject((Negative ? -1 : 1) * Result);
                 }
             // ......
@@ -147,7 +181,9 @@ SEObject ISCStream::NumericToObject(std::string Context)
             default:[[likely]]
                 {
                     double Result = 0;
-                    fast_float::from_chars(Begin, End, Result);
+                    auto Parsed = fast_float::from_chars(Begin, End, Result);
+                    if (Parsed.ec != std::errc{} || Parsed.ptr != End)
+                        throw std::invalid_argument("Invalid or out-of-range source real");
                     return SEObject((Negative ? -1 : 1) * Result);
                 }
             }
@@ -176,40 +212,28 @@ SEObject ISCStream::NumericToObject(std::string Context)
         {
         case Suffix::I32:
             { 
-                int32_t Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result); 
+                return SEObject(ReadInteger<int32_t>(Begin, End, Base, Negative));
             }
         case Suffix::U32:
             { 
-                uint32_t Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result);
+                return SEObject(ReadInteger<uint32_t>(Begin, End, Base, Negative));
             }
         case Suffix::U64:
             { 
-                uint64_t Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result); 
+                return SEObject(ReadInteger<uint64_t>(Begin, End, Base, Negative));
             }
         case Suffix::I128:
             { 
-                __int128 Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result);
+                return SEObject(ReadInteger<__int128>(Begin, End, Base, Negative));
             }
         case Suffix::U128:
             {
-                unsigned __int128 Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result); 
+                return SEObject(ReadInteger<unsigned __int128>(Begin, End, Base, Negative));
             }
         case Suffix::I64:
         default:[[likely]]
             {
-                int64_t Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result); 
+                return SEObject(ReadInteger<int64_t>(Begin, End, Base, Negative));
             }
         }
     }
@@ -581,12 +605,18 @@ std::string GenerateParseReport(antlr4::Parser& Parser)
 ISCStream ParseFile(std::filesystem::path Path, std::string* Report)
 {
     std::ifstream fin(Path);
+    if (!fin) {throw std::runtime_error("Cannot open SpaceEngine source file");}
     antlr4::ANTLRInputStream Input(fin);
     SELexer Lex(&Input);
     antlr4::CommonTokenStream Tokens(&Lex);
     SEParser Parser(&Tokens);
     if (Report) {Parser.setProfile(true);}
     auto ParseTree = Parser.table();
+    if (Lex.getNumberOfSyntaxErrors() || Parser.getNumberOfSyntaxErrors() ||
+        Tokens.LA(1) != antlr4::Token::EOF)
+    {
+        throw std::runtime_error("Invalid or unconsumed SpaceEngine source; refusing partial import");
+    }
     if (Report) {*Report = GenerateParseReport(Parser);}
     ISCStream ISC;
     antlr4::tree::ParseTreeWalker::DEFAULT.walk(&ISC, ParseTree);
