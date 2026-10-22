@@ -530,14 +530,8 @@ class Uploader():
         return str(Statement.compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
 
     def DistUpgrade(self):
-        Connection = ADBCRawClient()
+        Connection = ADBCClient()
         try:
-            # Own a raw connection: pooled automatic statement replay cannot
-            # preserve a multi-statement replacement transaction.
-            # ADBC DB-API can silently fall back to autocommit for unsupported
-            # drivers. Its commit()/rollback() then do nothing; fail before writes.
-            if Connection._autocommit or not Connection._commit_supported:
-                raise RuntimeError("dist-upgrade requires transactional ADBC with autocommit=False")
             ExistingSystemTable = Table("ig_system", MetaData(),
                 Column('system_id', String),
                 Column('main_id', String),
@@ -553,50 +547,44 @@ class Uploader():
 
             Upload = True if len(ExistingSystem) == 0 else UserConfirm(f"当前命名空间已存在系统\"{self._Src["MainID"]}\"，是否更新？(y/n)：")
 
-            if not Upload:
-                Connection.rollback()
-                return
-            if len(ExistingSystem) != 0:
-                self._SystemDataFrame.loc[self._SysID, "create_date"] = ExistingSystem.at[self._SysID, "create_date"]
-            InsertStatements = []
-            if (len(self._SystemDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_system", self._SystemDataFrame, self._TableSchema["ig_system"]))
-            if (len(self._ObjectsDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_object", self._ObjectsDataFrame, self._TableSchema["ig_object"]))
-            if (len(self._IdentifiersDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_identifiers", self._IdentifiersDataFrame, self._TableSchema["ig_identifiers"]))
-            if (len(self._PhysicalDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_physical", self._PhysicalDataFrame, self._TableSchema["ig_physical"]))
-            if (len(self._OrbitDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_orbit", self._OrbitDataFrame, self._TableSchema["ig_orbit"]))
-            if (len(self._AtmosphereDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_atmosphere", self._AtmosphereDataFrame, self._TableSchema["ig_atmosphere"]))
-            if (len(self._HydrosphereDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_hydrosphere", self._HydrosphereDataFrame, self._TableSchema["ig_hydrosphere"]))
-            if (len(self._BiosphereDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_biosphere", self._BiosphereDataFrame, self._TableSchema["ig_biosphere"]))
-            if (len(self._BioBiomeDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_biosphere_biome", self._BioBiomeDataFrame, self._TableSchema["ig_biosphere_biome"]))
-            if (len(self._CompositionsDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_composition", self._CompositionsDataFrame, self._TableSchema["ig_composition"]))
-            if (len(self._RingsDataFrame) != 0):
-                InsertStatements.append(self.DataFrameToSQL("ig_rings", self._RingsDataFrame, self._TableSchema["ig_rings"]))
-
-            with Connection.cursor() as Cursor:
+            if Upload:
                 if len(ExistingSystem) != 0:
-                    DeleteTable = Table("ig_system", MetaData(), Column('system_id', String))
-                    DeleteQuery = str(delete(DeleteTable).where(DeleteTable.c.system_id == self._SysID)
-                        .compile(dialect=CurrentSQLVariation(), compile_kwargs={"literal_binds": True}))
-                    Cursor.execute(DeleteQuery)
-                for statement in InsertStatements:
-                    Cursor.execute(statement)
-            Connection.commit()
-        except BaseException as error:
-            try:
-                Connection.rollback()
-            except Exception as rollback_error:
-                error.add_note(f"Rollback also failed: {rollback_error}")
-            raise
+                    self._SystemDataFrame.loc[self._SysID, "create_date"] = ExistingSystem.at[self._SysID, "create_date"]
+                    with Connection.cursor() as Cursor:
+                        DeleteTable = Table("ig_system", MetaData(), Column('system_id', String))
+                        DeleteQuery = str(delete(DeleteTable).where(DeleteTable.c.system_id == self._SysID)
+                            .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
+                        Cursor.execute(DeleteQuery)
+                    Connection.commit()
+
+                InsertStatements = []
+                if (len(self._SystemDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_system", self._SystemDataFrame, self._TableSchema["ig_system"]))
+                if (len(self._ObjectsDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_object", self._ObjectsDataFrame, self._TableSchema["ig_object"]))
+                if (len(self._IdentifiersDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_identifiers", self._IdentifiersDataFrame, self._TableSchema["ig_identifiers"]))
+                if (len(self._PhysicalDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_physical", self._PhysicalDataFrame, self._TableSchema["ig_physical"]))
+                if (len(self._OrbitDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_orbit", self._OrbitDataFrame, self._TableSchema["ig_orbit"]))
+                if (len(self._AtmosphereDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_atmosphere", self._AtmosphereDataFrame, self._TableSchema["ig_atmosphere"]))
+                if (len(self._HydrosphereDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_hydrosphere", self._HydrosphereDataFrame, self._TableSchema["ig_hydrosphere"]))
+                if (len(self._BiosphereDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_biosphere", self._BiosphereDataFrame, self._TableSchema["ig_biosphere"]))
+                if (len(self._BioBiomeDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_biosphere_biome", self._BioBiomeDataFrame, self._TableSchema["ig_biosphere_biome"]))
+                if (len(self._CompositionsDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_composition", self._CompositionsDataFrame, self._TableSchema["ig_composition"]))
+                if (len(self._RingsDataFrame) != 0):
+                    InsertStatements.append(self.DataFrameToSQL("ig_rings", self._RingsDataFrame, self._TableSchema["ig_rings"]))
+
+                with Connection.cursor() as Cursor:
+                    for i in InsertStatements:
+                        Cursor.execute(i)
+                Connection.commit()
         finally:
             Connection.close()
 

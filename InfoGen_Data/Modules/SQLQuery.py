@@ -393,10 +393,10 @@ def _ReadObjectRows(Namespace, ObjectName, Info, Connection):
     Query = select(*SelectList).select_from(JoinQuery)
     if Namespace != "-A":
         Query = Query.where(SysTbl.c.namespace == Namespace)
-    if ObjectName is not None and ObjectName != "":
+    if Namespace != "-A" and ObjectName is not None and ObjectName != "":
         AliasMatch = select(1).select_from(IdentTbl).where(
             IdentTbl.c.object_id == Tbl.c.object_id, IdentTbl.c.alias == ObjectName).exists()
-        Query = Query.where(or_(Tbl.c.object_id == ObjectName, Tbl.c.primary_name == ObjectName, AliasMatch))
+        Query = Query.where(or_(Tbl.c.object_id == ObjectName, AliasMatch))
     MainStatement = str(Query.compile(dialect=CurrentSQLVariation(), compile_kwargs={"literal_binds":True}))
 
     MainFrame = ReadSQLToDataFrame(MainStatement, Connection)
@@ -456,10 +456,6 @@ def _ReadObjectRows(Namespace, ObjectName, Info, Connection):
         RingsFrame.set_index(["object_id"], inplace = True)
         RingsDict = RingsFrame.groupby("object_id")[["ring_type", "inner_radius", "width", "thickness", "rock_max_size", "object_count"]].apply(lambda x: x.to_dict('records')).to_dict()
         RingsDict = {m: [{i: j for i, j in k.items() if notna(j)} for k in l] for m, l in RingsDict.items() if l}
-        for i, j in RingsDict.items():
-            for k in j:
-                if k.get("object_count") == 0:
-                    del k["object_count"]
 
     SubDict = None
     if "subsystems" in Info:
