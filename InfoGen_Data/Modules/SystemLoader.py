@@ -548,7 +548,7 @@ class Uploader():
                     DeleteQuery = str(delete(DeleteTable).where(DeleteTable.c.system_id == self._SysID)
                         .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
                     Cursor.execute(DeleteQuery)
-                Connection.commit()
+                # Connection.commit() # 此处可以先不提交，因为所有操作使用的都是同一个连接，这里提交一次会出现中间态
             
             InsertStatements = []
             if (len(self._SystemDataFrame) != 0):

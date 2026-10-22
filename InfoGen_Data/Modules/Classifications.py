@@ -113,7 +113,7 @@ def PlanetClassification(OClass:str, Physical:dict, Ocean:dict = None):
             return "碳质行星"
         case "Aquaria":
             if Ocean != None and len(Ocean) != 0:
-                if Ocean["Height"] > 10000:
+                if Ocean["Height"] > 15000: # 目前我也不知道SE980的海洋行星最低深度是多深，（马里亚纳海沟的深度为11034）
                     return "海洋行星"
                 else:
                     return "水质行星"
