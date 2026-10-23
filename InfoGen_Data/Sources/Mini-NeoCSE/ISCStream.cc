@@ -1,12 +1,48 @@
 // This file is part of Mini-Neo-CSpaceEngine.
 // It is subject to the license terms in the LICENSE file found in the top-level directory
 
-#include <fast_float/fast_float.h>
-#include <double-conversion/double-conversion.h>
+#include <exception>
 #include <fstream>
 #include <variant>
+#include <limits>
+#include <stdexcept>
+#include <meta>
+
+#include <fast_float/fast_float.h>
+#include <double-conversion/double-conversion.h>
+#include "spdlog/spdlog.h"
+#include "fmt/format.h"
 
 #include "ISCStream.h"
+
+template<class Ty>
+Ty ReadInteger(const char* Begin, const char* End, int Base, bool Negative)
+{
+    /*
+        丹霞：经过后续分析发现提交“c365435458c95ca0f9e91823b442e93ed7b8a41c”中
+        GPT生成的ReadInteger函数存在明显的过度设计。主要问题是把符号处理外包给了字符
+        串拼接，使得O(1)复杂度变成了O(n)，这点是最大的浪费。同时这里面真正需要检查的
+        是std::errc，其他检查基本都是多余的。此处仅保留函数的必要部分，同时把Fatal降
+        级为Warning。
+    */
+    using Uty = std::make_unsigned_t<Ty>;
+    Uty UResult = 0;
+    auto ParseInfo = fast_float::from_chars<Uty>(Begin, End, UResult, Base);
+    if (ParseInfo.ec != std::errc() || ParseInfo.ptr != End)
+    {
+        throw std::invalid_argument("整数太大");
+    }
+    Ty Result = 0;
+    if constexpr (std::is_signed_v<Ty>) // 若UResult溢出有符号类型范围，需显式检查
+    {
+        Uty Limit = Negative ? (Uty(std::numeric_limits<Ty>::max()) + Uty(1)) : Uty(std::numeric_limits<Ty>::max());
+        if (UResult > Limit) {throw std::invalid_argument("整数太大");}
+        // 用0减去绝对值避免对INT_MIN未定义
+        Result = Negative ? Ty(Uty(0) - UResult) : Ty(UResult);
+    }
+    else {Result = Negative ? Ty(Uty(0) - UResult) : UResult;}
+    return Result;
+}
 
 // 采用Eisel-Lemire+谷歌V8双引擎的字符串到数字转换器（部分为AI生成，腾讯云CodeBuddy提供技术支持）
 SEObject ISCStream::NumericToObject(std::string Context)
@@ -139,7 +175,11 @@ SEObject ISCStream::NumericToObject(std::string Context)
             case Suffix::Bin32:
                 {
                     float Result = 0;
-                    fast_float::from_chars(Begin, End, Result);
+                    auto Parsed = fast_float::from_chars(Begin, End, Result);
+                    if (Parsed.ec != std::errc{} || Parsed.ptr != End)
+                    {
+                        throw std::invalid_argument("浮点数超出float的范围");
+                    }
                     return SEObject((Negative ? -1 : 1) * Result);
                 }
             // ......
@@ -147,7 +187,11 @@ SEObject ISCStream::NumericToObject(std::string Context)
             default:[[likely]]
                 {
                     double Result = 0;
-                    fast_float::from_chars(Begin, End, Result);
+                    auto Parsed = fast_float::from_chars(Begin, End, Result);
+                    if (Parsed.ec != std::errc{} || Parsed.ptr != End)
+                    {
+                        throw std::invalid_argument("浮点数超出double的范围");
+                    }
                     return SEObject((Negative ? -1 : 1) * Result);
                 }
             }
@@ -176,40 +220,28 @@ SEObject ISCStream::NumericToObject(std::string Context)
         {
         case Suffix::I32:
             { 
-                int32_t Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result); 
+                return SEObject(ReadInteger<int32_t>(Begin, End, Base, Negative));
             }
         case Suffix::U32:
             { 
-                uint32_t Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result);
+                return SEObject(ReadInteger<uint32_t>(Begin, End, Base, Negative));
             }
         case Suffix::U64:
             { 
-                uint64_t Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result); 
+                return SEObject(ReadInteger<uint64_t>(Begin, End, Base, Negative));
             }
         case Suffix::I128:
             { 
-                __int128 Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result);
+                return SEObject(ReadInteger<__int128>(Begin, End, Base, Negative));
             }
         case Suffix::U128:
             {
-                unsigned __int128 Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result); 
+                return SEObject(ReadInteger<unsigned __int128>(Begin, End, Base, Negative));
             }
         case Suffix::I64:
         default:[[likely]]
             {
-                int64_t Result = 0; 
-                fast_float::from_chars(Begin, End, Result, Base);
-                return SEObject((Negative ? -1 : 1) * Result); 
+                return SEObject(ReadInteger<int64_t>(Begin, End, Base, Negative));
             }
         }
     }
@@ -302,7 +334,12 @@ void ISCStream::exitKeyLabel(SEParser::KeyLabelContext* Ctx)
 
 void ISCStream::exitSimpleTypeNumeric(SEParser::SimpleTypeNumericContext* Ctx)
 {
-    CurrentValue = NumericToObject(Ctx->Numeric()->getText());
+    try {CurrentValue = NumericToObject(Ctx->Numeric()->getText());}
+    catch(const std::exception& e)
+    {
+        spdlog::warn(e.what());
+        CurrentValue = 0;
+    }
 }
 
 void ISCStream::exitSimpleTypeString(SEParser::SimpleTypeStringContext* Ctx)
@@ -578,16 +615,83 @@ std::string GenerateParseReport(antlr4::Parser& Parser)
     return ANTLRReportTableToString(Table);
 }
 
+void GCCStyleErrorListener::syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol, size_t line, size_t charPositionInLine,
+    const std::string &msg, std::exception_ptr e)
+{
+    using namespace antlr4;
+    std::string ErrorMsg = fmt::format("第{}行, 第{}列: {}\n", line, charPositionInLine, msg);
+
+    size_t CurrentLine = 1;
+    size_t LineStartPos = 0;
+    size_t LineEndPos = Input.size();
+    std::string InputContents = Input.toString();
+
+    for (size_t i = 0; i < InputContents.size(); ++i)
+    {
+        if (InputContents[i] == '\n')
+        {
+            if (CurrentLine == line)
+            {
+                LineEndPos = i;
+                break;
+            }
+            ++CurrentLine;
+            LineStartPos = i + 1;
+        }
+    }
+    // 处理最后一行没有换行符的情况
+    if (CurrentLine == line && LineEndPos == InputContents.size())
+    {
+        LineEndPos = InputContents.size();
+    }
+
+    if (CurrentLine == line)
+    {
+        std::string SourceLine = InputContents.substr(LineStartPos, LineEndPos - LineStartPos);
+        // 去除行尾可能的 \r
+        if (!SourceLine.empty() && SourceLine.back() == '\r')
+        {
+            SourceLine.pop_back();
+        }
+        ErrorMsg += fmt::format("  {}\n", SourceLine);
+        // 打印插入符指示出错位置
+        ErrorMsg += fmt::format("  {}^", std::string(charPositionInLine, ' '));
+    }
+
+    if (e)
+    {
+        try {std::rethrow_exception(e);} 
+        catch (const std::exception &ex)
+        {
+            ErrorMsg += fmt::format("\n  [异常详情: {}]", ex.what());
+        }
+    }
+
+    spdlog::error(ErrorMsg);
+}
+
 ISCStream ParseFile(std::filesystem::path Path, std::string* Report)
 {
     std::ifstream fin(Path);
+    if (!fin) {throw std::runtime_error(fmt::format("无法打开{}：没有那个文件或目录", Path.string()));}
     antlr4::ANTLRInputStream Input(fin);
+    GCCStyleErrorListener ErrListener(Input);
     SELexer Lex(&Input);
+    Lex.removeErrorListeners();
+    Lex.addErrorListener(&ErrListener); // ANTLR的Lexer错误处理非常简单，直接移除那个字符，然后剩下的交给Parser，这么设计其实是为了更好的容错能力
     antlr4::CommonTokenStream Tokens(&Lex);
     SEParser Parser(&Tokens);
+    Parser.removeErrorListeners();
+    Parser.addErrorListener(&ErrListener);
+    Parser.setErrorHandler(std::make_shared<antlr4::BailErrorStrategy>()); // 直接用ANTLR的策略就行了
     if (Report) {Parser.setProfile(true);}
     auto ParseTree = Parser.table();
     if (Report) {*Report = GenerateParseReport(Parser);}
+    if (Tokens.LA(1) != antlr4::Token::EOF)
+    {
+        // 如果后面有非法Token但前面的部分正常，这时吞掉后面多余的部分并给出警告，增加容错
+        spdlog::warn("由于语法错误，ANTLR只解析了前{}%的数据", 100 * Tokens.index() / Tokens.size());
+    }
     ISCStream ISC;
     antlr4::tree::ParseTreeWalker::DEFAULT.walk(&ISC, ParseTree);
     ISC.PostParsing();

@@ -48,6 +48,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Python 环境（pybind11 在 add_subdirectory 前需要 Python 开发组件）
 # ----------------------------------------------------------------------------
 find_package(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
+option(INFOGEN_BUILD_PARSER_TESTS "构建 parser 回归测试" OFF)
 
 # ----------------------------------------------------------------------------
 # 自动查找第三方依赖（InfoGen_Data/3rdParty）
@@ -245,8 +246,8 @@ file(GLOB_RECURSE _PYTHON_DATA_FILES
 list(APPEND PYTHON_INSTALL_FILES ${_PYTHON_DATA_FILES})
 
 foreach(_py ${PYTHON_INSTALL_FILES})
-    # 跳过 3rdParty（C++ 相关依赖，无 Python 运行时安装需求）
-    if(_py MATCHES "InfoGen_Data/3rdParty")
+    # 跳过3rdParty和Test（C++ 相关依赖，无 Python 运行时安装需求）
+    if(_py MATCHES "InfoGen_Data/3rdParty" OR _py MATCHES "InfoGen_Data/Test")
         continue()
     endif()
 
@@ -308,4 +309,19 @@ if(IS_DIRECTORY "${INFOGEN_STREAMING_ASSETS_DIR}")
     message(STATUS "[${PROJECT_NAME}] 将安装资源目录: ${INFOGEN_STREAMING_ASSETS_DIR} -> InfoGen_Data/StreamingAssets")
 else()
     message(WARNING "[${PROJECT_NAME}] 未找到 StreamingAssets 目录: ${INFOGEN_STREAMING_ASSETS_DIR}")
+endif()
+
+# ----------------------------------------------------------------------------
+# 回归测试
+# ----------------------------------------------------------------------------
+if(INFOGEN_BUILD_PARSER_TESTS)
+    enable_testing()
+    file(GLOB TestScripts
+        CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/InfoGen_Data/Tests/CMakeRes/*.CMake"
+    )
+    foreach(TestItem ${TestScripts})
+        message(STATUS "测试项：${TestItem}")
+        include(${TestItem})
+    endforeach()
 endif()

@@ -14,6 +14,8 @@
 
 #include <fmt/format.h>
 #include <Eigen/Core>
+#include <BaseErrorListener.h>
+#include "ANTLRInputStream.h"
 
 #include "./ANTLR/SELexer.h"
 #include "./ANTLR/SEParser.h"
@@ -192,6 +194,15 @@ public:
         }
         else {throw std::bad_variant_access();}
     }
+};
+
+class GCCStyleErrorListener : public antlr4::BaseErrorListener
+{
+public:
+    antlr4::ANTLRInputStream& Input;
+    GCCStyleErrorListener(antlr4::ANTLRInputStream& I) : Input(I) {}
+    void syntaxError(antlr4::Recognizer* recognizer, antlr4::Token* offendingSymbol, size_t line, size_t charPositionInLine,
+        const std::string &msg, std::exception_ptr e) override;
 };
 
 class ISCStream : public SEBaseListener

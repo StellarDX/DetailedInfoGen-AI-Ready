@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "version_basis": {
+    "user_declared": "0.991",
+    "running_build": "0.991.50.2155 beta",
+    "embedded_version_header": false
+  },
+  "resources": [
+    {
+      "path": "se-0.991-real/Kepler-1512.sc",
+      "bytes": 1912,
+      "sha256": "24ed0a5959c2f072b2590253d36bb5cbddc36c4e92a7b1db515a141f2f68ab17",
+      "source_kind": "real_export",
+      "source_build": "0.991.50.2155 beta",
+      "objects": 1,
+      "complete_system_root": true,
+      "selection_reason": "单恒星根及三个 alias"
+    },
+    {
+      "path": "se-0.991-real/Gaia DR3 3422042582096699520.sc",
+      "bytes": 1970,
+      "sha256": "f5ee56e01c8ccbe99c47d7f0568b493cb7cab7a90e7065793effd562f53ba2d1",
+      "source_kind": "real_export",
+      "source_build": "0.991.50.2155 beta",
+      "objects": 1,
+      "complete_system_root": true,
+      "selection_reason": "单恒星根及源 Oblateness"
+    },
+    {
+      "path": "se-0.991-real/Gaia DR3 249928171344223232.sc",
+      "bytes": 4393,
+      "sha256": "6ab4830ce7d305d9ef2bfe64fd33ad6661c86e3c56871b378193dba5be350fec",
+      "source_kind": "real_export",
+      "source_build": "0.991.50.2155 beta",
+      "objects": 1,
+      "complete_system_root": false,
+      "selection_reason": "缺宿主的真实单行星片段，明确范围控制"
+    }
+  ]
+}
