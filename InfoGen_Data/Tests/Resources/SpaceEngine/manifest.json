@@ -5,7 +5,7 @@
     "running_build": "0.991.50.2155 beta",
     "embedded_version_header": false
   },
-  "fixtures": [
+  "resources": [
     {
       "path": "se-0.991-real/Kepler-1512.sc",
       "bytes": 1912,

@@ -27,6 +27,6 @@ def test_parser_boundaries(case):
 
 @pytest.mark.native
 @pytest.mark.integration
-@pytest.mark.parametrize('fixture',json.loads((REPO/'tests/fixtures/spaceengine/manifest.json').read_text(encoding='utf-8'))['fixtures'],ids=lambda entry:entry['path'])
-def test_real_0991_parse(fixture):
-    run('real',str(REPO/'tests/fixtures/spaceengine'/fixture['path']))
+@pytest.mark.parametrize('Res',json.loads((REPO/'Tests/Resources/SpaceEngine/manifest.json').read_text(encoding='utf-8'))['resources'],ids=lambda entry:entry['path'])
+def test_real_0991_parse(Res):
+    run('real',str(REPO/'Tests/Resources/SpaceEngine'/Res['path']))

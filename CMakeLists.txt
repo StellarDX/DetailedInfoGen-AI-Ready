@@ -246,8 +246,8 @@ file(GLOB_RECURSE _PYTHON_DATA_FILES
 list(APPEND PYTHON_INSTALL_FILES ${_PYTHON_DATA_FILES})
 
 foreach(_py ${PYTHON_INSTALL_FILES})
-    # 跳过 3rdParty（C++ 相关依赖，无 Python 运行时安装需求）
-    if(_py MATCHES "InfoGen_Data/3rdParty")
+    # 跳过3rdParty和Test（C++ 相关依赖，无 Python 运行时安装需求）
+    if(_py MATCHES "InfoGen_Data/3rdParty" OR _py MATCHES "InfoGen_Data/Test")
         continue()
     endif()
 
@@ -311,7 +311,17 @@ else()
     message(WARNING "[${PROJECT_NAME}] 未找到 StreamingAssets 目录: ${INFOGEN_STREAMING_ASSETS_DIR}")
 endif()
 
+# ----------------------------------------------------------------------------
+# 回归测试
+# ----------------------------------------------------------------------------
 if(INFOGEN_BUILD_PARSER_TESTS)
     enable_testing()
-    include("${CMAKE_CURRENT_SOURCE_DIR}/tests/parser.cmake")
+    file(GLOB TestScripts
+        CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/InfoGen_Data/Tests/CMakeRes/*.CMake"
+    )
+    foreach(TestItem ${TestScripts})
+        message(STATUS "测试项：${TestItem}")
+        include(${TestItem})
+    endforeach()
 endif()

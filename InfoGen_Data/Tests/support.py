@@ -11,9 +11,9 @@ REPO = Path(__file__).resolve().parents[1]
 
 def load_python_modules(monkeypatch):
     package = ModuleType('InfoGen_Data')
-    package.__path__ = [str(REPO / 'InfoGen_Data')]
+    package.__path__ = [str(REPO)]
     modules = ModuleType('InfoGen_Data.Modules')
-    modules.__path__ = [str(REPO / 'InfoGen_Data/Modules')]
+    modules.__path__ = [str(REPO / 'Modules')]
     monkeypatch.setitem(sys.modules, package.__name__, package)
     monkeypatch.setitem(sys.modules, modules.__name__, modules)
     package.InfoGenHelpFormatter = argparse.HelpFormatter
@@ -24,7 +24,7 @@ def load_python_modules(monkeypatch):
 
     def load(name):
         fullname = 'InfoGen_Data.Modules.' + name
-        spec = importlib.util.spec_from_file_location(fullname, REPO / 'InfoGen_Data/Modules' / (name + '.py'))
+        spec = importlib.util.spec_from_file_location(fullname, REPO / 'Modules' / (name + '.py'))
         module = importlib.util.module_from_spec(spec)
         monkeypatch.setitem(sys.modules, fullname, module)
         setattr(modules, name, module)
