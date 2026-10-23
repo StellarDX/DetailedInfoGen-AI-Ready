@@ -1,4 +1,4 @@
-# SpaceEngine 0.990详细信息生成器（含AI能力）
+# SpaceEngine 0.99x详细信息生成器（含AI能力）
 
 > 基于 **C++26** 与 **Python** 混编的 SpaceEngine 详细信息生成器，可向下兼容0.980。
 
