@@ -1,11 +1,11 @@
 import re
 
 def RegexStellarClassification(OClass:str):
-    if OClass[0] == "C" or OClass[0:1] == "SC":
+    if OClass[0] == "C" or OClass[0:2] == "SC":
         return "碳星"
-    if OClass[0] == "S" or OClass[0:1] == "MS":
+    if OClass[0] == "S" or OClass[0:2] == "MS":
         return "S型恒星"
-    if OClass[0] == "D" or OClass[0:1] == "WD":
+    if OClass[0] == "D" or OClass[0:2] == "WD":
         return "白矮星"
     if OClass[0] == "W":
         return "沃尔夫-拉叶星"

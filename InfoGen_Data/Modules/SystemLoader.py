@@ -668,6 +668,33 @@ class Generator(ABC):
                     ObjectInfo[LOC("轨道数据")] = DataFrame([OrbitalCharacteristics])
             case "Star":
                 OClass = Object["PhysicalCharacteristics"]["Class"]
+                # 恒星默认情况下不输出轨道，除非它是双星系统的伴星
+                if ParentBody["OType"] != "Barycenter" and Object["OrbitalCharacteristics"]["RefPlane"] not in ["Static", "Fixed"]:
+                    OrbitalCharacteristics = {}
+                    OrbitalCharacteristics[LOC("参考系统")] = LOC(Object["OrbitalCharacteristics"]["RefPlane"])
+                    OrbitalCharacteristics[LOC("周期 (P)")] = f"{Object["OrbitalCharacteristics"]["Period"]:.{self._Prec}g} s"
+                    OrbitalCharacteristics[LOC("半长轴 (a)")] = f"{Object["OrbitalCharacteristics"]["SemiMajorAxis"]:.{self._Prec}g} m"
+                    OrbitalCharacteristics[LOC("离心率 (e)")] = f"{Object["OrbitalCharacteristics"]["Eccentricity"]:.{self._Prec}g}"
+                    OrbitalCharacteristics[LOC("轨道倾角 (i)")] = f"{Object["OrbitalCharacteristics"]["Inclination"]:.{self._Prec}g}"
+                    OrbitalCharacteristics[LOC("升交点经度 (Ω)")] = f"{Object["OrbitalCharacteristics"]["AscendingNode"]:.{self._Prec}g}"
+                    OrbitalCharacteristics[LOC("历元 (T)")] = f"{Object["OrbitalCharacteristics"]["Epoch"]:.{self._Prec}g} JD"
+                    OrbitalCharacteristics[LOC("近心点辐角 (ω)")] = f"{Object["OrbitalCharacteristics"]["ArgOfPericenter"]:.{self._Prec}g}"
+                    OrbitalCharacteristics[LOC("平近点角 (M0)")] = f"{Object["OrbitalCharacteristics"]["MeanAnomaly"]:.{self._Prec}g}"
+                    ObjectInfo[LOC("轨道数据")] = DataFrame([OrbitalCharacteristics])
+                elif ParentBody["OType"] == "Barycenter" and Object["OrbitalCharacteristics"]["BinaryOrbit"] and not Object["OrbitalCharacteristics"]["IsPrimary"]:
+                    OrbitalCharacteristics = {}
+                    OrbitalCharacteristics[LOC("参考系统")] = LOC(Object["OrbitalCharacteristics"]["RefPlane"])
+                    OrbitalCharacteristics[LOC("主星")] = Object["OrbitalCharacteristics"]["Primary"]
+                    OrbitalCharacteristics[LOC("伴星")] = Object["OrbitalCharacteristics"]["Companion"]
+                    OrbitalCharacteristics[LOC("周期 (P)")] = f"{Object["OrbitalCharacteristics"]["BPeriod"]:.{self._Prec}g} s"
+                    OrbitalCharacteristics[LOC("半长轴 (a)")] = f"{Object["OrbitalCharacteristics"]["BSemiMajorAxis"]:.{self._Prec}g} m"
+                    OrbitalCharacteristics[LOC("离心率 (e)")] = f"{Object["OrbitalCharacteristics"]["BEccentricity"]:.{self._Prec}g}"
+                    OrbitalCharacteristics[LOC("轨道倾角 (i)")] = f"{Object["OrbitalCharacteristics"]["BInclination"]:.{self._Prec}g}"
+                    OrbitalCharacteristics[LOC("升交点经度 (Ω)")] = f"{Object["OrbitalCharacteristics"]["BAscendingNode"]:.{self._Prec}g}"
+                    OrbitalCharacteristics[LOC("历元 (T)")] = f"{Object["OrbitalCharacteristics"]["BEpoch"]:.{self._Prec}g} JD"
+                    OrbitalCharacteristics[LOC("近心点辐角 (ω)")] = f"{Object["OrbitalCharacteristics"]["BArgOfPericenter"]:.{self._Prec}g}"
+                    OrbitalCharacteristics[LOC("平近点角 (M0)")] = f"{Object["OrbitalCharacteristics"]["BMeanAnomaly"]:.{self._Prec}g}"
+                    ObjectInfo[LOC("轨道数据")] = DataFrame([OrbitalCharacteristics])
                 if OClass == "X" or OClass == "BlackHole":
                     ObjectInfo[LOC("物体类型")] = LOC(Classifications.RegexStellarClassification(OClass))
                     PhysicalCharacteristics = {}
@@ -680,21 +707,6 @@ class Generator(ABC):
                     ObjectInfo[LOC("物理数据")] = DataFrame([PhysicalCharacteristics])
                 else:
                     ObjectInfo[LOC("物体类型")] = LOC(Classifications.RegexStellarClassification(OClass))
-                    # 恒星默认情况下不输出轨道，除非它是双星系统的伴星
-                    if ParentBody["OType"] == "Barycenter" and Object["OrbitalCharacteristics"]["BinaryOrbit"] and not Object["OrbitalCharacteristics"]["IsPrimary"]:
-                        OrbitalCharacteristics = {}
-                        OrbitalCharacteristics[LOC("参考系统")] = LOC(Object["OrbitalCharacteristics"]["RefPlane"])
-                        OrbitalCharacteristics[LOC("主星")] = Object["OrbitalCharacteristics"]["Primary"]
-                        OrbitalCharacteristics[LOC("伴星")] = Object["OrbitalCharacteristics"]["Companion"]
-                        OrbitalCharacteristics[LOC("周期 (P)")] = f"{Object["OrbitalCharacteristics"]["BPeriod"]:.{self._Prec}g} s"
-                        OrbitalCharacteristics[LOC("半长轴 (a)")] = f"{Object["OrbitalCharacteristics"]["BSemiMajorAxis"]:.{self._Prec}g} m"
-                        OrbitalCharacteristics[LOC("离心率 (e)")] = f"{Object["OrbitalCharacteristics"]["BEccentricity"]:.{self._Prec}g}"
-                        OrbitalCharacteristics[LOC("轨道倾角 (i)")] = f"{Object["OrbitalCharacteristics"]["BInclination"]:.{self._Prec}g}"
-                        OrbitalCharacteristics[LOC("升交点经度 (Ω)")] = f"{Object["OrbitalCharacteristics"]["BAscendingNode"]:.{self._Prec}g}"
-                        OrbitalCharacteristics[LOC("历元 (T)")] = f"{Object["OrbitalCharacteristics"]["BEpoch"]:.{self._Prec}g} JD"
-                        OrbitalCharacteristics[LOC("近心点辐角 (ω)")] = f"{Object["OrbitalCharacteristics"]["BArgOfPericenter"]:.{self._Prec}g}"
-                        OrbitalCharacteristics[LOC("平近点角 (M0)")] = f"{Object["OrbitalCharacteristics"]["BMeanAnomaly"]:.{self._Prec}g}"
-                        ObjectInfo[LOC("轨道数据")] = DataFrame([OrbitalCharacteristics])
                     PhysicalCharacteristics = {}
                     PhysicalCharacteristics[LOC("绝对热星等")] = f"{Object["PhysicalCharacteristics"]["AbsMagnBol"]:.{self._Prec}g}"
                     PhysicalCharacteristics[LOC("光谱类型")] = Object["PhysicalCharacteristics"]["Class"]
