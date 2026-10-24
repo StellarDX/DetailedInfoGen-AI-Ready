@@ -102,7 +102,8 @@ void Composite1(ReturnType* Result)
     spdlog::info("生成物体列表...");
 
     std::vector<std::string> SpTypes;
-    for (auto i : StarList)
+    if (StarList.empty()) {SpTypes.push_back("Free-Floating Planet");}
+    else for (auto i : StarList)
     {
         auto SpClass = PhysicalTable.at(i).Class;
         SpTypes.push_back(SpClass);

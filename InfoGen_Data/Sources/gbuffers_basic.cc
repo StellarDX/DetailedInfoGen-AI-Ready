@@ -536,6 +536,7 @@ PhysicalCharTableType gbuffer_basic()
     {
         PhysicalCharacteristics Table;
         LoadPlanet(BASIC, i, OrbitTable, StarList, StaticPosTable, PhysicalTable, &Table);
+
         auto ParentBody = std::find_if(SystemTable.begin(), SystemTable.end(), 
             [i](SystemType::value_type v)
         {
@@ -546,16 +547,19 @@ PhysicalCharTableType gbuffer_basic()
         // 如果恒星位于更深层的系统中这方法会失效，因此需要递归收集所有物体然后判定这些物体里有没有恒星
         std::vector<OIDType> IsStarBarycenter;
         std::vector<OIDType> ObjectList;
-        std::queue<OIDType> ObjectsQueue;
-        ObjectsQueue.push(ParentBody->first);
-        while (!ObjectsQueue.empty())
+        if (i != BarycenterID) // 如果此物体就是质心则忽略这一步（意味着没有比这个物体质量更大的物体，而此物体本身就是个行星）
         {
-            OIDType CurrentObject = ObjectsQueue.front();
-            ObjectsQueue.pop();
-            for (auto i : SystemTable.at(CurrentObject))
+            std::queue<OIDType> ObjectsQueue;
+            ObjectsQueue.push(ParentBody->first);
+            while (!ObjectsQueue.empty())
             {
-                ObjectList.push_back(i);
-                ObjectsQueue.push(i);
+                OIDType CurrentObject = ObjectsQueue.front();
+                ObjectsQueue.pop();
+                for (auto i : SystemTable.at(CurrentObject))
+                {
+                    ObjectList.push_back(i);
+                    ObjectsQueue.push(i);
+                }
             }
         }
 
@@ -577,7 +581,7 @@ PhysicalCharTableType gbuffer_basic()
             }
             Table.SubSystemsList.push_back(IDENT[SubSys].front());
         }
-        if (BaryenterList.contains(ParentBody->first) && IsStarBarycenter.empty()
+        if ((i != BarycenterID && BaryenterList.contains(ParentBody->first)) && IsStarBarycenter.empty()
             && OrbitTable.at(i).BinaryOrbit && OrbitTable.at(i).IsPrimary)
         {
             for (auto j : SystemTable[ParentBody->first])
