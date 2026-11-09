@@ -49,7 +49,7 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
 | 脚本 | Python 3.12+，argparse / gettext / polib / pandas |
 | 数据库 | Apache ADBC + DBUtils + SQLAlchemy |
 | AI | Langgraph |
-| 服务 | FastMCP（MCP服务器，版本`26H2`） |
+| 服务 | FastMCP |
 
 ## 安装部署
 
