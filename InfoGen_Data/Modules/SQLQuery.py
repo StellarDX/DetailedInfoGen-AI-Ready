@@ -132,7 +132,7 @@ def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName, ObjectType):
             .join(SysTbl, SysTbl.c.system_id == CTbl.c.system_id)
             .outerjoin(PTbl, CTbl.c.parent_object_id == PTbl.c.object_id))
         .where(SysTbl.c.namespace == Namespace)
-        .where(SysTbl.c.main_id == SystemName))
+        .where(or_(SysTbl.c.main_id == SystemName, SysTbl.c.system_id == SystemName)))
     if ObjectType != None and ObjectType != "":
         Query = Query.where(CTbl.c.otype == ObjectType)
     Query = str(Query.compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
