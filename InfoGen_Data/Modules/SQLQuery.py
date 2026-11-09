@@ -11,7 +11,6 @@ from sqlalchemy.orm import aliased
 from pandas import notna
 from pandas.api.types import is_dict_like
 from tabulate import tabulate
-from langchain.tools import tool
 from numpy import nan
 
 _NamespaceBuffer = ""
@@ -558,7 +557,7 @@ def _QueryObject(Namespace, ObjectName, OutFmt):
                 showindex = False
             ))
 
-@tool(parse_docstring = True)
+# @tool(parse_docstring = True)
 def QuerySystem(SystemName:str) -> str: # 这个是给AI看的
     """查询指定系统的信息。
 
@@ -576,7 +575,7 @@ def QuerySystem(SystemName:str) -> str: # 这个是给AI看的
     
     return _QuerySystem(GetNamespace(), SystemName, "json")
 
-@tool(parse_docstring = True)
+# @tool(parse_docstring = True)
 def QueryAllObjectsInSystem(SystemName:str, ObjectType:Literal[
         "Barycenter", "Star", "Planet", "DwarfPlanet",
         "Moon", "DwarfMoon", "Asteroid", "Comet"
@@ -614,7 +613,7 @@ def QueryAllObjectsInSystem(SystemName:str, ObjectType:Literal[
     print(f"已查询 {len(SystemFrame)} 个物体")
     return SystemFrame.to_csv(index = False, sep = '\t')
 
-@tool(parse_docstring = True)
+# @tool(parse_docstring = True)
 def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
         "Barycenter", "Star", "Planet", "DwarfPlanet",
         "Moon", "DwarfMoon", "Asteroid", "Comet"

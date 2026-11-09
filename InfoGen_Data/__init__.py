@@ -62,4 +62,5 @@ from InfoGen_Data.Modules.SQLQuery import QuerySystem, QueryAllObjectsInSystem, 
 from InfoGen_Data.Modules.LangGraph import Register as LangGraphRegister
 from InfoGen_Data.Modules.LangGraph import Generate
 
-__import__("InfoGen_Data.Plug-ins")
+from InfoGen_Data.Modules.Services import Register as ServicesRegister
+from InfoGen_Data.Modules.Services import StartService

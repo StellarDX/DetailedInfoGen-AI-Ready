@@ -12,7 +12,7 @@ from datetime import datetime
 from time import perf_counter
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
-from langchain_core.tools import BaseTool
+from langchain_core.tools import BaseTool, StructuredTool
 from langchain_openai import ChatOpenAI
 from langgraph.graph import StateGraph, MessagesState, START, END
 from langgraph.prebuilt import ToolNode
@@ -147,7 +147,7 @@ def Register(MainArgParser):
 
 def Generate(args):
     SetNamespace(args.namespace)
-    ToolList = _ToolList
+    ToolList = [StructuredTool.from_function(func = i, parse_docstring = True) for i in _ToolList]
     State = InitState(args, ToolList)
     WorkFlow = InitWorkflow(ToolList)
     print("初始化完成")
