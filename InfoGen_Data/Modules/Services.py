@@ -57,7 +57,7 @@ def Register(MainArgParser):
     Parser.add_argument("-6", "--mcp-ipv6", action = 'store_true', help = "使用IPv6链接，仅mcp的http模式生效")
     # 有的客户端会尝试从mcp的instructions读取全局提示词，但官方文档说这不是一个强制性实现的特性，因此提供这个选项
     Parser.add_argument("--mcp-global-prompt-instruction", action = 'store_true', help = "把prompt通过mcp的instruction传出")
-    Parser.add_argument("-C", "--mcp-global-prompt", type = str, default = "./InfoGen_Data/StreamingAssets/Prompts/Global.txt", help = "mcp全局提示词文件")
+    Parser.add_argument("-C", "--mcp-global-prompt-file", type = str, default = "./InfoGen_Data/StreamingAssets/Prompts/Global.txt", help = "mcp全局提示词文件")
 
 def StartService(args):
     Services[args.service](args)
