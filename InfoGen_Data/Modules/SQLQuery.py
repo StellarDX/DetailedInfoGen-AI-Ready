@@ -561,10 +561,10 @@ def _QueryObject(Namespace, ObjectName, OutFmt):
 def QuerySystem(SystemName:str) -> str: # 这个是给AI看的
     """查询指定系统的信息。
 
-    根据系统名称查询系统数据，并以 JSON 格式返回。
+    根据系统名称查询系统数据，并以 JSON 格式返回。若不存在则返回“没找到任何资源”。
 
     Args:
-        SystemName (str): 要查询的系统名称。
+        SystemName (str): 要查询的系统名称或ID（必填）。
 
     Returns:
         str: 命中时返回系统信息（JSON 格式的字符串）；
@@ -579,10 +579,10 @@ def QuerySystem(SystemName:str) -> str: # 这个是给AI看的
 def QueryAllObjectsInSystem(SystemName:str, ObjectType:Literal[
         "Barycenter", "Star", "Planet", "DwarfPlanet",
         "Moon", "DwarfMoon", "Asteroid", "Comet"
-    ] = None) -> str:
+    ] | None = None) -> str: # 这个是给AI看的
     """查询指定系统内的所有物体。
 
-    根据系统名称查询该系统下包含的全部对象，并以 TSV（制表符分隔）格式返回。
+    根据系统名称查询该系统下包含的全部对象，并以 TSV（制表符分隔）格式返回。若没找到匹配数据则返回“没找到任何资源”。
 
     行星类型（/class）字段解释：
         Ferria：铁质行星
@@ -595,7 +595,7 @@ def QueryAllObjectsInSystem(SystemName:str, ObjectType:Literal[
         Asteroid：小型物体（无实际意义）
 
     Args:
-        SystemName (str): 要查询的系统名称。
+        SystemName (str): 要查询的系统名称或ID（必填）。
         ObjectType (str): 物体类型，用于进一步过滤。可选值：
                           "Barycenter"（质心）、"Star"（恒星）、"Planet"（行星）、
                           "DwarfPlanet"（矮行星）、"Moon"（卫星）、"DwarfMoon"（小卫星）、
@@ -610,6 +610,9 @@ def QueryAllObjectsInSystem(SystemName:str, ObjectType:Literal[
 
     SystemFrame = _QueryAllObjectsInSystem_Unchecked(GetNamespace(), SystemName, ObjectType)
 
+    if len(SystemFrame) == 0:
+        return "没找到任何资源"
+
     print(f"已查询 {len(SystemFrame)} 个物体")
     return SystemFrame.to_csv(index = False, sep = '\t')
 
@@ -617,12 +620,14 @@ def QueryAllObjectsInSystem(SystemName:str, ObjectType:Literal[
 def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
         "Barycenter", "Star", "Planet", "DwarfPlanet",
         "Moon", "DwarfMoon", "Asteroid", "Comet"
-    ] = None) -> str:
+    ] | None = None) -> str: # 这个是给AI看的
     """
     查询指定行星系统内某个物体的完整信息。
 
     用于按物体名检索该物体的轨道、物理、大气、水圈、生物圈等模块数据，
-    返回格式化后的 JSON 字符串，便于直接阅读或继续解析。
+    返回格式化后的 JSON 字符串，便于直接阅读或继续解析，数据中只会包含对应物体“拥有”的属性。
+    若不存在则返回“没有那个系统或物体”。
+    若匹配到多个物体则返回“匹配到多个物体”和候选列表。
     适用场景：需要了解某个已知天体/物体的具体参数与属性时调用。
 
     所有字段的单位均遵循国际单位制，即：
@@ -660,7 +665,7 @@ def QueryObject(ObjectName:str, SystemName:str = None, ObjectType:Literal[
         生物群系（/biosphere/biome）：Marine - 海洋；Terrestrial - 陆地；Aerial/Floaters - 空中；Subglacial - 冰下；
 
     Args:
-        ObjectName (str): 物体名称、别名或 object_id（必填）。
+        ObjectName (str): 物体名称、别名或ID（必填）。
         SystemName (str): 行星系统名称，用于限定检索范围；不指定时搜索所有系统。
         ObjectType (str): 物体类型，用于进一步过滤。可选值：
                           "Barycenter"（质心）、"Star"（恒星）、"Planet"（行星）、
