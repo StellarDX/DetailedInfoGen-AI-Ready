@@ -19,7 +19,7 @@ def MCP(args):
         "version": "26H2"
     }
     if args.mcp_global_prompt_instruction:
-        SysArgs["instructions"] = Path(args.mcp_global_prompt).read_text(encoding = 'utf-8')
+        SysArgs["instructions"] = Path(args.mcp_global_prompt_file).read_text(encoding = 'utf-8')
 
     RunArgs = {i: j for i, j in args.define}
     if args.mcp_ipv6:
