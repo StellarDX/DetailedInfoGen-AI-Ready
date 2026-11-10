@@ -28,7 +28,7 @@ def Register(MainArgParser):
     Parser.add_argument("-n", "--namespace", type = str, required = True, help = "命名空间")
     Parser.add_argument("service", type = str, choices = Services.keys(), help = "服务名称")
     Parser.add_argument("-D", "--define", action = 'append', type = ArgToDict, default = [], help = "服务启动参数")
-    Parser.add_argument("-6", "--ipv6", action = 'store_true', help = "使用IPv6链接")
+    Parser.add_argument("-6", "--ipv6", action = 'store_true', help = "使用IPv6链接，仅http模式生效")
 
 def StartService(args):
     SetNamespace(args.namespace)
