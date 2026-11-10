@@ -34,6 +34,8 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
    - 基于LangGraph构建多轮工具调用工作流，模型可自动查询数据库中保存的系统/物体信息后再生成内容
    - 支持全局提示词与用户提示词（含变量占位符）、最大工具调用次数限制与流式输出，结果写入Markdown文件
 3. 通过MCP服务的形式把内部工具暴露给第三方AI客户端
+   - 可选择性把全局提示词通过MCP的`instructions`字段下发给客户端（并非所有客户端都会读取该字段）
+   - 支持stdio与HTTP两种传输方式，HTTP模式下可选择监听IPv6地址
 
 ## 技术栈
 
@@ -190,6 +192,7 @@ python InfoGen.py --help
 | 配置时报找不到 Python 开发组件 | 安装 `python3-dev`（Linux）或在 Windows 安装包中勾选「Python 开发文件」，或用 `-DPython3_EXECUTABLE` 指定正确的解释器 |
 | Windows 控制台中文乱码 | `InfoGen_Data/__init__.py` 已自动把控制台输出代码页切到 UTF-8（65001），若仍乱码请确认终端字体支持中文 |
 | MCP客户端连接成功但查询无结果 | 确认启动时的`-n/--namespace`与导入数据时使用的命名空间一致，且数据库配置仍有效 |
+| MCP客户端读不到全局提示词 | 未加`--mcp-global-prompt-instruction`（默认不发送`instructions`），或客户端本身未实现读取`instructions`；同时确认`-C`指向的文件存在且为UTF-8编码 |
 
 ## 使用方法
 
@@ -291,13 +294,7 @@ python InfoGen.py generate -S <用户提示词> [-B <输出目录>] [-D<Variable
 
 注：用户提示词中的变量用`{}`定义，详见[模板](./InfoGen_Data/StreamingAssets/Prompts/Template.txt)
 
-### MCP服务
-
-```
-python InfoGen.py service mcp -n<namespace> [-D<key>=<value>...] [-6]
-```
-
-把指定命名空间的数据库查询能力以MCP工具的形式对外提供，供支持MCP的AI客户端（如Claude Desktop等）调用。
+### 服务
 
 #### `service` 参数说明
 
@@ -306,9 +303,21 @@ python InfoGen.py service mcp -n<namespace> [-D<key>=<value>...] [-6]
 | `service` | 服务名称（必填，目前仅支持`mcp`） | — |
 | `-n, --namespace` | 命名空间（必填） | — |
 | `-D, --define` | 服务启动参数，以`key=value`形式原样透传给`FastMCP.run()`，可重复传入（如`-Dtransport=http`、`-Dport=8000`） | 空 |
-| `-6, --ipv6` | 使用IPv6链接 | 关闭 |
+| `-6, --mcp-ipv6` | 使用IPv6链接（仅`mcp`的HTTP模式生效） | 关闭 |
+| `--mcp-global-prompt-instruction` | 把全局提示词文件的内容通过MCP的`instructions`字段传出 | 关闭 |
+| `-C, --mcp-global-prompt-file` | MCP全局提示词文件（仅`--mcp-global-prompt-instruction`开启时读取） | `./InfoGen_Data/StreamingAssets/Prompts/Global.txt` |
 
-#### MCP工具清单
+#### MCP服务
+
+```
+python InfoGen.py service mcp -n<namespace> [-D<key>=<value>...] [-6] [--mcp-global-prompt-instruction [-C<prompt文件>]]
+```
+
+把指定命名空间的数据库查询能力以MCP工具的形式对外提供，供支持MCP的AI客户端（如Claude Desktop等）调用。
+
+部分客户端（如CodeBuddy、Cherry Studio等）会主动读取MCP服务端`instructions`字段的内容作为全局提示词。由于MCP规范并未强制要求客户端实现该字段，本项目默认不发送，需要时显式加上`--mcp-global-prompt-instruction`后才会发送全局提示词。
+
+MCP工具清单：
 
 | 工具 | 作用 |
 | --- | --- |
@@ -316,7 +325,7 @@ python InfoGen.py service mcp -n<namespace> [-D<key>=<value>...] [-6]
 | `QueryAllObjectsInSystem` | 查询指定系统内某一类型（质心/恒星/行星/矮行星/卫星/小行星/彗星）的全部物体 |
 | `QueryObject` | 查询指定物体的详细信息，可附加系统名与物体类型 |
 
-#### MCP客户端配置示例
+MCP客户端配置示例：
 
 以stdio传输为例，在客户端配置中把启动命令指向本项目即可：
 
@@ -326,6 +335,20 @@ python InfoGen.py service mcp -n<namespace> [-D<key>=<value>...] [-6]
     "InfoGen": {
       "command": "python",
       "args": ["InfoGen.py", "service", "mcp", "-n<namespace>"],
+      "cwd": "<安装前缀>"
+    }
+  }
+}
+```
+
+若需要让客户端读取全局提示词，在`args`中追加`--mcp-global-prompt-instruction`与`-C<提示词文件>`：
+
+```json
+{
+  "mcpServers": {
+    "InfoGen": {
+      "command": "python",
+      "args": ["InfoGen.py", "service", "mcp", "-n<namespace>", "--mcp-global-prompt-instruction"],
       "cwd": "<安装前缀>"
     }
   }
