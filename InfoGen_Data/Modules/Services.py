@@ -6,9 +6,12 @@ os.environ["FASTMCP_CHECK_FOR_UPDATES"] = "off"
 from fastmcp import FastMCP
 from fastmcp.tools import Tool
 
-from typing import Literal
-
 def MCP(args):
+    if args.namespace:
+        SetNamespace(args.namespace)
+    else:
+        raise ValueError("必须指定一个命名空间")
+
     RunArgs = {i: j for i, j in args.define}
     if args.ipv6:
         RunArgs["host"] = "::1"
@@ -19,17 +22,28 @@ def MCP(args):
     MCPServ.add_tool(Tool.from_function(QueryObject))
     MCPServ.run(**RunArgs)
 
+def Columbina(args):
+    print("""
+Vola, cara columbula, sine fine vola
+Vola, cara columbula, ad sublunaria
+Audite fati campana sonat
+Aestus attulit spemque liberam
+Annorum mille mala, atra mala
+A patria sub luna ablutum
+Ad caeruleum mare rapietur
+""")
+
 Services = {
+    "luna": Columbina,
     "mcp": MCP
 }
 
 def Register(MainArgParser):
     Parser = MainArgParser.add_parser("service", help = "服务", formatter_class = InfoGenHelpFormatter)
-    Parser.add_argument("-n", "--namespace", type = str, required = True, help = "命名空间")
+    Parser.add_argument("-n", "--namespace", type = str, help = "命名空间")
     Parser.add_argument("service", type = str, choices = Services.keys(), help = "服务名称")
     Parser.add_argument("-D", "--define", action = 'append', type = ArgToDict, default = [], help = "服务启动参数")
     Parser.add_argument("-6", "--ipv6", action = 'store_true', help = "使用IPv6链接，仅http模式生效")
 
 def StartService(args):
-    SetNamespace(args.namespace)
     Services[args.service](args)
