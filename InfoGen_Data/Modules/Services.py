@@ -2,6 +2,7 @@ from InfoGen_Data import InfoGenHelpFormatter, ArgToDict
 from InfoGen_Data import SetNamespace, QuerySystem, QueryAllObjectsInSystem, QueryObject
 
 from pathlib import Path
+from argparse import SUPPRESS
 
 import os
 os.environ["FASTMCP_CHECK_FOR_UPDATES"] = "off"
@@ -31,15 +32,205 @@ def MCP(args):
     MCPServ.add_tool(Tool.from_function(QueryObject))
     MCPServ.run(**RunArgs)
 
-def Columbina(args):
-    print("""
-Vola, cara columbula, sine fine vola
-Vola, cara columbula, ad sublunaria
-Audite fati campana sonat
-Aestus attulit spemque liberam
-Annorum mille mala, atra mala
-A patria sub luna ablutum
-Ad caeruleum mare rapietur
+def Columbina(args): # 空月之歌彩蛋
+    Moon1_ = r"""
+                                        .
+                                             -.
+                                                 .
+                                                    .
+                                                      .
+                                                        .
+                                                          .
+                                                           \
+                                                            \
+                                                             \
+                                                              \
+                                                               \
+                                                               |
+                                                                \
+                                                                |
+                                                                |
+                                                                |
+                                                                |
+                                                                /
+                                                               /
+                                                               /
+                                                              /
+                                                             /
+                                                            /
+                                                           /
+                                                          '
+                                                        '
+                                                      '
+                                                    '
+                                                 '
+                                             -'
+                                        '
+"""
+
+    Moon2_ = r"""
+                                --------.
+                                    .    `----.
+                                .          .   `-.
+                                   .              `-.
+                                     @@@@@@@@    .   `.
+                                    @@@@@@@@@@         `.
+                                    @@@@@@@@@@      o    `.
+                                 @   @@@@@@@@@@  @@     .  \
+                                .  @@   @@@@@@@@@@@@     @@ \
+                                   @   @@@@@@@@@@@@@@ o @@@@ \
+                                       @@@@@@@@@@@@@@@  @@@@@ \
+                                    .   @@@@@@@@@@@@@@   @@@   \
+                                         @@@@@@@@@@@@ @@@    . |
+                                          @@       . @@@@@@     \
+                                         @@    .     @@@@@@     |
+                                   o       @@@   o   @@@@@@.    |
+                                          @@@@@       @@@       |
+                                          @@@@@     .    .      |
+                                -.      .  @@@  .           .   /
+                                -'                     .       /
+                                     .            o            /
+                                            .                 /
+                                 .                    o      /
+                                      o           .         /
+                                _         .   .     .--.   /
+                                                   `--'  .'
+                                  .                    .'
+                                        O      .     .'
+                                   o              .-'
+                                        .      .-'
+                                 .       .----'
+                                --------'
+"""
+
+    Moon3_ = r"""
+                         .--------------.
+                   .----'  o        .    `----.
+                .-'     .    O  .          .   `-.
+             .-'      @@@@@@       .              `-.
+           .'@     @@@@@@@@@@@       @@@@@@@@    .   `.
+         .'@@    @@@@@@@@@@@@@@     @@@@@@@@@@         `.
+       .'@@@ o   @@@@@@@@@@@@@@     @@@@@@@@@@      o    `.
+      /@@@       @@@@@@@@@@@@@@  @   @@@@@@@@@@  @@     .  \
+     /            @@@@@@@@@@@   .  @@   @@@@@@@@@@@@     @@ \
+    /@  o     .     @@@@@@ o       @   @@@@@@@@@@@@@@ o @@@@ \
+   /@@@                        .       @@@@@@@@@@@@@@@  @@@@@ \
+  /@@@@@                     @      .   @@@@@@@@@@@@@@   @@@   \
+  |@@@@@     o      `.-./  .             @@@@@@@@@@@@ @@@    . |
+ / @@@@@           __`-'       o          @@       . @@@@@@     \
+ |@ @@@@ .        @    `    @            @@    .     @@@@@@     |
+ |   @@       @                    o       @@@   o   @@@@@@.    |
+ |          @                             @@@@@       @@@       |
+ |  . .  @      @  @       o              @@@@@     .    .      |
+ \            @                .-.      .  @@@  .           .   /
+  |    @   @   @      @        `-'                     .       /
+  \   .      @   @                   .            o            /
+   \     o          @@@@   .                .                 /
+    \       @@@    @@@@@@        .                    o      /
+     \     @@@@@   @@\@@    /         o           .         /
+      \  o  @@@       \ \  /  ___         .   .     .--.   /
+       `.      .       \.-.---                     `--'  .'
+         `.             `-'       .                    .'
+           `.    o     / |              O      .     .'
+             `-.      /  |         o              .-'
+                `-.           .         .      .-'
+                   `----.        .       .----'
+                         `--------------'
+"""
+
+    Columbina_ = r"""
+                                                                            ..
+             @.=@%                                                      @@...@
+             @.... @:                                              @@@@  ....@
+              @....    @@.                                    :@%       ....@
+              .@...  .    :@                 :#%%%#+:       @*      .  ...=@
+                @...  .      @     %@@##############@%###%@@      ..  ..:@
+                @.:...        %@####@@#########################@.  ......@
+                @.......    @####@#########%@@%######@@@@@########@ ....+@
+                 @+... . :%##############@@################%@#######%..@
+                   @@:  @##############@@#####################%#######@
+                   #%.######@#########@#########################%######+@
+ #.  :%@@@@@@%-   .%@@###############@######################@#####@####++@@@@@@@#*@@
+  +@..    .         @@#######################################@###+#@#+++++@@   ...@
+    #@...    .   @###########*######%##################*+#+###@#*++###*###+@#@=%@
+       -@::+   @########@####+++++#@##+++######+++#+++++++#+#########%######@###%@
+           @@%##############++##++#@##*#+###@##*+##*#######*###@######@#####*###*****###-
+         @%############@###################@@##*#########***+##@-#############%#*##*#%.@
+  .*@#***#################################@ -+#%##*#********+%*@+@@#**#@#####%#%..@@@
+@-*******#######%%%#@-%###########%######@ %@@*****#********#@*@    ***@#####@**%:
+  @*.......::.:....-@%##############**##@     **%#**@******+@%*  ... :*%**###%*****#+ *
+      @=.:.%@..:@@#@+***##########*%***#       %*.@+**%#%@%   .  .     #***###%#***##.
+                 @#@****@#########*@*@            .    .          . *@-##*%###%
+                 @@*****@###########@           .      .       ---=:   %*%#####
+               :********@##########**#::%%@--@@*    .   .       .....:%#@#**###%
+              #@#**#@@%#@########@****@ :    .                   ......  %+***#@
+                 #######@#######***@****%+-...                          @#***@ @
+                @#######@+#####+*****#  .....                         @@#+*% #*#
+                @##@#####: %#***+****=*-                           @@#**-  #***@
+                ##@@%####@*%  .@**+  ***@#                    @%:  @%- %+++* @@
+                #%==@####%******%      #%@:::.:.:::::::::::::::::@ .@#++++++@.
+                @@+*@####%@****= %++++++*@::::::::::::::::::::::::@  =@*  @
+                 @*+*####%%%@% %**+*+*++@*:::::::::::::::::::::::::*@**++++#
+                    .@###%%%%%%%%@@#@%@@+++@     .:::::::::::::.    @++++++@
+                     @###%%%%%%%%@:@***+++++@                        =@@@+*+@%
+                     @###%%#%%%%@::%++*++++@@      :            :      @
+                     @###%%%%%%%:   -@*@@*+#@        +         +        .
+                    .####%%%%%%-                      #.       @        @
+                    @##**#%%##@          ..             @               =
+                    @#****%###.            -             #    #         -
+                    ##***#%###              @             ..  +         @ @
+                   -******###%              .%=            @   @       =   :.
+                   #******####                   #@       -@    #@: -@%     @
+                    *******###                      @. =*@.       .:       :@.=
+                @%##@******###@                      @                    %:  ::@
+              @######@******###                  @  . @         .           .=:-@
+             %##*##*#*@#*****@#%                  -:==:+       ::          :-==@
+            @##****++*+*+%@@%@##@*               ::==::-   =@@@@%#:       :::#:
+            @#**++++++++****@%%@@-##            .:===:@                -#@@-
+             @**++++++++***#%@        @@%-.     :::*@.
+               *@#++++++++@@@*
+"""
+
+    match args.verbose:
+        case 0 | None:
+            print(Moon1_, end = "")
+            print("""
+    A luna, cara cantica, ne me in atra dedas.
+    Aves, ex urbe aurea, ferte indicia mea.
+    Aves, ferte cantam cara, ut lugeam et fata mala.
+    Num in immundorum terra. Clavus ille adhuc claudit pia.
+""")
+        case 1:
+            print(Moon2_, end = "")
+            print("""
+    Dormi cara columbula.
+    O columbula mea.
+    Splendeat fenestra, adsint somnia flora.
+    O cara filia lunae.
+    Neve plumam pulvis foedet tuam.
+    Nec iam complexum alma.
+    Capias bona somnias a luna.
+""")
+        case 2:
+            print(Moon3_, end = "")
+            print("""
+    Vola, cara columbula, sine fine vola.
+    Vola, cara columbula, ad sublunaria.
+    Audite fati campana sonat.
+    Aestus attulit spemque liberam.
+    Annorum mille mala, atra mala.
+    A patria sub luna ablutum.
+    Ad caeruleum mare rapietur.
+""")
+        case _:
+            print(Columbina_, end = "")
+            print("""
+    Luna, claras terras lustra.
+    Sicut aves per umbras vola.
+    Et unda vasta foeda purga.
+    Pro turba fida, spem crastinam serva.
+    A luna nova, surgat luna pura casta.
+    Fugio aerumnam, tecum nulla fleta.
 """)
 
 Services = {
@@ -52,6 +243,7 @@ def Register(MainArgParser):
     Parser.add_argument("-n", "--namespace", type = str, help = "命名空间")
     Parser.add_argument("service", type = str, choices = Services.keys(), help = "服务名称")
     Parser.add_argument("-D", "--define", action = 'append', type = ArgToDict, default = [], help = "服务启动参数")
+    Parser.add_argument("-v", "--verbose", action = 'count', help = SUPPRESS)
 
     # MCP服务参数
     Parser.add_argument("-6", "--mcp-ipv6", action = 'store_true', help = "使用IPv6链接，仅mcp的http模式生效")
