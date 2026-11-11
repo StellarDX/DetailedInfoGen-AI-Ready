@@ -246,8 +246,8 @@ file(GLOB_RECURSE _PYTHON_DATA_FILES
 list(APPEND PYTHON_INSTALL_FILES ${_PYTHON_DATA_FILES})
 
 foreach(_py ${PYTHON_INSTALL_FILES})
-    # 跳过3rdParty和Test（C++ 相关依赖，无 Python 运行时安装需求）
-    if(_py MATCHES "InfoGen_Data/3rdParty" OR _py MATCHES "InfoGen_Data/Test")
+    # 跳过3rdParty, Plug-ins和Test（C++ 相关依赖，无 Python 运行时安装需求）
+    if(_py MATCHES "InfoGen_Data/3rdParty" OR _py MATCHES "InfoGen_Data/Plug-ins" OR _py MATCHES "InfoGen_Data/Test")
         continue()
     endif()
 
@@ -279,6 +279,21 @@ if(IS_DIRECTORY "${INFOGEN_CONFIG_DIR}")
     message(STATUS "[${PROJECT_NAME}] 将安装配置目录: ${INFOGEN_CONFIG_DIR} -> InfoGen_Data/Config")
 else()
     message(WARNING "[${PROJECT_NAME}] 未找到 Config 目录: ${INFOGEN_CONFIG_DIR}")
+endif()
+
+# ----------------------------------------------------------------------------
+# 安装 Plug-ins 资源目录（按原目录结构）
+#   将 ./InfoGen_Data/Plug-ins 整个目录安装到
+#   CMAKE_INSTALL_PREFIX/InfoGen_Data/Plug-ins 下，保留其内部目录层级。
+# ----------------------------------------------------------------------------
+set(INFOGEN_PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/InfoGen_Data/Plug-ins")
+if(IS_DIRECTORY "${INFOGEN_PLUGIN_DIR}")
+    install(DIRECTORY "${INFOGEN_PLUGIN_DIR}"
+        DESTINATION "InfoGen_Data"
+    )
+    message(STATUS "[${PROJECT_NAME}] 将安装插件目录: ${INFOGEN_PLUGIN_DIR} -> InfoGen_Data/Plug-ins")
+else()
+    message(WARNING "[${PROJECT_NAME}] 未找到 Plug-ins 目录: ${INFOGEN_PLUGIN_DIR}")
 endif()
 
 # ----------------------------------------------------------------------------
