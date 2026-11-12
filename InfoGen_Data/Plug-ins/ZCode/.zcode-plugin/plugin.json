@@ -1,0 +1,28 @@
+{
+  "name": "infogen-zcode",
+  "version": "26H2",
+  "description": "加入了AI的SpaceEngine详细信息生成器，适配0.99x，可向下兼容0.980。",
+  "description_i18n": {
+    "en": "New SpaceEngine Detailed Information Generator with AI",
+    "zh-CN": "加入了AI的SpaceEngine详细信息生成器，适配0.99x，可向下兼容0.980。"
+  },
+  "author": {
+    "name": "StellarDX"
+  },
+  "license": "GPL-3.0",
+  "agents": "agents",
+  "commands": "commands",
+  "mcpServers": {
+    "InfoGen": {
+      "type": "http",
+      "url": "${user_config.mcp_url}"
+    }
+  },
+  "userConfig": {
+    "mcp_url": {
+      "type": "string",
+      "default": "http://localhost:8000/mcp",
+      "description": "InfoGen MCP 服务地址（HTTP 模式）。服务未启动时 Agent 会自动重试 3 次，仍失败则给出静默提醒。"
+    }
+  }
+}

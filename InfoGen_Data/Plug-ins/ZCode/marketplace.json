@@ -1,0 +1,20 @@
+{
+  "name": "dev-infogen-zcode",
+  "plugins": [
+    {
+      "name": "infogen-zcode",
+      "source": ".",
+      "version": "26H2",
+      "description": "加入了AI的SpaceEngine详细信息生成器，适配0.99x，可向下兼容0.980。",
+      "displayName": "InfoGen-ZCode",
+      "displayName_i18n": {
+        "zh-CN": "InfoGen-ZCode"
+      },
+      "description_i18n": {
+        "en": "New SpaceEngine Detailed Information Generator with AI",
+        "zh-CN": "加入了AI的SpaceEngine详细信息生成器，适配0.99x，可向下兼容0.980。"
+      },
+      "category": "utilities"
+    }
+  ]
+}
