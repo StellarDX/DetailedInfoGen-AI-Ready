@@ -23,6 +23,8 @@ def MCP(args):
         SysArgs["instructions"] = Path(args.mcp_global_prompt_file).read_text(encoding = 'utf-8')
 
     RunArgs = {i: j for i, j in args.define}
+    if "transport" not in RunArgs.keys():
+        RunArgs["transport"] = "http"
     if args.mcp_ipv6:
         RunArgs["host"] = "::1"
 
