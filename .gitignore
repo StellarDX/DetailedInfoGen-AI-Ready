@@ -47,3 +47,5 @@ __pycache__/
 Thumbs.db
 ehthumbs.db
 *.code-workspace
+
+.workbuddy*

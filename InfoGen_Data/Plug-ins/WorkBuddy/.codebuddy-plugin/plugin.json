@@ -1,0 +1,42 @@
+{
+  "name": "infogen-workbuddy",
+  "version": "26H2",
+  "description": "加入了AI的SpaceEngine详细信息生成器，适配0.99x，可向下兼容0.980。 / New SpaceEngine Detailed Information Generator with AI",
+  "author": {
+    "name": "StellarDX",
+    "email": ""
+  },
+  "agents": ["./agents/infogen-workbuddy.md"],
+
+  "expertType": "agent",
+  "agentName": "infogen-workbuddy",
+
+  "displayName": {
+    "en": "InfoGen-WorkBuddy",
+    "zh": "InfoGen-WorkBuddy"
+  },
+  "profession": {
+    "en": "SpaceEngine Detailed Information Generator",
+    "zh": "SpaceEngine 详细信息生成器"
+  },
+  "displayDescription": {
+    "en": "Reads InfoGen planetary-system data via MCP and produces data-grounded system details and worldbuilding supplements (civilizations, minerals, habitability, history).",
+    "zh": "通过 MCP 读取 InfoGen 行星系统数据，生成忠于数据的系统详情与文明、矿产等扩展设定。"
+  },
+  "categoryId": "03-GameSpatial",
+  "defaultInitPrompt": {
+    "zh": "为某个行星系统生成一份详细信息概览",
+    "en": "Generate a detailed information overview for a planetary system"
+  },
+  "plugin": "infogen-workbuddy",
+  "tags": [
+    { "en": "SpaceEngine Data", "zh": "SpaceEngine 数据" },
+    { "en": "Worldbuilding", "zh": "世界观设定" },
+    { "en": "Scientific Self-consistency", "zh": "科学自洽" }
+  ],
+  "quickPrompts": [
+    { "en": "Generate a detailed information overview for a planetary system", "zh": "为某个行星系统生成一份详细信息概览" },
+    { "en": "List all planets in a system and compare their physical parameters", "zh": "列出某系统内的全部行星并对比物理参数" },
+    { "en": "Design civilization and mineral settings for a planet based on its data", "zh": "基于某行星的数据设计文明与矿产设定" }
+  ]
+}
