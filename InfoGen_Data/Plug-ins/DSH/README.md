@@ -15,9 +15,10 @@
    - `QuerySystem`：查询指定系统的信息；
    - `QueryAllObjectsInSystem`：查询指定系统内某一类型的全部物体；
    - `QueryObject`：查询指定物体的轨道、物理、大气、水圈、生物圈等详情。
-3. **全局提示词**：优先使用 MCP `initialize` 响应中的 `instructions` 字段下发 `InfoGen_Data/StreamingAssets/Prompts/Global.txt`；插件把 `maxInstructionBytes` 设为 64 KiB，避免长提示词被截断。
-4. **只读权限**：只注册读取类工具（`read`、`read_image`、`glob`、`grep`）、用户交互工具和 MCP 查询工具；不注册 `write`、`edit`、`apply_patch`、`bash` 等任何可写或可执行工具。
-5. **MCP 不可达提醒**：启用该 Agent 后，插件会在后台探测 MCP 服务；连续 3 次失败时在窗口顶部弹出一条静默提示。提示不拦截操作、不阻塞对话、不导致 DSH 崩溃；MCP 客户端同时保持后台重连，服务恢复后工具自动恢复。
+3. **端内修改 MCP 地址**：设置 → **InfoGen-DSH** 提供地址输入框、连接检测和恢复默认。地址保存在本机凭据存储（凭据名 `INFOGEN_DSH_MCP_URL`）中；保存后，**正在运行的 InfoGen-DSH 会话会自动断开旧连接并连接到新地址**，无需重启 DSH（详见[端内修改 MCP 地址](#端内修改-mcp-地址)）。
+4. **全局提示词**：优先使用 MCP `initialize` 响应中的 `instructions` 字段下发 `InfoGen_Data/StreamingAssets/Prompts/Global.txt`；插件把 `maxInstructionBytes` 设为 64 KiB，避免长提示词被截断。
+5. **只读权限**：只注册读取类工具（`read`、`read_image`、`glob`、`grep`）、用户交互工具和 MCP 查询工具；不注册 `write`、`edit`、`apply_patch`、`bash` 等任何可写或可执行工具。
+6. **MCP 不可达提醒**：启用该 Agent 后，插件会在后台探测 MCP 服务；连续 3 次失败时在窗口顶部弹出一条静默提示。提示不拦截操作、不阻塞对话、不导致 DSH 崩溃；MCP 客户端同时保持后台重连，服务恢复后工具自动恢复。
 
 ## 目录结构
 
@@ -25,8 +26,8 @@
 InfoGen_Data/Plug-ins/DSH/
 ├── package.json          # DSH bundle 清单、Client 模块声明
 ├── cordis.patch.yml      # 插件行 + InfoGen-DSH Agent 预设声明
-├── index.js              # Host 半：MCP 健康探测、状态路由
-├── client.js             # 浏览器半：窗口顶部提示
+├── index.js              # Host 半：MCP 地址凭据、健康探测、状态/配置路由
+├── client.js             # 浏览器半：端内地址设置页、窗口顶部提示
 ├── locale/
 │   ├── zh.json           # 插件标题/描述（中文）
 │   └── en.json           # 插件标题/描述（英文）
@@ -74,6 +75,28 @@ python InfoGen.py service mcp -n<namespace> -Dtransport=http --mcp-global-prompt
 - **停用**：新建会话时选择其他预设（如 `standard`）即可；插件不会把工具或提示词注入其他预设。
 - **卸载**：在插件管理中禁用或移除 InfoGen-DSH。移除后，`InfoGen-DSH` 预设会从列表中消失，已打开的其他会话不受影响。
 
+## 端内修改 MCP 地址
+
+不需要改配置文件，也不需要重启 DSH：
+
+1. 打开 **设置 → InfoGen-DSH**（侧边栏底部的设置按钮）。
+2. 在“MCP 服务地址”中填入新地址，例如 `http://127.0.0.1:8000/mcp` 或 `http://localhost:8001/mcp`。
+3. 点“保存地址”。页面会立即探测新地址，并显示“连接正常”或“无法连接：…”。
+
+保存后：
+
+- 地址写入**本机凭据存储**（默认是 `<DSH_HOME>/.credentials.yaml` 的 `refs.INFOGEN_DSH_MCP_URL`），重启 DSH 后仍然保留。
+- 预设中的 `infogen-mcp` 行通过 `${credential:INFOGEN_DSH_MCP_URL}` 引用该凭据。凭据变化会让 MCP 客户端**关闭旧连接并就地连接新地址**，所以已经开始对话的 InfoGen-DSH 会话也会重连，无需新建会话。
+- 页面里的“当前生效”始终显示实际使用的地址；“来源”会说明它来自本机凭据存储、启动环境变量还是插件配置。
+- “检测连接”按已保存的地址做一次只读探测；“恢复默认”把输入框填回默认地址，仍需点“保存地址”才会生效。
+
+几点说明：
+
+- 地址只接受 `http://` 或 `https://` 开头的绝对 URL；带用户名/密码的地址会被拒绝（需要认证时请用插件配置里的 `headers`）。
+- MCP 地址改变时，后台健康提示会按新地址重新计数；新地址不可达时同样会在连续 3 次失败后提示一次。
+- 如果 profile 的 `cordis.patch.yml` 覆盖了 `preset-infogen-dsh` 的**整个 config**，就可能把 `infogen-mcp.url` 固定回普通地址。此时设置页的“当前生效”会显示预设里固定的地址（来源标为“预设”），并用黄色提示说明端内保存不会生效。请删除该覆盖，或保留凭据模板。
+- 在没有可写凭据服务的 profile 里（例如自行裁剪过的组合），地址输入框会变为只读并说明原因；命令行/TUI 场景请使用后文“配置”一节的方式。
+
 ## 只读说明
 
 本 Agent 从工具层面就是只读的：
@@ -104,6 +127,7 @@ MCP 连接由 DSH 的 `@deepseek-ai/dsh-mcp-client` 负责：
 
 - 启动失败不会让 DSH 崩溃，也不会阻止会话创建（`failOnStartupError: false`）。
 - 断线后按指数退避自动重连：首次等待 2 秒，最长 30 秒；后台持续重试，InfoGen 稍后启动时工具会自动恢复。
+- MCP 地址来自凭据 `INFOGEN_DSH_MCP_URL`（`expandTemplates: true`）。凭据变化时客户端会关闭旧连接、连接新地址并重新同步工具，**不需要重启**；设置页保存地址走的就是这条路径。
 - 如果你希望 MCP 客户端在 3 次失败后彻底停止，可把预设中 `reconnect.maxAttempts` 改为 `3`；代价是服务恢复后需要重新加载插件。
 
 窗口提示由本插件的 Host 守护逻辑负责：
@@ -111,6 +135,7 @@ MCP 连接由 DSH 的 `@deepseek-ai/dsh-mcp-client` 负责：
 - **只在用户启用 `InfoGen-DSH` Agent 后**才开始统计失败次数；普通会话不会看到任何提示。
 - 连续探测失败 **3 次**后，向 `/infogen-dsh/status` 发布一条通知；`client.js` 轮询该路由，在**窗口顶部**显示一条约 7 秒的静默提示。
 - 同一轮故障只发布一次通知；服务恢复后通知自动清除，再次故障才会重新提示。页面刷新时会重新读取当前仍有效的通知。
+- 探测使用当前**生效**的地址（凭据优先）；地址改变后失败计数清零，并按新地址重新判断是否提示。
 - 可通过只读接口查看当前状态：
 
 ```bash
@@ -124,6 +149,8 @@ curl http://127.0.0.1:3080/infogen-dsh/status
   "plugin": "infogen-dsh",
   "preset": "infogen-dsh",
   "mcpUrl": "http://localhost:8000/mcp",
+  "credentialRef": "INFOGEN_DSH_MCP_URL",
+  "source": "file",
   "state": "failed",
   "attempts": 3,
   "notice": { "seq": 1, "at": 1762900000000 },
@@ -143,7 +170,9 @@ curl http://127.0.0.1:3080/infogen-dsh/status
 
 ## 配置
 
-插件的两行配置都可以在 DSH profile 的 `cordis.patch.yml` 中按行 `id` 覆盖。例如把 MCP 地址改成 IPv4 显式地址：
+通常**不需要改这一节**：MCP 地址请用[端内设置](#端内修改-mcp-地址)修改。以下内容面向部署方和需要在命令行/TUI 里配置的场景。
+
+插件的两行配置都可以在 DSH profile 的 `cordis.patch.yml` 中按行 `id` 覆盖。例如把默认地址改成 IPv4 显式地址：
 
 ```yaml
 - id: infogen-dsh
@@ -155,14 +184,20 @@ curl http://127.0.0.1:3080/infogen-dsh/status
 
 | 键 | 默认值 | 说明 |
 | --- | --- | --- |
-| `mcpUrl` | `http://localhost:8000/mcp` | 健康探测地址 |
+| `mcpUrl` | `http://localhost:8000/mcp` | 默认地址；凭据 `INFOGEN_DSH_MCP_URL` 缺失时写入它，并作为探测兜底 |
 | `presetId` | `infogen-dsh` | 关联的 Agent 预设 id |
 | `attempts` | `3` | 连续失败多少次后提示 |
 | `retryDelaysMs` | `[1000, 2000, 4000]` | 每轮重试之间的等待时间 |
 | `probeTimeoutMs` | `4000` | 单次探测超时 |
 | `pollIntervalMs` | `10000` | 探测周期（毫秒） |
 
-> 如果要更换 MCP 端口或地址，除了改上面的 `mcpUrl`，还要覆盖 `preset-infogen-dsh` 里 `infogen-mcp` 行的 `url`（或在 profile 补丁中整体覆盖 `preset-infogen-dsh` 的 `config`）。两处默认值都指向 `http://localhost:8000/mcp`。
+> **地址的唯一事实来源是凭据 `INFOGEN_DSH_MCP_URL`。** 预设中的 `infogen-mcp.url` 写作 `${credential:INFOGEN_DSH_MCP_URL}`，因此：
+>
+> - 首次启动时，插件把 `mcpUrl` 写入凭据作为初始值；
+> - 之后无论是端内设置还是启动环境里的同名变量，都优先于 `mcpUrl`；
+> - 只改 `mcpUrl` 不会改变已经存在的凭据值；若手动删除凭据文件中的该条目，插件会在下一次探测时重新写入 `mcpUrl`，因此换地址请用端内设置。
+>
+> 若要覆盖地址的初始值，可同时覆盖 `infogen-dsh.mcpUrl`；若要整体改写预设，请保留 `infogen-mcp` 行的凭据模板和 `expandTemplates: true`，否则端内修改不会生效。
 
 ## 工具清单
 
@@ -180,16 +215,20 @@ curl http://127.0.0.1:3080/infogen-dsh/status
 | --- | --- |
 | Agent 预设列表里看不到 InfoGen-DSH | 确认插件已启用并重启 DSH；确认本目录被正确安装到当前 profile |
 | 会话里没有 MCP 工具 | 确认 MCP 服务已启动、命名空间与数据一致；访问 `/infogen-dsh/status` 查看状态 |
+| 改端口/地址 | 设置 → InfoGen-DSH → 填入新地址 → 保存；不需要改文件，也不需要重启 |
+| 设置页没有出现 | 确认插件已启用并刷新页面；设置页由 `client.js` 注册为 `settings.section` |
+| 设置页显示“当前 profile 没有可写的凭据服务” | 当前组合没有挂载可写的凭据 provider（如 `@deepseek-ai/dsh-credentials-local`）；改用 profile 配置方式 |
+| 设置页提示“profile 覆盖了预设里的 MCP 行” | profile 补丁整体覆盖了 `preset-infogen-dsh`，删掉该覆盖或保留凭据模板 |
 | 有工具但没有全局提示词 | 启动服务时漏了 `--mcp-global-prompt-instruction`，或客户端未读取 `instructions` |
 | 窗口顶部没有提示 | 提示只在“已启用该 Agent”且“连续 3 次失败”后出现；MCP 正常时本来就不会提示 |
 | 提示出现后信息仍查不到 | 先启动 InfoGen MCP；客户端会在后台自动重连，服务恢复后工具自动可用 |
-| 改了端口后工具消失 | 同时修改 `infogen-dsh.mcpUrl` 和预设中 `infogen-mcp.url` 两处 |
 | 中文界面显示英文描述 | DSH 会按语言加载 `locale/zh.json` 或 `locale/en.json`；确认 DSH 语言设置为中文 |
 
 ## 兼容性与版本
 
 - SpaceEngine：0.99x，向下兼容 0.980
 - DSH：使用 `@deepseek-ai/dsh-mcp-client`、`@deepseek-ai/dsh-agent-preset`、`@deepseek-ai/dsh-tool-fs` 等随 DSH 提供的插件包，不额外声明 npm 依赖
+- MCP 地址的端内修改依赖 `@deepseek-ai/dsh-mcp-client` 的 `expandTemplates` 与 `${credential:…}` 模板（26H2 随附版本已支持）；不支持该特性的旧版 DSH 请改用固定地址的 `url` 配置
 
 ## 许可证
 

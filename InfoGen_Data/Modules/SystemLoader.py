@@ -12,7 +12,7 @@ import argparse
 import re
 
 from abc import ABC, abstractmethod
-from pandas import DataFrame, Timestamp, NA
+from pandas import DataFrame, Timestamp, to_datetime, NA
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from uuid import uuid5, NAMESPACE_URL
@@ -542,7 +542,7 @@ class Uploader():
 
         if Upload:
             if len(ExistingSystem) != 0:
-                self._SystemDataFrame.loc[self._SysID, "create_date"] = ExistingSystem.at[self._SysID, "create_date"]
+                self._SystemDataFrame.loc[self._SysID, "create_date"] = ExistingSystem.at[self._SysID, "create_date"].tz_localize(None)
                 with Connection.cursor() as Cursor:
                     DeleteTable = Table("ig_system", MetaData(), Column('system_id', String))
                     DeleteQuery = str(delete(DeleteTable).where(DeleteTable.c.system_id == self._SysID)
