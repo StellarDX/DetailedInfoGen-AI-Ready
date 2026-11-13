@@ -365,7 +365,7 @@ MCP客户端配置示例：
 
 ### 接入第三方客户端
 
-除了上一节那种手工填写MCP配置的方式，仓库的[`InfoGen_Data/Plug-ins`](./InfoGen_Data/Plug-ins)下还内置了三个成品Agent插件，把「MCP服务 + 全局提示词 + 只读工具集 + 数据使用约束」打包成一个开箱即用的专家/Agent：
+除了上一节那种手工填写MCP配置的方式，仓库的[`InfoGen_Data/Plug-ins`](./InfoGen_Data/Plug-ins)下还内置了成品Agent插件，把「MCP服务 + 全局提示词 + 只读工具集 + 数据使用约束」打包成一个开箱即用的Agent：
 
 | 插件 | 目标客户端 | 形态 | 启用方式 | 插件标识 / 版本 |
 | --- | --- | --- | --- | --- |
@@ -373,7 +373,7 @@ MCP客户端配置示例：
 | [InfoGen-ZCode](./InfoGen_Data/Plug-ins/ZCode/README.md) | ZCode | 插件市场包（Agent + 指令） | 安装后在会话中输入`/infogen <任务>` | `infogen-zcode` / `26H2` |
 | [InfoGen-WorkBuddy](./InfoGen_Data/Plug-ins/WorkBuddy/README.md) | WorkBuddy（CodeBuddy） | 专家包（Agent型） | 安装后显式声明「启用 InfoGen-WorkBuddy」 | `infogen-workbuddy` / `26H2` |
 
-三个插件都采用**手动导入**：不附带安装脚本，也不发布到npm或任何市场源，许可证与主项目一致（GPL-3.0）。插件目录会随`cmake --install`一起安装到`<安装前缀>/InfoGen_Data/Plug-ins/`，导入时填源码树或安装前缀下的绝对路径均可。
+所有插件都采用**手动导入**。插件目录会随`cmake --install`一起安装到`<安装前缀>/InfoGen_Data/Plug-ins/`，导入时填源码树或安装前缀下的绝对路径均可。
 
 #### 共同前提
 
