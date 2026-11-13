@@ -36,6 +36,9 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
 3. 通过MCP服务的形式把内部工具暴露给第三方AI客户端
    - 可选择性把全局提示词通过MCP的`instructions`字段下发给客户端（并非所有客户端都会读取该字段）
    - 支持stdio与HTTP两种传输方式，HTTP模式下可选择监听IPv6地址
+4. 随仓库提供可直接导入的第三方客户端Agent插件（DSH、ZCode、WorkBuddy）
+   - 把MCP查询工具、全局提示词与只读约束打包成一个开箱即用的专家/Agent，免去逐个客户端手写配置
+   - 插件默认连接`http://localhost:8000/mcp`，服务未启动时自动重试并静默提醒，不影响客户端其他功能
 
 ## 技术栈
 
@@ -144,6 +147,7 @@ cmake --install <构建目录>
 ├── InfoGen.py                          # 命令行入口
 └── InfoGen_Data/
     ├── InfoGen.(so|pyd)                # C++编译的Python模块
+    ├── Plug-ins/                       # 第三方客户端Agent插件（DSH / ZCode / WorkBuddy）
     ......
     └── requirements-linux.txt / requirements-win.txt
 ```
@@ -193,6 +197,8 @@ python InfoGen.py --help
 | Windows 控制台中文乱码 | `InfoGen_Data/__init__.py` 已自动把控制台输出代码页切到 UTF-8（65001），若仍乱码请确认终端字体支持中文 |
 | MCP客户端连接成功但查询无结果 | 确认启动时的`-n/--namespace`与导入数据时使用的命名空间一致，且数据库配置仍有效 |
 | MCP客户端读不到全局提示词 | 未加`--mcp-global-prompt-instruction`（默认不发送`instructions`），或客户端本身未实现读取`instructions`；同时确认`-C`指向的文件存在且为UTF-8编码 |
+| 插件安装后找不到 Agent / 专家 / `/infogen` | 确认导入的是插件目录本身（DSH 选含`package.json`、ZCode 选含`marketplace.json`、WorkBuddy 选含`.codebuddy-plugin/`的那一层），并已在客户端中启用；旧会话可能需要新建会话后才生效 |
+| DSH 的 InfoGen-DSH 预设里没有 MCP 工具 | 确认MCP服务已以HTTP模式启动、`-n`与导入数据时的命名空间一致；`curl http://127.0.0.1:3080/infogen-dsh/status`查看探测状态与错误信息 |
 
 ## 使用方法
 
@@ -356,6 +362,39 @@ MCP客户端配置示例：
 ```
 
 若改用HTTP传输，可执行`python InfoGen.py service mcp -n<namespace> -Dtransport=http`，再让客户端以URL方式接入。
+
+### 接入第三方客户端
+
+除了上一节那种手工填写MCP配置的方式，仓库的[`InfoGen_Data/Plug-ins`](./InfoGen_Data/Plug-ins)下还内置了三个成品Agent插件，把「MCP服务 + 全局提示词 + 只读工具集 + 数据使用约束」打包成一个开箱即用的专家/Agent：
+
+| 插件 | 目标客户端 | 形态 | 启用方式 | 插件标识 / 版本 |
+| --- | --- | --- | --- | --- |
+| [InfoGen-DSH](./InfoGen_Data/Plug-ins/DSH/README.md) | DeepSeek Harness（DSH） | DSH bundle（Host半 + Client半） | 安装后在「Agent预设」中选择`InfoGen-DSH` | `infogen-dsh` / `26.0.0-26H2` |
+| [InfoGen-ZCode](./InfoGen_Data/Plug-ins/ZCode/README.md) | ZCode | 插件市场包（Agent + 指令） | 安装后在会话中输入`/infogen <任务>` | `infogen-zcode` / `26H2` |
+| [InfoGen-WorkBuddy](./InfoGen_Data/Plug-ins/WorkBuddy/README.md) | WorkBuddy（CodeBuddy） | 专家包（Agent型） | 安装后显式声明「启用 InfoGen-WorkBuddy」 | `infogen-workbuddy` / `26H2` |
+
+三个插件都采用**手动导入**：不附带安装脚本，也不发布到npm或任何市场源，许可证与主项目一致（GPL-3.0）。插件目录会随`cmake --install`一起安装到`<安装前缀>/InfoGen_Data/Plug-ins/`，导入时填源码树或安装前缀下的绝对路径均可。
+
+#### 共同前提
+
+1. 已通过`create system --store`把行星系统数据导入数据库，并记住导入时使用的命名空间。
+2. 以HTTP模式启动MCP服务（三个插件默认都连接`http://localhost:8000/mcp`）：
+
+   ```bash
+   python InfoGen.py service mcp -n<namespace> -Dtransport=http --mcp-global-prompt-instruction
+   ```
+
+   - 加上`--mcp-global-prompt-instruction`，服务才会把`Global.txt`放进MCP的`instructions`字段；不加时客户端只拿得到工具、拿不到全局提示词（WorkBuddy会回退读取包内`references/Global.txt`副本，ZCode会尝试按路径读取，DSH则不会重复注入，以避免与MCP下发的提示词冲突）。
+   - 需要换端口时用`-Dport=<端口>`，同时要同步修改插件里的MCP地址：DSH需改`infogen-dsh.mcpUrl`与预设中`infogen-mcp.url`两处，ZCode在「高级设置」改`mcp_url`即可。
+3. MCP服务暂时不可达不会让客户端崩溃：三个插件都会自动重试，连续失败3次后给出一条静默提醒并正常结束本次请求，服务恢复后工具自动可用。
+
+#### 各客户端要点
+
+- **DSH**：插件新增独立的`InfoGen-DSH`Agent预设，只有选择该预设的会话才会获得 InfoGen 工具、全局提示词与只读工具集，其他会话不受影响；工具在DSH中带服务器前缀（`mcp__infogen__QuerySystem`等）。该预设从工具层面就是只读的——不注册`write`/`edit`/`apply_patch`/`bash`。探测状态可通过`curl http://127.0.0.1:3080/infogen-dsh/status`查看。
+- **ZCode**：`/infogen`是该Agent的唯一启用入口，未被该指令派发时不会工作；生成结果直接回到对话。MCP地址可在「插件管理 → InfoGen-ZCode → 高级设置」中修改`mcp_url`。
+- **WorkBuddy**：必须先显式声明启用（如「启用 InfoGen-WorkBuddy」或「用这个专家帮我查系统」），否则不连接MCP、不查询数据、不生成内容；导入时确认`.codebuddy-plugin/plugin.json`位于所选目录根下，不要多选或漏选一层父目录。
+
+各插件的完整配置项、故障排查与更新流程见其目录下的`README.md`。
 
 ### 查看帮助
 
