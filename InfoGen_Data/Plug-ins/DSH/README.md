@@ -36,7 +36,7 @@ InfoGen_Data/Plug-ins/DSH/
 
 ## 使用前提
 
-1. 已安装可用的 DSH Web 或桌面版（需要 `agentPresets`、`webServer`，以及随 DSH 提供的 `@deepseek-ai/dsh-mcp-client`）。
+1. 已安装可用的 DSH Web 或桌面版（需要 `agentPresets`、`webServer`、随 DSH 提供的 `@deepseek-ai/dsh-mcp-client`，以及凭据服务 `@deepseek-ai/dsh-credentials-local`；DSH 默认组合已包含后者）。
 2. 已安装 InfoGen，并启动 MCP 服务。
 3. InfoGen 的数据库里已经用某个命名空间导入过行星系统数据。
 
@@ -95,7 +95,8 @@ python InfoGen.py service mcp -n<namespace> -Dtransport=http --mcp-global-prompt
 - 地址只接受 `http://` 或 `https://` 开头的绝对 URL；带用户名/密码的地址会被拒绝（需要认证时请用插件配置里的 `headers`）。
 - MCP 地址改变时，后台健康提示会按新地址重新计数；新地址不可达时同样会在连续 3 次失败后提示一次。
 - 如果 profile 的 `cordis.patch.yml` 覆盖了 `preset-infogen-dsh` 的**整个 config**，就可能把 `infogen-mcp.url` 固定回普通地址。此时设置页的“当前生效”会显示预设里固定的地址（来源标为“预设”），并用黄色提示说明端内保存不会生效。请删除该覆盖，或保留凭据模板。
-- 在没有可写凭据服务的 profile 里（例如自行裁剪过的组合），地址输入框会变为只读并说明原因；命令行/TUI 场景请使用后文“配置”一节的方式。
+- 预设中的 `infogen-mcp` 行声明了 `inject: [credentials]`：DSH 启动早期凭据服务可能尚未就绪，该行会**先等待服务出现再连接**，而不是让整个预设挂载失败；服务就绪后 MCP 行自动激活。因此请勿在覆盖预设时删掉这个 `inject`。
+- 在没有可写凭据服务的 profile 里（例如自行裁剪过的组合），地址输入框会变为只读并说明原因；命令行/TUI 场景请使用后文“配置”一节的方式。若 profile **完全没有**凭据 provider，预设会停在“等待 credentials”而不可用，请启用 `@deepseek-ai/dsh-credentials-local`。
 
 ## 只读说明
 
@@ -218,7 +219,8 @@ curl http://127.0.0.1:3080/infogen-dsh/status
 | 改端口/地址 | 设置 → InfoGen-DSH → 填入新地址 → 保存；不需要改文件，也不需要重启 |
 | 设置页没有出现 | 确认插件已启用并刷新页面；设置页由 `client.js` 注册为 `settings.section` |
 | 设置页显示“当前 profile 没有可写的凭据服务” | 当前组合没有挂载可写的凭据 provider（如 `@deepseek-ai/dsh-credentials-local`）；改用 profile 配置方式 |
-| 设置页提示“profile 覆盖了预设里的 MCP 行” | profile 补丁整体覆盖了 `preset-infogen-dsh`，删掉该覆盖或保留凭据模板 |
+| 设置页提示“profile 覆盖了预设里的 MCP 行” | profile 补丁整体覆盖了 `preset-infogen-dsh`，删掉该覆盖或保留凭据模板与 `inject: [credentials]` |
+| 启动时预设提示 `MCP credential templates require a credentials provider` | 凭据服务就绪前就启动 MCP 行导致；已用行级 `inject: [credentials]` 修复。若仍出现，确认 profile 没有覆盖掉该行，且已启用 `@deepseek-ai/dsh-credentials-local` |
 | 有工具但没有全局提示词 | 启动服务时漏了 `--mcp-global-prompt-instruction`，或客户端未读取 `instructions` |
 | 窗口顶部没有提示 | 提示只在“已启用该 Agent”且“连续 3 次失败”后出现；MCP 正常时本来就不会提示 |
 | 提示出现后信息仍查不到 | 先启动 InfoGen MCP；客户端会在后台自动重连，服务恢复后工具自动可用 |

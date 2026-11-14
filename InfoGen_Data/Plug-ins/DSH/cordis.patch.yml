@@ -13,8 +13,9 @@
 #                            因此修改凭据会让 MCP 客户端就地重连，无需重启。
 #
 # 所有值都可以由 profile 的 cordis.patch.yml 按行 id 覆盖；但若覆盖
-# preset-infogen-dsh 的整个 config，请保留 infogen-mcp 行的凭据模板，否则
-# 端内修改地址将不会生效。
+# preset-infogen-dsh 的整个 config，请保留 infogen-mcp 行的凭据模板与行级
+# inject: [credentials]，否则端内修改地址将不会生效，或预设可能在启动竞态
+# 中挂载失败。
 
 - insert:
     - id: infogen-dsh
@@ -83,6 +84,14 @@
 
           - id: infogen-mcp
             name: '@deepseek-ai/dsh-mcp-client'
+            # 凭据模板在插件构造时要求 credentials 服务已存在。预设会在
+            # 启动时被立即挂载，而凭据 provider 的模块导入可能更慢，二者
+            # 并发时 mcp-client 会以“MCP credential templates require a
+            # credentials provider”使整个预设挂载失败。声明行级 inject 后，
+            # 该行会先等待 credentials 服务出现，再启动插件；等待期间预设
+            # 仍可挂载，provider 就绪后自动激活（与 DSH 自带的 mcp-manager
+            # 行采用同一做法）。
+            inject: [credentials]
             config:
               serverName: infogen
               transport: streamable-http
