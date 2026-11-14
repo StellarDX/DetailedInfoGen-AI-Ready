@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "infogen": {
+      "type": "http",
+      "url": "${user_config.mcp_url}",
+      "defer_loading": true,
+      "description": "InfoGen MCP 服务（QuerySystem / QueryAllObjectsInSystem / QueryObject）。地址由插件配置项 mcp_url 提供，可在端内修改。"
+    }
+  }
+}

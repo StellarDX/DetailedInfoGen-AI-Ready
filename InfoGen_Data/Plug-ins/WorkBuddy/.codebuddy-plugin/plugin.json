@@ -1,42 +1,91 @@
 {
   "name": "infogen-workbuddy",
   "version": "26H2",
-  "description": "加入了AI的SpaceEngine详细信息生成器，适配0.99x，可向下兼容0.980。 / New SpaceEngine Detailed Information Generator with AI",
+  "description": "New SpaceEngine Detailed Information Generator with AI",
+  "description_zh": "加入了AI的SpaceEngine详细信息生成器，适配0.99x，可向下兼容0.980。",
+  "description_en": "New SpaceEngine Detailed Information Generator with AI",
   "author": {
-    "name": "StellarDX",
-    "email": ""
+    "name": "InfoGen"
   },
-  "agents": ["./agents/infogen-workbuddy.md"],
-
+  "license": "GPL-3.0",
+  "keywords": [
+    "InfoGen-WorkBuddy",
+    "SpaceEngine",
+    "InfoGen",
+    "MCP",
+    "详细信息生成器"
+  ],
+  "agents": [
+    "./agents/infogen-workbuddy.md"
+  ],
+  "userConfig": {
+    "mcp_url": {
+      "description": "InfoGen MCP 服务地址（HTTP 模式）；服务以 -Dport=<端口> 更换端口时需同步修改",
+      "default": "http://localhost:8000/mcp",
+      "sensitive": false
+    }
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__infogen__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CODEBUDDY_PLUGIN_ROOT}/scripts/mcp_probe.py\" \"${user_config.mcp_url}\"",
+            "description": "InfoGen MCP 连通性只读探测：连续失败 3 次后从窗口顶部静默提醒并结束本次查询，不崩端、不影响其他功能",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  },
   "expertType": "agent",
   "agentName": "infogen-workbuddy",
-
   "displayName": {
-    "en": "InfoGen-WorkBuddy",
-    "zh": "InfoGen-WorkBuddy"
+    "en": "SpaceEngine Detailed Information Generator",
+    "zh": "SpaceEngine详细信息生成器"
   },
   "profession": {
     "en": "SpaceEngine Detailed Information Generator",
-    "zh": "SpaceEngine 详细信息生成器"
+    "zh": "SpaceEngine详细信息生成器"
   },
   "displayDescription": {
-    "en": "Reads InfoGen planetary-system data via MCP and produces data-grounded system details and worldbuilding supplements (civilizations, minerals, habitability, history).",
-    "zh": "通过 MCP 读取 InfoGen 行星系统数据，生成忠于数据的系统详情与文明、矿产等扩展设定。"
+    "en": "Retrieves SpaceEngine system and celestial object data, then writes traceable, data-grounded extended lore covering minerals, civilizations, biospheres and habitability.",
+    "zh": "基于SpaceEngine行星系统数据检索系统与天体参数，生成矿产、文明、生态等可溯源的扩展设定文档"
   },
-  "categoryId": "03-GameSpatial",
+  "categoryId": "06-ContentCreative",
   "defaultInitPrompt": {
-    "zh": "为某个行星系统生成一份详细信息概览",
-    "en": "Generate a detailed information overview for a planetary system"
+    "zh": "启用 InfoGen-WorkBuddy，帮我查询【系统名】的系统概览",
+    "en": "Enable InfoGen-WorkBuddy and show the overview of system [system]"
   },
   "plugin": "infogen-workbuddy",
   "tags": [
-    { "en": "SpaceEngine Data", "zh": "SpaceEngine 数据" },
-    { "en": "Worldbuilding", "zh": "世界观设定" },
-    { "en": "Scientific Self-consistency", "zh": "科学自洽" }
+    {
+      "en": "System Query",
+      "zh": "行星系统查询"
+    },
+    {
+      "en": "Celestial Data Grounding",
+      "zh": "天体数据校对"
+    },
+    {
+      "en": "Worldbuilding",
+      "zh": "世界观设定生成"
+    }
   ],
   "quickPrompts": [
-    { "en": "Generate a detailed information overview for a planetary system", "zh": "为某个行星系统生成一份详细信息概览" },
-    { "en": "List all planets in a system and compare their physical parameters", "zh": "列出某系统内的全部行星并对比物理参数" },
-    { "en": "Design civilization and mineral settings for a planet based on its data", "zh": "基于某行星的数据设计文明与矿产设定" }
+    {
+      "zh": "启用 InfoGen-WorkBuddy，帮我查询【系统名】的系统概览",
+      "en": "Enable InfoGen-WorkBuddy and show the overview of system [system]"
+    },
+    {
+      "zh": "列出【系统名】内所有行星，并说明各自的类型与半径",
+      "en": "List all planets in [system] with their class and radius"
+    },
+    {
+      "zh": "为【天体名】生成矿产资源设定，输出一张矿产表格",
+      "en": "Generate a mineral resource setting for [object] as a table"
+    }
   ]
 }
