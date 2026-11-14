@@ -20,9 +20,10 @@
   },
   "userConfig": {
     "mcp_url": {
+      "title": "MCP 服务地址",
       "type": "string",
       "default": "http://localhost:8000/mcp",
-      "description": "InfoGen MCP 服务地址（HTTP 模式）。服务未启动时 Agent 会自动重试 3 次，仍失败则给出静默提醒。"
+      "description": "InfoGen MCP 服务地址（HTTP 模式）。在插件详情的配置区修改并保存后，新建会话即按新地址连接；服务未启动时 Agent 会自动重试 3 次，仍失败则给出静默提醒。"
     }
   }
 }

@@ -70,7 +70,7 @@ InfoGen-ZCode/
 
 ## 配置
 
-- **MCP 服务地址**：在 **插件管理 → InfoGen-ZCode → 高级设置** 中修改 `mcp_url`（默认 `http://localhost:8000/mcp`）。
+- **MCP 服务地址**：打开 **设置 → 插件管理 → 已安装**，进入 InfoGen-ZCode 详情页并展开配置区域，即可在端内直接修改 `MCP 服务地址`（`mcp_url`，默认 `http://localhost:8000/mcp`）。保存后新建会话即按新地址连接；当前值保存在 `~/.zcode/cli/config.json` 的插件配置中。
 - **切换 stdio 模式**：编辑 `.zcode-plugin/plugin.json`，把 `mcpServers` 替换为：
 
   ```json
@@ -84,11 +84,11 @@ InfoGen-ZCode/
   }
   ```
 
-  修改后重新安装或在插件管理中更新插件使配置生效。
+  修改后重新安装或在插件管理中更新插件使配置生效。stdio 模式不使用 `mcp_url` 配置项。
 
 ## 服务未启动时的行为
 
-InfoGen MCP 服务未启动时，`/infogen` 会先做连通性探测并自动重试，最多 3 次；仍失败则给出一条简短的静默提醒并正常结束本次请求，不会中断会话，也不影响其他功能。可在 **设置 → MCP** 中查看 `InfoGen` 服务的连接状态。
+InfoGen MCP 服务未启动时，`/infogen` 会先做连通性探测并自动重试，最多 3 次；仍失败则给出一条简短的静默提醒并正常结束本次请求，不会中断会话，也不影响其他功能。可在 **设置 → MCP** 中查看 `plugin:infogen-zcode:InfoGen` 服务的连接状态。
 
 ## 更新
 
@@ -103,7 +103,7 @@ InfoGen MCP 服务未启动时，`/infogen` 会先做连通性探测并自动重
 
 | 现象 | 处理 |
 | --- | --- |
-| `/infogen` 提示 MCP 服务未响应 | 确认 InfoGen MCP 服务已启动、地址与 `mcp_url` 配置一致；在 **设置 → MCP** 检查 `InfoGen` 的状态与错误信息 |
+| `/infogen` 提示 MCP 服务未响应 | 确认 InfoGen MCP 服务已启动、地址与 `mcp_url` 配置一致；在 **设置 → MCP** 检查 `plugin:infogen-zcode:InfoGen` 的状态与错误信息 |
 | 连接成功但查询无结果 | 确认启动 MCP 服务时的 `-n/--namespace` 与导入数据时使用的命名空间一致，且数据库配置仍有效 |
 | 读不到全局提示词 | 服务启动时未加 `--mcp-global-prompt-instruction`，或 `Global.txt` 不在默认路径；也可把路径直接写进 `/infogen` 参数 |
 | 找不到命令 `/infogen` | 确认插件已安装且处于启用状态；旧任务可能需要新建任务后重试 |
