@@ -226,7 +226,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
             ["b_mean_anomaly",         Double]
         ]]
         OrbTbl = Table("ig_orbit", MetaData(), *OrbCols)
-        BinaryCondSt = (and_(Tbl.c.otype.in_(["Star", "Barycenter"]), not_(and_(OrbTbl.c.binary_orbit.is_(True), OrbTbl.c.is_primary.is_(False)))))
+        BinaryCondSt = (and_(Tbl.c.otype.in_(["Star", "Barycenter"]), not_(or_(and_(OrbTbl.c.binary_orbit.is_(True), OrbTbl.c.is_primary.is_(False)), and_(OrbTbl.c.binary_orbit.is_(False), OrbTbl.c.ref_plane.not_in(["Static", "Fixed"]))))))
         BinaryCondPl = (and_(Tbl.c.otype.not_in(["Star", "Barycenter"]), OrbTbl.c.binary_orbit.is_(True)))
         PrimCompCond = (and_(OrbTbl.c.binary_orbit, OrbTbl.c.is_primary.is_(False)))
         OrbitLabels = ["ref_plane", "primary_name", "companion_name", 

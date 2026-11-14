@@ -259,7 +259,7 @@ class Uploader():
                 OrbitalCharacteristics["MeanAnomaly"],
                 OrbitalCharacteristics["SynodicMonth"] if ObjType == "Moon" or (ObjType == "Planet" and OrbitalCharacteristics["BinaryOrbit"] and not OrbitalCharacteristics["IsPrimary"]) else None,
                 OrbitalCharacteristics["BinaryOrbit"],
-                OrbitalCharacteristics["IsPrimary"] if OutputBinaryOrbit else None,
+                OrbitalCharacteristics["IsPrimary"] if OutputBinaryOrbit or (ObjType in ["Barycenter", "Star"] and OrbitalCharacteristics["BinaryOrbit"] and "IsPrimary" in OrbitalCharacteristics.keys()) else None,
                 OrbitalCharacteristics["Primary"] if OutputBinaryOrbit and not OrbitalCharacteristics["IsPrimary"] else None,
                 OrbitalCharacteristics["Companion"] if OutputBinaryOrbit and not OrbitalCharacteristics["IsPrimary"] else None,
                 OrbitalCharacteristics["BPeriod"] if OutputBinaryOrbit else None,
