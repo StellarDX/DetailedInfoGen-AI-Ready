@@ -321,7 +321,10 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         AtmoCols = [Column(i, j) for i, j in [
             ["object_id",        String(512)],
             ["surface_pressure", Double],
-            ["scale_height",     Double]
+            ["scale_height",     Double],
+            ["max_surf_temp",    Double],
+            ["mean_surf_temp",   Double],
+            ["min_surf_temp",    Double]
         ]]
         AtmoTbl = Table("ig_atmosphere", MetaData(), *AtmoCols)
         AtmosphereLabels = ["atmosphere_pressure", "atmosphere_scale_height"]

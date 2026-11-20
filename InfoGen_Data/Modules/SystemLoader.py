@@ -282,6 +282,9 @@ class Uploader():
             self._AtmosphereDataFrame.loc[CurrentHash] = [
                 Atmosphere["SurfacePressure"],
                 Atmosphere["ScaleHeight"],
+                None, 
+                None,
+                None
             ]
 
             for Material, Percent in Atmosphere["CompositionByVolume"].items():
@@ -564,6 +567,7 @@ class Uploader():
                 self._OrbitDataFrame.replace([inf, -inf, nan], [None, None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
                 InsertStatements.append(self.DataFrameToSQL("ig_orbit", self._OrbitDataFrame, self._TableSchema["ig_orbit"]))
             if (len(self._AtmosphereDataFrame) != 0):
+                self._AtmosphereDataFrame.replace([nan], [None], inplace = True)
                 InsertStatements.append(self.DataFrameToSQL("ig_atmosphere", self._AtmosphereDataFrame, self._TableSchema["ig_atmosphere"]))
             if (len(self._HydrosphereDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_hydrosphere", self._HydrosphereDataFrame, self._TableSchema["ig_hydrosphere"]))
