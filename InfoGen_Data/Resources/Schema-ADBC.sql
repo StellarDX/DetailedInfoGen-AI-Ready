@@ -131,9 +131,9 @@ CREATE TABLE ig_orbit ( -- 保存所有的中间数据，但是查询时也要�
 CREATE TABLE ig_atmosphere (
     object_id        VARCHAR(512) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
     surface_pressure DOUBLE PRECISION,  -- Pa
-    scale_height     DOUBLE PRECISION   -- m
-    max_surf_temp    DOUBLE PRECISION   -- K
-    mean_surf_temp   DOUBLE PRECISION   -- K
+    scale_height     DOUBLE PRECISION,   -- m
+    max_surf_temp    DOUBLE PRECISION,   -- K
+    mean_surf_temp   DOUBLE PRECISION,   -- K
     min_surf_temp    DOUBLE PRECISION   -- K
 );
 
