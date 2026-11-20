@@ -17,8 +17,6 @@ struct Atmosphere // 气候字段不单独建表，合并到大气表中（TODO�
 {
     double SurfacePressure;
     double ScaleHeight;
-    double Density;
-    double GlobalWindSpeed;
     double MaxTemperature;
     double MeanTemperature;
     double MinTemperature;
