@@ -327,10 +327,14 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
             ["min_surf_temp",    Double]
         ]]
         AtmoTbl = Table("ig_atmosphere", MetaData(), *AtmoCols)
-        AtmosphereLabels = ["atmosphere_pressure", "atmosphere_scale_height"]
+        AtmosphereLabels = ["atmosphere_pressure", "atmosphere_scale_height", 
+            "max_surface_tempature", "mean_surface_tempature", "min_surface_tempature"]
         AtmosphereList = [
             AtmoTbl.c.surface_pressure.label("atmosphere_pressure"),
-            AtmoTbl.c.scale_height.label("atmosphere_scale_height")
+            AtmoTbl.c.scale_height.label("atmosphere_scale_height"),
+            AtmoTbl.c.max_surf_temp.label("max_surface_tempature"),
+            AtmoTbl.c.mean_surf_temp.label("mean_surface_tempature"),
+            AtmoTbl.c.min_surf_temp.label("min_surface_tempature")
         ]
         SelectList += AtmosphereList
         JoinQuery = JoinQuery.outerjoin(AtmoTbl, AtmoTbl.c.object_id == Tbl.c.object_id)
