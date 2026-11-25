@@ -46,7 +46,7 @@
 
 [Connection] # 这些参数被直接用于初始化dbapi，因此配置名要和函数的参数名一致
 
-# 驱动名，对应ADBC驱动管理器里注册的驱动，如sqlite/duckdb/postgresql
+# 驱动名，对应ADBC驱动管理器里注册的驱动
 driver = ${DRIVER}
 
 # 连接目标，形态由驱动决定：

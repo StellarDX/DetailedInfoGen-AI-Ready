@@ -5,17 +5,17 @@ CREATE TABLE ig_system (
     main_id          VARCHAR(255) NOT NULL,        -- Objects根键MainID
     source_file      VARCHAR(1024),                -- 原始.sc路径
     source_hash      VARCHAR(512),                 -- 文件sha256，决定要不要重新导入
-    code_page        INTEGER,
+    code_page        BIGINT,
     esi_estimator    VARCHAR(32),                  -- SolarSys/Extrasolar
     absolute_orbit   BOOLEAN NOT NULL DEFAULT FALSE,
-    common_plane_threshold INTEGER,
+    common_plane_threshold BIGINT,
     namespace        VARCHAR(255) NOT NULL,        -- 命名空间，由用户填写（查询时也由用户指定而不是AI查找）
-    n_stars          INTEGER,
-    n_planets        INTEGER,
-    n_dwarf_planets  INTEGER,
-    n_satellites     INTEGER,
-    n_minor_planets  INTEGER,
-    n_comets         INTEGER,
+    n_stars          BIGINT,
+    n_planets        BIGINT,
+    n_dwarf_planets  BIGINT,
+    n_satellites     BIGINT,
+    n_minor_planets  BIGINT,
+    n_comets         BIGINT,
     spectral_types   TEXT,                         -- StarSpectralType（‘+’号分隔）
     create_date      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_date    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -29,8 +29,8 @@ CREATE TABLE ig_object (
     primary_name     VARCHAR(255) NOT NULL,        -- Identifiers[0]，即Objects的键
     otype            VARCHAR(32)  NOT NULL,        -- Barycenter/Star/Planet/DwarfPlanet/Moon/DwarfMoon/Asteroid/Comet
     class            VARCHAR(64),                  -- PhysicalCharacteristics.Class，热过滤列（Terra/Jupiter/...）
-    depth            INTEGER NOT NULL DEFAULT 0,   -- 根为0
-    sibling_index    INTEGER,                      -- SubSystems 内序号，保留 --sort-system 的顺序
+    depth            BIGINT NOT NULL DEFAULT 0,   -- 根为0
+    sibling_index    BIGINT,                      -- SubSystems 内序号，保留 --sort-system 的顺序
     is_minor         BOOLEAN NOT NULL DEFAULT FALSE
     -- UNIQUE (system_id, parent_object_id, primary_name)
 );
@@ -171,7 +171,7 @@ CREATE TABLE ig_rings (
     width         DOUBLE PRECISION,
     thickness     DOUBLE PRECISION,
     rock_max_size DOUBLE PRECISION,
-    object_count  INTEGER,
+    object_count  BIGINT,
     PRIMARY KEY (object_id, ring_type)
 );
 

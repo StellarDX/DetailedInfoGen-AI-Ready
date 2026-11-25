@@ -12,14 +12,14 @@ import argparse
 import re
 
 from abc import ABC, abstractmethod
-from pandas import DataFrame, Timestamp, to_datetime, NA
+lazy from pandas import DataFrame, Timestamp, to_datetime, NA
 from pathlib import Path
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+lazy from jinja2 import Environment, FileSystemLoader, select_autoescape
 from uuid import uuid5, NAMESPACE_URL
 from hashlib import sha256
-from sqlalchemy import select, delete, insert, MetaData, Table, Column
-from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger
-from numpy import inf, nan
+lazy from sqlalchemy import select, delete, insert, MetaData, Table, Column
+lazy from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger
+lazy from numpy import inf, nan
 
 def PrintArgs(args):
     print(f"配置: ")
@@ -85,37 +85,37 @@ class Uploader():
         # 此处使用select * from table where 1 = 0获取表数据，多数数据库都支持且这种方法是多数ORM都在用的方法
         self._SystemDataFrame = LoadTableSchemaToDataFrame("ig_system", Connection)
         self._TableSchema["ig_system"] = self._SystemDataFrame.dtypes.to_dict()
-        self._SystemDataFrame.set_index("system_id", inplace=True)
+        self._SystemDataFrame = self._SystemDataFrame.set_index("system_id")
         self._ObjectsDataFrame = LoadTableSchemaToDataFrame("ig_object", Connection)
         self._TableSchema["ig_object"] = self._ObjectsDataFrame.dtypes.to_dict()
-        self._ObjectsDataFrame.set_index("object_id", inplace=True)
+        self._ObjectsDataFrame = self._ObjectsDataFrame.set_index("object_id")
         self._IdentifiersDataFrame = LoadTableSchemaToDataFrame("ig_identifiers", Connection)
         self._TableSchema["ig_identifiers"] = self._IdentifiersDataFrame.dtypes.to_dict()
-        self._IdentifiersDataFrame.set_index(["object_id", "alias"], inplace=True)
+        self._IdentifiersDataFrame = self._IdentifiersDataFrame.set_index(["object_id", "alias"])
         self._PhysicalDataFrame = LoadTableSchemaToDataFrame("ig_physical", Connection)
         self._TableSchema["ig_physical"] = self._PhysicalDataFrame.dtypes.to_dict()
-        self._PhysicalDataFrame.set_index("object_id", inplace=True)
+        self._PhysicalDataFrame = self._PhysicalDataFrame.set_index("object_id")
         self._OrbitDataFrame = LoadTableSchemaToDataFrame("ig_orbit", Connection)
         self._TableSchema["ig_orbit"] = self._OrbitDataFrame.dtypes.to_dict()
-        self._OrbitDataFrame.set_index("object_id", inplace=True)
+        self._OrbitDataFrame = self._OrbitDataFrame.set_index("object_id")
         self._AtmosphereDataFrame = LoadTableSchemaToDataFrame("ig_atmosphere", Connection)
         self._TableSchema["ig_atmosphere"] = self._AtmosphereDataFrame.dtypes.to_dict()
-        self._AtmosphereDataFrame.set_index("object_id", inplace=True)
+        self._AtmosphereDataFrame = self._AtmosphereDataFrame.set_index("object_id")
         self._HydrosphereDataFrame = LoadTableSchemaToDataFrame("ig_hydrosphere", Connection)
         self._TableSchema["ig_hydrosphere"] = self._HydrosphereDataFrame.dtypes.to_dict()
-        self._HydrosphereDataFrame.set_index("object_id", inplace=True)
+        self._HydrosphereDataFrame = self._HydrosphereDataFrame.set_index("object_id")
         self._BiosphereDataFrame = LoadTableSchemaToDataFrame("ig_biosphere", Connection)
         self._TableSchema["ig_biosphere"] = self._BiosphereDataFrame.dtypes.to_dict()
-        self._BiosphereDataFrame.set_index("object_id", inplace=True)
+        self._BiosphereDataFrame = self._BiosphereDataFrame.set_index("object_id")
         self._BioBiomeDataFrame = LoadTableSchemaToDataFrame("ig_biosphere_biome", Connection)
         self._TableSchema["ig_biosphere_biome"] = self._BioBiomeDataFrame.dtypes.to_dict()
-        self._BioBiomeDataFrame.set_index(["object_id", "biome"], inplace=True)
+        self._BioBiomeDataFrame = self._BioBiomeDataFrame.set_index(["object_id", "biome"])
         self._CompositionsDataFrame = LoadTableSchemaToDataFrame("ig_composition", Connection)
         self._TableSchema["ig_composition"] = self._CompositionsDataFrame.dtypes.to_dict()
-        self._CompositionsDataFrame.set_index(["object_id", "kind", "component"], inplace=True)
+        self._CompositionsDataFrame = self._CompositionsDataFrame.set_index(["object_id", "kind", "component"])
         self._RingsDataFrame = LoadTableSchemaToDataFrame("ig_rings", Connection)
         self._TableSchema["ig_rings"] = self._RingsDataFrame.dtypes.to_dict()
-        self._RingsDataFrame.set_index(["object_id", "ring_type"], inplace=True)
+        self._RingsDataFrame = self._RingsDataFrame.set_index(["object_id", "ring_type"])
         Connection.close()
 
     def _System_To_DataFrame(self):
@@ -539,7 +539,7 @@ class Uploader():
             .where(ExistingSystemTable.c.main_id == self._Src["MainID"])
         ).compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
         ExistingSystem = ReadSQLToDataFrame(ExistingSystemQuery, Connection)
-        ExistingSystem.set_index("system_id", inplace = True)
+        ExistingSystem = ExistingSystem.set_index("system_id")
 
         Upload = True if len(ExistingSystem) == 0 else UserConfirm(f"当前命名空间已存在系统\"{self._Src["MainID"]}\"，是否更新？(y/n)：")
 
@@ -557,17 +557,18 @@ class Uploader():
             if (len(self._SystemDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_system", self._SystemDataFrame, self._TableSchema["ig_system"]))
             if (len(self._ObjectsDataFrame) != 0):
+                self._ObjectsDataFrame = self._ObjectsDataFrame.replace([nan], [None])
                 InsertStatements.append(self.DataFrameToSQL("ig_object", self._ObjectsDataFrame, self._TableSchema["ig_object"]))
             if (len(self._IdentifiersDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_identifiers", self._IdentifiersDataFrame, self._TableSchema["ig_identifiers"]))
             if (len(self._PhysicalDataFrame) != 0):
-                self._PhysicalDataFrame.replace([inf, -inf, nan], [None, None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
+                self._PhysicalDataFrame = self._PhysicalDataFrame.replace([inf, -inf, nan], [None, None, None]) # 部分字段可能出现inf但数据库没法直接保存
                 InsertStatements.append(self.DataFrameToSQL("ig_physical", self._PhysicalDataFrame, self._TableSchema["ig_physical"]))
             if (len(self._OrbitDataFrame) != 0):
-                self._OrbitDataFrame.replace([inf, -inf, nan], [None, None, None], inplace = True) # 部分字段可能出现inf但数据库没法直接保存
+                self._OrbitDataFrame = self._OrbitDataFrame.replace([inf, -inf, nan], [None, None, None]) # 部分字段可能出现inf但数据库没法直接保存
                 InsertStatements.append(self.DataFrameToSQL("ig_orbit", self._OrbitDataFrame, self._TableSchema["ig_orbit"]))
             if (len(self._AtmosphereDataFrame) != 0):
-                self._AtmosphereDataFrame.replace([nan], [None], inplace = True)
+                self._AtmosphereDataFrame = self._AtmosphereDataFrame.replace([nan], [None])
                 InsertStatements.append(self.DataFrameToSQL("ig_atmosphere", self._AtmosphereDataFrame, self._TableSchema["ig_atmosphere"]))
             if (len(self._HydrosphereDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_hydrosphere", self._HydrosphereDataFrame, self._TableSchema["ig_hydrosphere"]))
@@ -578,7 +579,7 @@ class Uploader():
             if (len(self._CompositionsDataFrame) != 0):
                 InsertStatements.append(self.DataFrameToSQL("ig_composition", self._CompositionsDataFrame, self._TableSchema["ig_composition"]))
             if (len(self._RingsDataFrame) != 0):
-                self._RingsDataFrame.replace([nan], [None], inplace = True)
+                self._RingsDataFrame = self._RingsDataFrame.replace([nan], [None])
                 InsertStatements.append(self.DataFrameToSQL("ig_rings", self._RingsDataFrame, self._TableSchema["ig_rings"]))
         
             with Connection.cursor() as Cursor:

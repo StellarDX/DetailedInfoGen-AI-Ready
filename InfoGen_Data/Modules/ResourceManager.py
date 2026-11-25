@@ -5,10 +5,10 @@ from InfoGen_Data import UserConfirm
 from InfoGen_Data import ADBCClient, CurrentSQLVariation, ReadSQLToDataFrame
 from InfoGen_Data import CheckNamespace
 
-from tabulate import tabulate
-from sqlalchemy import Table, MetaData, Column, String
-from sqlalchemy import Select, Delete, or_
-from pandas import DataFrame
+lazy from tabulate import tabulate
+lazy from sqlalchemy import Table, MetaData, Column, String
+lazy from sqlalchemy import Select, Delete, or_
+lazy from pandas import DataFrame
 from hashlib import sha256
 from pathlib import Path
 

@@ -65,7 +65,8 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
 | 操作系统 | Windows / Linux | 仓库仅提供这两个平台的依赖清单 |
 | CMake | 4.0以上 | 构建脚本声明 `cmake_minimum_required(VERSION 4.0)` |
 | C++编译器 | 支持 C++26（推荐 GCC-16.1） | 需 `<flat_map>` / `<flat_set>` / `<ranges>` / `std::jthread` 等特性 |
-| Python | 3.12以上 | 需`Development.Module`组件（Python头文件与库） |
+| Python | 3.15以上 | 软件里大量使用了延迟加载以提升启动速度，依赖3.15添加的新语法 |
+| Rustup | 1.100以上 | **可选项，软件本身没有Rust编写的模块**，部分python依赖引入了Rust优化性能，若使用Python 3.16以上版本则需要用此工具编译这部分依赖。 |
 | ANTLR4 C++ Runtime | v4 | 唯一需要手动准备的依赖 |
 
 ### 依赖说明

@@ -4,18 +4,18 @@ from InfoGen_Data import SetNamespace
 from InfoGen_Data import QuerySystem, QueryAllObjectsInSystem, QueryObject
 
 import tomllib
-import httpx
+lazy import httpx
 
 from pathlib import Path
-from typing import Sequence, Callable
+from typing import Sequence, Callable, TypedDict, Annotated
 from datetime import datetime
 from time import perf_counter
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
-from langchain_core.tools import BaseTool, StructuredTool
-from langchain_openai import ChatOpenAI
-from langgraph.graph import StateGraph, MessagesState, START, END
-from langgraph.prebuilt import ToolNode
+lazy from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+lazy from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
+lazy from langchain_core.tools import BaseTool, StructuredTool
+lazy from langchain_openai import ChatOpenAI
+lazy from langgraph.graph import StateGraph, START, END
+lazy from langgraph.prebuilt import ToolNode
 
 _ChatClient = None
 _ToolList = [QuerySystem, QueryAllObjectsInSystem, QueryObject]
@@ -34,8 +34,12 @@ def ChatClient(_Verbose:bool = False):
         _ChatClient = ChatOpenAI(**CliConfig)
     return _ChatClient
 
-class IGChatState(MessagesState):
-    Client:ChatOpenAI
+def AppendMessages(Left, Right):
+    return [*(Left or []), *(Right or [])]
+
+class IGChatState(TypedDict):
+    messages: Annotated[list, AppendMessages]
+    Client:"ChatOpenAI"
     QueryCount:int
     MaxQueryCount:int
     MaxLength:int

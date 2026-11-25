@@ -7,7 +7,7 @@ from InfoGen_Data import InfoGenHelpFormatter
 import sys
 import argparse
 import gettext
-import polib
+lazy import polib
 
 from pathlib import Path
 

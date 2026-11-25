@@ -23,7 +23,7 @@ std::vector<OIDType> MinorPlanetHosts(const BasicTableType& BasicTable, const Sy
     return Hosts;
 }
 
-void Composite2(ReturnType* Result)
+void Composite2(ReturnType* Result, OrbitCharTableType* OrbitalCharacteristicsTable, PhysicalCharTableType* PhysicalCharacteristicsTable)
 {   
     spdlog::info("整理小型物体...");
 
@@ -46,8 +46,8 @@ void Composite2(ReturnType* Result)
         }
         CurrentObject["ParentBody"] = IDENT.at(ParentID)[0];
 
-        if (OrbitalCharacteristicsTable.contains(i)) {CurrentObject["OrbitalCharacteristics"] = OrbitalCharacteristicsTable.at(i);}
-        if (PhysicalCharacteristicsTable.contains(i)) {CurrentObject["PhysicalCharacteristics"] = PhysicalCharacteristicsTable.at(i);}
+        if (OrbitalCharacteristicsTable->contains(i)) {CurrentObject["OrbitalCharacteristics"] = OrbitalCharacteristicsTable->at(i);}
+        if (PhysicalCharacteristicsTable->contains(i)) {CurrentObject["PhysicalCharacteristics"] = PhysicalCharacteristicsTable->at(i);}
         MinorObjectsTable[IDENT.at(i).front().c_str()] = CurrentObject;
     }
     (*Result)["MinorObjects"] = MinorObjectsTable;

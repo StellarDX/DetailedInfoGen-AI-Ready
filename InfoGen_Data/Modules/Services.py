@@ -6,8 +6,8 @@ from argparse import SUPPRESS
 
 import os
 os.environ["FASTMCP_CHECK_FOR_UPDATES"] = "off"
-from fastmcp import FastMCP
-from fastmcp.tools import Tool
+lazy from fastmcp import FastMCP
+lazy from fastmcp.tools import Tool
 
 def MCP(args):
     if args.namespace:

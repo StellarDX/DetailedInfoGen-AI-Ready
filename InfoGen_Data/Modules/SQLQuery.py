@@ -2,16 +2,16 @@ from InfoGen_Data import InfoGenHelpFormatter
 from InfoGen_Data import ADBCClient, CurrentSQLVariation, ReadSQLToDataFrame
 from InfoGen_Data import CheckNamespace
 
-import yaml, json
+lazy import yaml, json
 
 from typing import Literal
-from sqlalchemy import Table, MetaData, Column, select, and_, or_, not_, case
-from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger, Text
-from sqlalchemy.orm import aliased
-from pandas import notna
-from pandas.api.types import is_dict_like
-from tabulate import tabulate
-from numpy import nan
+lazy from sqlalchemy import Table, MetaData, Column, select, and_, or_, not_, case
+lazy from sqlalchemy import String, Double, Integer, Boolean, DateTime, BigInteger, Text
+lazy from sqlalchemy.orm import aliased
+lazy from pandas import notna
+lazy from pandas.api.types import is_dict_like
+lazy from tabulate import tabulate
+lazy from numpy import nan
 
 _NamespaceBuffer = ""
 
@@ -82,14 +82,15 @@ def _QuerySystem(Namespace, SystemName, OutFmt):
         case "json":
             return SystemDataFrame.to_json(
                 orient = 'records',
-                indent = 4
+                indent = 4,
+                date_format = "iso"
             )
         case "yaml":
             return yaml.dump(SystemDataFrame.to_dict(orient = 'records'),
                 allow_unicode = True, 
                 sort_keys = False, 
                 default_flow_style = False, 
-                indent = 2
+                indent = 2,
             )
         case "wide":
             return str(tabulate(SystemDataFrame[["namespace", "main_id", "spectral_types", "create_date", "system_id", "source_file"]], 
@@ -392,7 +393,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     IdentQuery = str((select(IdentTbl).where(IdentTbl.c.object_id.in_(ObjList)))
         .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
     IdentFrame = ReadSQLToDataFrame(IdentQuery, Connection)
-    IdentFrame.set_index("object_id", inplace = True)
+    IdentFrame = IdentFrame.set_index("object_id")
     IdentDict = IdentFrame.groupby("object_id")["alias"].apply(list).to_dict()
 
     CompDict = None
@@ -407,7 +408,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         CompQuery = str((select(CompTbl).where(CompTbl.c.object_id.in_(ObjList)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
         CompFrame = ReadSQLToDataFrame(CompQuery, Connection)
-        CompFrame.set_index(["object_id", "kind"], inplace = True)
+        CompFrame = CompFrame.set_index(["object_id", "kind"])
         CompDict = CompFrame.groupby(["object_id", "kind"])[["component", "fraction"]].apply(lambda x: x.to_dict('records')).to_dict()
     
     BiomeDict = None
@@ -420,7 +421,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         BiomeQuery = str((select(BiomeTbl).where(BiomeTbl.c.object_id.in_(ObjList)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
         BiomeFrame = ReadSQLToDataFrame(BiomeQuery, Connection)
-        BiomeFrame.set_index(["object_id"], inplace = True)
+        BiomeFrame = BiomeFrame.set_index(["object_id"])
         BiomeDict = BiomeFrame.groupby("object_id")["biome"].apply(list).to_dict()
 
     RingsDict = None
@@ -438,7 +439,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
         RingsQuery = str((select(RingsTbl).where(RingsTbl.c.object_id.in_(ObjList)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
         RingsFrame = ReadSQLToDataFrame(RingsQuery, Connection)
-        RingsFrame.set_index(["object_id"], inplace = True)
+        RingsFrame = RingsFrame.set_index(["object_id"])
         RingsDict = RingsFrame.groupby("object_id")[["ring_type", "inner_radius", "width", "thickness", "rock_max_size", "object_count"]].apply(lambda x: x.to_dict('records')).to_dict()
         RingsDict = {m: [{i: j for i, j in k.items() if notna(j)} for k in l] for m, l in RingsDict.items() if l}
         for i, j in RingsDict.items():
@@ -455,7 +456,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
             .where(Tbl.c.object_id.in_(ObjList)))
             .compile(dialect = CurrentSQLVariation(), compile_kwargs = {"literal_binds": True}))
         SubFrame = ReadSQLToDataFrame(SubQuery, Connection)
-        SubFrame.set_index("object_id", inplace = True)
+        SubFrame = SubFrame.set_index("object_id")
         # SubDict = SubFrame.groupby("object_id")["subsystem_name"].apply(list).to_dict()
         SubDict = SubFrame.groupby("object_id")[["subsystem_name", "subsystem_otype", "subsystem_class"]].apply(lambda x: x.to_dict('records')).to_dict()
 

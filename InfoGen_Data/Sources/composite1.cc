@@ -1,4 +1,5 @@
 #include "composite1.h"
+#include "composite2.h"
 #include "Mini-NeoCSE/ISCStream.h"
 #include "composite.h"
 #include "gbuffers_atmosphere.h"
@@ -12,13 +13,6 @@
 
 #include <pybind11/stl.h>
 #include <spdlog/spdlog.h>
-
-OrbitCharTableType    OrbitalCharacteristicsTable;
-PhysicalCharTableType PhysicalCharacteristicsTable;
-AtmosphereTableType   AtmosphereTable;
-HydrosphereTableType  HydrosphereTable;
-BiosphereTableType    BiosphereTable;
-RingsTableType        RingsTable;
 
 StaticPosTableType    StaticPosTable;
 
@@ -89,15 +83,15 @@ void __DFS_Iterate(ReturnType* Result, const BasicTableType* BasicTable, const S
 
 void Composite1(ReturnType* Result)
 {
-    OrbitalCharacteristicsTable = gbuffer_orbit();
+    OrbitCharTableType OrbitalCharacteristicsTable = gbuffer_orbit();
 
     ComputeStaticPos(SystemTable, BarycenterID, OrbitTable, &StaticPosTable);
 
-    PhysicalCharacteristicsTable = gbuffer_basic();
-    AtmosphereTable = gbuffer_atmosphere();
-    HydrosphereTable = gbuffers_hydrosphere();
-    BiosphereTable = gbuffers_biosphere();
-    RingsTable = gbuffers_rings();
+    PhysicalCharTableType PhysicalCharacteristicsTable = gbuffer_basic();
+    AtmosphereTableType AtmosphereTable = gbuffer_atmosphere();
+    HydrosphereTableType HydrosphereTable = gbuffers_hydrosphere();
+    BiosphereTableType BiosphereTable = gbuffers_biosphere();
+    RingsTableType RingsTable = gbuffers_rings();
 
     spdlog::info("生成物体列表...");
 
@@ -117,4 +111,6 @@ void Composite1(ReturnType* Result)
     (*Result)["Objects"] = ObjectList;
 
     spdlog::info("完成");
+
+    Composite2(Result, &OrbitalCharacteristicsTable, &PhysicalCharacteristicsTable);
 }

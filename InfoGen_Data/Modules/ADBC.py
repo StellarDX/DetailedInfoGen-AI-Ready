@@ -1,21 +1,20 @@
 from InfoGen_Data import InfoGenHelpFormatter
 
-from adbc_driver_manager import dbapi
+lazy from adbc_driver_manager import dbapi
 from pathlib import Path
 from copy import deepcopy
 from urllib.parse import urlparse
-from dbutils.pooled_db import PooledDB
-from pandas.io._util import arrow_table_to_pandas
-from pyarrow import Table
+lazy from dbutils.pooled_db import PooledDB
+lazy from pandas.io._util import arrow_table_to_pandas
+lazy from pyarrow import Table
 
 import tomllib
 import string
-import sqlparse
+lazy import sqlparse
 import re
 import warnings
 
-from sqlalchemy import Dialect
-from sqlalchemy.dialects import mssql, mysql, oracle, postgresql, sqlite # 这里应该可以换成动态导入
+lazy from sqlalchemy import Dialect
 
 _SQLVariation = None
 _ADBCConf = None
@@ -32,16 +31,23 @@ warnings.filterwarnings( # 过滤掉一个Warning
     message=".*pandas only supports SQLAlchemy connectable.*"
 )
 
-RegisteredVariation = { # 这是我唯一能想到的办法了
-    "mssql": mssql.dialect(),
-    "mysql": mysql.dialect(),
-    "oracle": oracle.dialect(),
-    "postgresql": postgresql.dialect(),
-    "sqlite": sqlite.dialect()
-}
+_RegisteredVariation = None
+
+def RegisteredVariation():
+    from sqlalchemy.dialects import mssql, mysql, oracle, postgresql, sqlite # 这里应该可以换成动态导入
+    global _RegisteredVariation
+    if _RegisteredVariation == None:
+        _RegisteredVariation = { # 这是我唯一能想到的办法了
+            "mssql": mssql.dialect(),
+            "mysql": mysql.dialect(),
+            "oracle": oracle.dialect(),
+            "postgresql": postgresql.dialect(),
+            "sqlite": sqlite.dialect()
+        }
+    return _RegisteredVariation
 
 def RegisterSQLVariation(Name:str, Variation:Dialect):
-    RegisteredVariation[Name] = Dialect
+    RegisteredVariation()[Name] = Dialect
 
 def UserConfirm(Question:str):
     Confirm = ''
@@ -63,7 +69,7 @@ def CurrentSQLVariation():
     global _SQLVariation
     if _SQLVariation == None:
         DatabaseName = urlparse(ADBCConfig()["Connection"]["uri"]).scheme
-        _SQLVariation = RegisteredVariation[DatabaseName]
+        _SQLVariation = RegisteredVariation()[DatabaseName]
     return _SQLVariation
 
 def ADBCROConfig():

@@ -20,13 +20,6 @@ extern StaticPosTableType          StaticPosTable;
 
 extern std::unordered_set<OIDType> MinorObjectList;
 
-extern OrbitCharTableType          OrbitalCharacteristicsTable;
-extern PhysicalCharTableType       PhysicalCharacteristicsTable;
-extern AtmosphereTableType         AtmosphereTable;
-extern HydrosphereTableType        HydrosphereTable;
-extern BiosphereTableType          BiosphereTable;
-extern RingsTableType              RingsTable;
-
 void Composite1(ReturnType* Result);
 
 #endif

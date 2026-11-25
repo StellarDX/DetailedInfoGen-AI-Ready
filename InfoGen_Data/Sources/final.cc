@@ -73,7 +73,7 @@ ReturnType InfoGen_Main(const py::kwargs& args)
     {
         Composite(&Result);
         Composite1(&Result);
-        Composite2(&Result);
+        //Composite2(&Result);
     }
     catch(const std::exception& e)
     {
