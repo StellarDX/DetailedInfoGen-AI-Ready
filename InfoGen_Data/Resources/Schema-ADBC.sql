@@ -9,7 +9,7 @@ CREATE TABLE ig_system (
     esi_estimator    VARCHAR(32),                  -- SolarSys/Extrasolar
     absolute_orbit   BOOLEAN NOT NULL DEFAULT FALSE,
     common_plane_threshold BIGINT,
-    namespace        VARCHAR(255) NOT NULL,        -- 命名空间，由用户填写（查询时也由用户指定而不是AI查找）
+    namespace        VARCHAR(63) NOT NULL,        -- 命名空间，由用户填写（查询时也由用户指定而不是AI查找）
     n_stars          BIGINT,
     n_planets        BIGINT,
     n_dwarf_planets  BIGINT,
