@@ -239,6 +239,28 @@ msgstr "生物种类"
 msgid "生物群系"
 msgstr "生物群系"
 
+# -------------------------------星环数据-------------------------------
+msgid "环系统"
+msgstr "环系统"
+
+msgid "类型"
+msgstr "类型"
+
+msgid "半径"
+msgstr "半径"
+
+msgid "宽度"
+msgstr "宽度"
+
+msgid "厚度"
+msgstr "厚度"
+
+msgid "最大物体直径"
+msgstr "最大物体直径"
+
+msgid "物体数量"
+msgstr "物体数量"
+
 # -------------------------------卫星列表--------------------------------
 msgid "卫星列表"
 msgstr "卫星列表"
@@ -501,3 +523,28 @@ msgstr "空中"
 
 msgid "Subglacial"
 msgstr "冰下"
+
+# -------------------------------环类型--------------------------------
+msgid "MainRing"
+msgstr "主环"
+
+msgid "CircumplanetaryDisc"
+msgstr "星周盘"
+
+msgid "SaturnELike"
+msgstr "土星E型"
+
+msgid "Halo"
+msgstr "晕环"
+
+msgid "UranusSparse"
+msgstr "天王星型"
+
+msgid "JupiterTransparent"
+msgstr "木星型"
+
+msgid "NeptuneNarrow"
+msgstr "海王星型"
+
+msgid "Colorful"
+msgstr "彩色"

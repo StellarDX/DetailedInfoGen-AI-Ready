@@ -240,6 +240,28 @@ msgstr "Type"
 msgid "生物群系"
 msgstr "Biome"
 
+# -------------------------------星环数据-------------------------------
+msgid "环系统"
+msgstr "Rings"
+
+msgid "类型"
+msgstr "Type"
+
+msgid "半径"
+msgstr "Radius"
+
+msgid "宽度"
+msgstr "Width"
+
+msgid "厚度"
+msgstr "Thickness"
+
+msgid "最大物体直径"
+msgstr "Diameter of largest object"
+
+msgid "物体数量"
+msgstr "Object count"
+
 # -------------------------------卫星列表--------------------------------
 msgid "卫星列表"
 msgstr "Satellites"
@@ -328,8 +350,8 @@ msgstr "Subdwarf F star"
 
 msgid "F型主序星"
 msgstr "F-type main-sequence star"
-# Yellow-white dwarf
 
+# Yellow-white dwarf
 msgid "F型亚巨星"
 msgstr "F-type subgiant"
 
@@ -415,8 +437,8 @@ msgstr "Pecular star"
 # LOC(Classifications.PlanetClassification(...))
 msgid "铁质行星"
 msgstr "Iron planet"
-# Super-Mercury
 
+# Super-Mercury
 msgid "Mega Earth"
 msgstr "Mega-Earth"
 
@@ -428,8 +450,8 @@ msgstr "Sub-Earth"
 
 msgid "岩质行星"
 msgstr "Terrestrial planet"
-# Rocky planet
 
+# Rocky planet
 msgid "碳质行星"
 msgstr "Carbon planet"
 
@@ -438,19 +460,19 @@ msgstr "Ocean world"
 
 msgid "水质行星"
 msgstr "Titan-like planet"
-# Titanic planet
 
+# Titanic planet
 msgid "冰质行星"
 msgstr "Ice planet"
-# Icy planet
 
+# Icy planet
 msgid "Hoptune"
 msgstr "Hoptune"
 
 msgid "迷你海王星"
 msgstr "Mini-Neptune"
-# Gas dwarf
 
+# Gas dwarf
 msgid "冰巨星"
 msgstr "Ice giant"
 
@@ -508,3 +530,28 @@ msgstr "Aerial"
 
 msgid "Subglacial"
 msgstr "Subglacial"
+
+# -------------------------------环类型--------------------------------
+msgid "MainRing"
+msgstr "MainRing"
+
+msgid "CircumplanetaryDisc"
+msgstr "CircumplanetaryDisc"
+
+msgid "SaturnELike"
+msgstr "SaturnELike"
+
+msgid "Halo"
+msgstr "Halo"
+
+msgid "UranusSparse"
+msgstr "UranusSparse"
+
+msgid "JupiterTransparent"
+msgstr "JupiterTransparent"
+
+msgid "NeptuneNarrow"
+msgstr "NeptuneNarrow"
+
+msgid "Colorful"
+msgstr "Colorful"

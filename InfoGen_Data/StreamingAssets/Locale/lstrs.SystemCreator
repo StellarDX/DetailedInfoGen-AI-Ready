@@ -245,6 +245,29 @@ msgstr ""
 msgid "生物群系"
 msgstr ""
 
+# -------------------------------星环数据-------------------------------
+
+msgid "环系统"
+msgstr ""
+
+msgid "类型"
+msgstr ""
+
+msgid "半径"
+msgstr ""
+
+msgid "宽度"
+msgstr ""
+
+msgid "厚度"
+msgstr ""
+
+msgid "最大物体直径"
+msgstr ""
+
+msgid "物体数量"
+msgstr ""
+
 # -------------------------------卫星列表--------------------------------
 
 msgid "卫星列表"
@@ -521,8 +544,23 @@ msgstr ""
 msgid "MainRing"
 msgstr ""
 
-msgid "SaturnELikeRing"
+msgid "CircumplanetaryDisc"
 msgstr ""
 
-msgid "CircumplanetaryDisc"
+msgid "SaturnELike"
+msgstr ""
+
+msgid "Halo"
+msgstr ""
+
+msgid "UranusSparse"
+msgstr ""
+
+msgid "JupiterTransparent"
+msgstr ""
+
+msgid "NeptuneNarrow"
+msgstr ""
+
+msgid "Colorful"
 msgstr ""

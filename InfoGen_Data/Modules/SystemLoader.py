@@ -832,6 +832,7 @@ class Generator(ABC):
                         "RockMaxSize": LOC("最大物体直径"),
                         "ObjectCount": LOC("物体数量")
                     })
+                    ObjectInfo[LOC("环系统")][LOC("类型")] = [LOC(i) for i in ObjectInfo[LOC("环系统")][LOC("类型")].tolist()]
                     ObjectInfo[LOC("环系统")][LOC("半径")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("半径")].tolist()]
                     ObjectInfo[LOC("环系统")][LOC("宽度")] = [f"{i} m" for i in ObjectInfo[LOC("环系统")][LOC("宽度")].tolist()]
                     if LOC("厚度") in ObjectInfo[LOC("环系统")].columns:
@@ -928,6 +929,7 @@ class Generator(ABC):
                         "RockMaxSize": LOC("最大物体直径"),
                         "ObjectCount": LOC("物体数量")
                     })
+                    ObjectInfo[LOC("环系统")][LOC("类型")] = [LOC(i) for i in ObjectInfo[LOC("环系统")][LOC("类型")].tolist()]
                     ObjectInfo[LOC("环系统")][LOC("半径")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("半径")].tolist()]
                     ObjectInfo[LOC("环系统")][LOC("宽度")] = [f"{i} Km" for i in ObjectInfo[LOC("环系统")][LOC("宽度")].tolist()]
                     if LOC("厚度") in ObjectInfo[LOC("环系统")].columns:
