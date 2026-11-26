@@ -150,7 +150,6 @@ cmake --install <构建目录>
     ├── InfoGen.(so|pyd)                # C++编译的Python模块
     ├── Plug-ins/                       # 第三方客户端Agent插件（DSH / ZCode / WorkBuddy）
     ......
-    └── requirements-linux.txt / requirements-win.txt
 ```
 
 #### 4. 复制运行时动态库
@@ -170,7 +169,7 @@ C++模块在Linux下使用`$ORIGIN`作为RPATH（构建脚本设置了`INSTALL_R
 ```bash
 python3 -m venv ./venv
 source ./venv/bin/activate                 # Windows: .\venv\Scripts\activate
-pip install -r <安装前缀>/InfoGen_Data/requirements-linux.txt   # Windows 改用 requirements-win.txt
+pip install -r <安装前缀>/InfoGen_Data/3rdParty/Py_Requirements/<python-version>-<os>.txt
 ```
 
 依赖清单包含argparse之外的中文帮助、国际化（`polib`）、数据处理（`pandas`），以及后续AI所需的`langchain`等组件。
