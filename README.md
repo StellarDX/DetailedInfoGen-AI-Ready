@@ -56,18 +56,39 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
 | AI | Langgraph |
 | 服务 | FastMCP |
 
+## 功能可用性
+
+P = 可用，U = 可用但不稳定，E = 不可用
+
+| Python版本号 | 读取SC生成系统报告 | 数据库联动 | 内置AI客户端 | MCP服务 |
+| --- | --- | --- | --- | --- |
+| 3.15 | P | P | P | P |
+| 3.16（前瞻） | P | P | E[1] | E[1] |
+
+[1]：AI组件依赖的CFFI因为函数Py_FileSystemDefaultEncoding在Python 3.16中被移除导致LangChain与FastMCP不可用
+
 ## 安装部署
 
 ### 环境要求
 
+要运行详细信息生成器，系统环境必须满足以下要求：
+
 | 项目 | 要求 | 说明 |
 | --- | --- | --- |
-| 操作系统 | Windows / Linux | 仓库仅提供这两个平台的依赖清单 |
+| 操作系统 | Windows / Linux | 仓库仅提供这两个平台的依赖清单（Mac我这里没机器所以暂时适配不了） |
 | CMake | 4.0以上 | 构建脚本声明 `cmake_minimum_required(VERSION 4.0)` |
 | C++编译器 | 支持 C++26（推荐 GCC-16.1） | 需 `<flat_map>` / `<flat_set>` / `<ranges>` / `std::jthread` 等特性 |
 | Python | 3.15以上 | 软件里大量使用了延迟加载以提升启动速度，依赖3.15添加的新语法 |
-| Rustup | 1.100以上 | **可选项，软件本身没有Rust编写的模块**，部分python依赖引入了Rust优化性能，若使用Python 3.16以上版本则需要用此工具编译这部分依赖。 |
 | ANTLR4 C++ Runtime | v4 | 唯一需要手动准备的依赖 |
+
+以下组件为可选项，大部分位于Python第三方依赖链条中，仅在满足以上条件下仍无法正常部署时视情况安装：
+
+| 项目 | 要求 | 说明 |
+| --- | --- | --- |
+| Rustup | 1.100以上 | **软件本身没有Rust编写的模块**，部分python依赖引入了Rust优化性能，若使用Python 3.16以上版本则需要用此工具编译这部分依赖。 |
+| Ninja构建系统 | 1.13以上 | 部分依赖包编译锁Ninja，**软件本身不锁构建系统**。 |
+| Boost | 推荐1.90以上 | 公共依赖包，**仅用于编译Python包，软件本身不依赖**。 |
+| Apache Arrow | 见Python依赖清单 | 数据传输部分由Arrow底座完成，需要手动安装Arrow底座时考虑。**这个中间件安装难度较大，可参考[Arrow部署文档](./InfoGen_Data/Documents/Arrow部署文档.md)** |
 
 ### 依赖说明
 
