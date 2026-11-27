@@ -63,9 +63,10 @@ P = 可用，U = 可用但不稳定，E = 不可用
 | Python版本号 | 读取SC生成系统报告 | 数据库联动 | 内置AI客户端 | MCP服务 |
 | --- | --- | --- | --- | --- |
 | 3.15 | P | P | P | P |
-| 3.16（前瞻） | P | P | E[1] | E[1] |
+| 3.16（前瞻） | P | P | E[1] | U[2] |
 
-[1]：AI组件依赖的CFFI因为函数Py_FileSystemDefaultEncoding在Python 3.16中被移除导致LangChain与FastMCP不可用
+[1]：ZStandard编译问题导致Langchain及相关组件不可用。\
+[2]：需要手动安装CFFI的主线版本且尚未充分测试（直接下载解压然后pip install整个目录即可）。
 
 ## 安装部署
 
@@ -87,6 +88,7 @@ P = 可用，U = 可用但不稳定，E = 不可用
 | --- | --- | --- |
 | Rustup | 1.100以上 | **软件本身没有Rust编写的模块**，部分python依赖引入了Rust优化性能，若使用Python 3.16以上版本则需要用此工具编译这部分依赖。 |
 | Apache Arrow | 见Python依赖清单 | 数据传输部分由Arrow底座完成，需要手动安装Arrow底座时考虑。**这个中间件安装难度较大，可参考[Arrow部署文档](./InfoGen_Data/Documents/Arrow部署文档.md)** |
+| [CFFI](https://github.com/cffi/cffi) | 主线版本（不稳定） | LangChain和FastMCP依赖，部分Python版本需手动安装 |
 
 ### 依赖说明
 
