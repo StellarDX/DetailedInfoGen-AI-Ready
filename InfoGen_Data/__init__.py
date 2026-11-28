@@ -64,3 +64,6 @@ from InfoGen_Data.Modules.LangGraph import Generate
 
 from InfoGen_Data.Modules.Services import Register as ServicesRegister
 from InfoGen_Data.Modules.Services import StartService
+
+from InfoGen_Data.Modules.Annotations import Register as AnnotationsRegister
+from InfoGen_Data.Modules.Annotations import Annotate as AnnotationsEntry

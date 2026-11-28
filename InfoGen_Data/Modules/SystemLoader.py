@@ -196,8 +196,7 @@ class Uploader():
                     PhysicalCharacteristics["KerrCharge"],
                     None,
                     None,
-                    None,
-                    ""
+                    None
                 ]
             else:
                 self._PhysicalDataFrame.loc[CurrentHash] = [
@@ -232,8 +231,7 @@ class Uploader():
                     None,
                     PhysicalCharacteristics["CometTotalMagn"] if ObjType == "Comet" else None,
                     PhysicalCharacteristics["CometTotalMagnSlope"] if ObjType == "Comet" else None,
-                    PhysicalCharacteristics["ESI"] if ObjType in ["Planet", "Moon"] else None,
-                    ""
+                    PhysicalCharacteristics["ESI"] if ObjType in ["Planet", "Moon"] else None
                 ]
 
         if "OrbitalCharacteristics" in CurrentObject:
@@ -384,8 +382,7 @@ class Uploader():
                     None,
                     PhysicalCharacteristics["CometTotalMagn"] if ObjType == "Comet" else None,
                     PhysicalCharacteristics["CometTotalMagnSlope"] if ObjType == "Comet" else None,
-                    None,
-                    ""
+                    None
                 ]
 
             if "OrbitalCharacteristics" in CurrentObject:

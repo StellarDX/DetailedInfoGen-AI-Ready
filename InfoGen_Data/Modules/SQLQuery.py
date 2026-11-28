@@ -31,7 +31,7 @@ def _PreCheck(Namespace, SystemName):
 
 def _QuerySystem_Unchecked(Namespace, SystemName):
     Cols = [Column(i, j) for i, j in [
-        ["system_id",              String(512)],
+        ["system_id",              String(256)],
         ["main_id",                String(255)],
         ["source_file",            String(1024)],
         ["source_hash",            String(512)],
@@ -107,16 +107,16 @@ def _QuerySystem(Namespace, SystemName, OutFmt):
 
 def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName, ObjectType):
     SysCols = [Column(i, j) for i, j in [
-        ["system_id",              String(512)],
+        ["system_id",              String(256)],
         ["main_id",                String(255)],
         ["namespace",              String(255)]
     ]]
     SysTbl = Table("ig_system", MetaData(), *SysCols)
 
     Cols = [Column(i, j) for i, j in [
-        ["object_id",        String(512)],
-        ["system_id",        String(512)],
-        ["parent_object_id", String(512)],
+        ["object_id",        String(256)],
+        ["system_id",        String(256)],
+        ["parent_object_id", String(256)],
         ["primary_name",     String(255)],
         ["otype",            String(32)],
         ["class",            String(64)],
@@ -144,16 +144,16 @@ def _QueryAllObjectsInSystem_Unchecked(Namespace, SystemName, ObjectType):
 
 def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     SysCols = [Column(i, j) for i, j in [
-        ["system_id",              String(512)],
+        ["system_id",              String(256)],
         ["main_id",                String(255)],
         ["namespace",              String(255)]
     ]]
     SysTbl = Table("ig_system", MetaData(), *SysCols)
 
     Cols = [Column(i, j) for i, j in [
-        ["object_id",        String(512)],
-        ["system_id",        String(512)],
-        ["parent_object_id", String(512)],
+        ["object_id",        String(256)],
+        ["system_id",        String(256)],
+        ["parent_object_id", String(256)],
         ["primary_name",     String(255)],
         ["otype",            String(32)],
         ["class",            String(64)],
@@ -180,7 +180,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     JoinQuery = JoinQuery.outerjoin(PTbl, Tbl.c.parent_object_id == PTbl.c.object_id)
 
     IdentCols = [Column(i, j) for i, j in [
-        ["object_id", String(512)],
+        ["object_id", String(256)],
         ["alias",     String(255)]
     ]]
     IdentTbl = Table("ig_identifiers", MetaData(), *IdentCols)
@@ -189,7 +189,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     OrbitList, OrbitLabels = [], []
     if "orbit" in Info:
         OrbCols = [Column(i, j) for i, j in [
-            ["object_id",              String(512)],
+            ["object_id",              String(256)],
             ["ref_plane",              String(32)],
             ["position_x",             Double],
             ["position_y",             Double],
@@ -259,7 +259,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     PhysList, PhysLabels = [], []
     if "physic" in Info:
         PhysCols = [Column(i, j) for i, j in [
-            ["object_id",                    String(512)],
+            ["object_id",                    String(256)],
             ["abs_magn_bol",                 Double],
             ["mean_radius",                  Double],
             ["dimension_x",                  Double],
@@ -320,7 +320,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     AtmosphereList, AtmosphereLabels = [], []
     if "atmosphere" in Info:
         AtmoCols = [Column(i, j) for i, j in [
-            ["object_id",        String(512)],
+            ["object_id",        String(256)],
             ["surface_pressure", Double],
             ["scale_height",     Double],
             ["max_surf_temp",    Double],
@@ -343,7 +343,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     HydrosphereList, HydrosphereLabels = [], []
     if "hydrosphere" in Info:
         HydCols = [Column(i, j) for i, j in [
-            ["object_id", String(512)],
+            ["object_id", String(256)],
             ["height",    Double],
         ]]
         HydTbl = Table("ig_hydrosphere", MetaData(), *HydCols)
@@ -357,7 +357,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     BiosphereList, BiosphereLabels = [], []
     if "biosphere" in Info:
         BioCols = [Column(i, j) for i, j in [
-            ["object_id", String(512)],
+            ["object_id", String(256)],
             ["bio_class", String(64)],
             ["bio_type",  String(64)]
         ]]
@@ -399,7 +399,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     CompDict = None
     if "atmosphere" in Info or "hydrosphere" in Info:
         CompCols = [Column(i, j) for i, j in [
-            ["object_id", String(512)],
+            ["object_id", String(256)],
             ["kind",      String(16)],
             ["component", String(64)],
             ["fraction",  Double]
@@ -414,7 +414,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     BiomeDict = None
     if "biosphere" in Info:
         BiomeCols = [Column(i, j) for i, j in [
-            ["object_id", String(512)],
+            ["object_id", String(256)],
             ["biome",     String(64)]
         ]]
         BiomeTbl = Table("ig_biosphere_biome", MetaData(), *BiomeCols)
@@ -427,7 +427,7 @@ def _QueryObject_Unchecked(Namespace, ObjectName, Info = []):
     RingsDict = None
     if "rings" in Info:
         RingsCols = [Column(i, j) for i, j in [
-            ["object_id",     String(512)],
+            ["object_id",     String(256)],
             ["ring_type",     String(64)],
             ["inner_radius",  Double],
             ["width",         Double],

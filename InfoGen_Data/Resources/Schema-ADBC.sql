@@ -1,7 +1,7 @@
 --BEGIN; --BEGIN和COMMIT是驱动侧管理的，脚本里最好不出现
 
 CREATE TABLE ig_system (
-    system_id        VARCHAR(512) PRIMARY KEY,     -- 预留足够多的空间
+    system_id        VARCHAR(256) PRIMARY KEY,     -- 预留足够多的空间
     main_id          VARCHAR(255) NOT NULL,        -- Objects根键MainID
     source_file      VARCHAR(1024),                -- 原始.sc路径
     source_hash      VARCHAR(512),                 -- 文件sha256，决定要不要重新导入
@@ -18,35 +18,35 @@ CREATE TABLE ig_system (
     n_comets         BIGINT,
     spectral_types   TEXT,                         -- StarSpectralType（‘+’号分隔）
     create_date      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_date    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-    -- UNIQUE (main_id, source_hash)
+    modified_date    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (main_id, source_hash)
 );
 
 CREATE TABLE ig_object (
-    object_id        VARCHAR(512) PRIMARY KEY,
-    system_id        VARCHAR(512) NOT NULL REFERENCES ig_system (system_id) ON DELETE CASCADE,
-    parent_object_id VARCHAR(512), --REFERENCES ig_object (object_id) ON DELETE CASCADE,  -- 根节点为NULL
+    object_id        VARCHAR(256) PRIMARY KEY,
+    system_id        VARCHAR(256) NOT NULL REFERENCES ig_system (system_id) ON DELETE CASCADE,
+    parent_object_id VARCHAR(256), -- REFERENCES ig_object (object_id) ON DELETE CASCADE,  -- 根节点为NULL
     primary_name     VARCHAR(255) NOT NULL,        -- Identifiers[0]，即Objects的键
     otype            VARCHAR(32)  NOT NULL,        -- Barycenter/Star/Planet/DwarfPlanet/Moon/DwarfMoon/Asteroid/Comet
     class            VARCHAR(64),                  -- PhysicalCharacteristics.Class，热过滤列（Terra/Jupiter/...）
     depth            BIGINT NOT NULL DEFAULT 0,   -- 根为0
     sibling_index    BIGINT,                      -- SubSystems 内序号，保留 --sort-system 的顺序
-    is_minor         BOOLEAN NOT NULL DEFAULT FALSE
-    -- UNIQUE (system_id, parent_object_id, primary_name)
+    is_minor         BOOLEAN NOT NULL DEFAULT FALSE,
+    UNIQUE (system_id, parent_object_id, primary_name)
 );
 -- CREATE INDEX ix_ig_object_name  ON ig_object (system_id, primary_name);
 -- CREATE INDEX ix_ig_object_otype ON ig_object (otype);
 -- CREATE INDEX ix_ig_object_class ON ig_object (class);
 
 CREATE TABLE ig_identifiers (
-    object_id VARCHAR(512) NOT NULL REFERENCES ig_object (object_id) ON DELETE CASCADE,
+    object_id VARCHAR(256) NOT NULL REFERENCES ig_object (object_id) ON DELETE CASCADE,
     alias     VARCHAR(255) NOT NULL,
     PRIMARY KEY (object_id, alias)
 );
 -- CREATE INDEX ix_ig_identifiers_alias ON ig_identifiers (alias);
 
 CREATE TABLE ig_physical ( -- 部分字段只有特定类型的物体才有，不过这个只需要在查询时按目标物体类型分流就行
-    object_id                    VARCHAR(512) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
+    object_id                    VARCHAR(256) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
     abs_magn_bol                 DOUBLE PRECISION,
     mean_radius                  DOUBLE PRECISION,  -- m
     dimension_x                  DOUBLE PRECISION,  -- Dimensions[0..2]，m
@@ -78,8 +78,7 @@ CREATE TABLE ig_physical ( -- 部分字段只有特定类型的物体才有，�
     kerr_charge                  DOUBLE PRECISION,  -- 仅黑洞
     comet_total_magn             DOUBLE PRECISION,  -- 仅彗星
     comet_total_magn_slope       DOUBLE PRECISION,  -- 仅彗星
-    esi                          DOUBLE PRECISION,  -- 仅行星/卫星，C++侧已算好，用于宜居度评级（但不是唯一因素）
-    extra                        TEXT               -- 兜底：未单独建列的字段（JSON）
+    esi                          DOUBLE PRECISION  -- 仅行星/卫星，C++侧已算好，用于宜居度评级（但不是唯一因素）
 );
 -- CREATE INDEX ix_ig_physical_temp   ON ig_physical (temperature);
 -- CREATE INDEX ix_ig_physical_mass   ON ig_physical (mass);
@@ -87,7 +86,7 @@ CREATE TABLE ig_physical ( -- 部分字段只有特定类型的物体才有，�
 -- CREATE INDEX ix_ig_physical_esi    ON ig_physical (esi);
 
 CREATE TABLE ig_orbit ( -- 保存所有的中间数据，但是查询时也要根据物体类型分流，即单条语句可能会非常复杂
-    object_id              VARCHAR(512) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
+    object_id              VARCHAR(256) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
     ref_plane              VARCHAR(32),        -- Static/Fixed/Equator/Ecliptic/Laplace/Extrasolar
     position_x             DOUBLE PRECISION,   -- Position[0..2]，m
     position_y             DOUBLE PRECISION,
@@ -129,7 +128,7 @@ CREATE TABLE ig_orbit ( -- 保存所有的中间数据，但是查询时也要�
 -- CREATE INDEX ix_ig_orbit_per  ON ig_orbit (period);
 
 CREATE TABLE ig_atmosphere (
-    object_id        VARCHAR(512) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
+    object_id        VARCHAR(256) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
     surface_pressure DOUBLE PRECISION,  -- Pa
     scale_height     DOUBLE PRECISION,   -- m
     max_surf_temp    DOUBLE PRECISION,   -- K
@@ -138,25 +137,25 @@ CREATE TABLE ig_atmosphere (
 );
 
 CREATE TABLE ig_hydrosphere (
-    object_id VARCHAR(512) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
+    object_id VARCHAR(256) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
     height    DOUBLE PRECISION          -- m
 );
 
 CREATE TABLE ig_biosphere (
-    object_id VARCHAR(512) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
+    object_id VARCHAR(256) PRIMARY KEY REFERENCES ig_object (object_id) ON DELETE CASCADE,
     bio_class VARCHAR(64),              -- Biosphere.Class
     bio_type  VARCHAR(64)               -- Biosphere.Type
 );
 
 CREATE TABLE ig_biosphere_biome (
-    object_id VARCHAR(512) NOT NULL REFERENCES ig_object (object_id) ON DELETE CASCADE,
+    object_id VARCHAR(256) NOT NULL REFERENCES ig_object (object_id) ON DELETE CASCADE,
     biome     VARCHAR(64)  NOT NULL,
     PRIMARY KEY (object_id, biome)
 );
 
 -- 大气与海洋的成分结构完全一致，合成一张表用kind区分
 CREATE TABLE ig_composition (
-    object_id VARCHAR(512) NOT NULL REFERENCES ig_object (object_id) ON DELETE CASCADE,
+    object_id VARCHAR(256) NOT NULL REFERENCES ig_object (object_id) ON DELETE CASCADE,
     kind      VARCHAR(16)  NOT NULL,     -- 'atmosphere'|'hydrosphere'
     component VARCHAR(64)  NOT NULL,
     fraction  DOUBLE PRECISION,         -- 体积百分比，CompositionByVolume
@@ -165,7 +164,7 @@ CREATE TABLE ig_composition (
 -- CREATE INDEX ix_ig_composition_lookup ON ig_composition (kind, component);
 
 CREATE TABLE ig_rings (
-    object_id     VARCHAR(512) NOT NULL REFERENCES ig_object (object_id) ON DELETE CASCADE,
+    object_id     VARCHAR(256) NOT NULL REFERENCES ig_object (object_id) ON DELETE CASCADE,
     ring_type     VARCHAR(64)  NOT NULL,
     inner_radius  DOUBLE PRECISION,
     width         DOUBLE PRECISION,
@@ -173,6 +172,16 @@ CREATE TABLE ig_rings (
     rock_max_size DOUBLE PRECISION,
     object_count  BIGINT,
     PRIMARY KEY (object_id, ring_type)
+);
+
+--一张特殊的注解表
+CREATE TABLE ig_annotation (
+    rsrc_type      VARCHAR(16)  NOT NULL,              -- 'system' | 'object'，为将来扩展资源类型留口
+    rsrc_id        VARCHAR(256) NOT NULL,              -- 系统 UUID 或物体 UUID
+    key_prefix     VARCHAR(253) NOT NULL DEFAULT '',   -- 无前缀时为空串（主键列不能为 NULL）
+    key_name       VARCHAR(63)  NOT NULL,
+    value          TEXT         NOT NULL,
+    PRIMARY KEY (rsrc_type, rsrc_id, key_prefix, key_name)
 );
 
 --COMMIT;
