@@ -30,13 +30,17 @@ DetailedInfoGen（简称 InfoGen）将C++侧的ANTLR解析与天文计算功能�
    - 中文友好的分类命名（恒星光谱型、行星类型分级）
    - 输出结果为Markdown或用户自定义Jinja2模板格式
    - （可选）把读取的行星系统保存到数据库，支持的数据库详见[配置文件](./InfoGen_Data/Config/ADBC.toml.def)
-2. 根据数据库中保存的物体数据，AI生成各种二创数据（如文明，矿产等）
+2. 给数据库中已导入的系统或物体打标签（目前还没什么卵用）
+   - 支持`system`与`object`两类资源：系统按系统ID/主ID定位，物体按ID、主名称或别名定位；命中多个资源时可交互选择目标
+   - 以`前缀/键名`格式批量新增、修改与删除注解，前缀和键名的格式会做校验
+   - 默认拒绝覆盖同名注解，需显式加`--overwrite`
+3. 根据数据库中保存的物体数据，AI生成各种二创数据（如文明，矿产等）
    - 基于LangGraph构建多轮工具调用工作流，模型可自动查询数据库中保存的系统/物体信息后再生成内容
    - 支持全局提示词与用户提示词（含变量占位符）、最大工具调用次数限制与流式输出，结果写入Markdown文件
-3. 通过MCP服务的形式把内部工具暴露给第三方AI客户端
+4. 通过MCP服务的形式把内部工具暴露给第三方AI客户端
    - 可选择性把全局提示词通过MCP的`instructions`字段下发给客户端（并非所有客户端都会读取该字段）
    - 支持stdio与HTTP两种传输方式，HTTP模式下可选择监听IPv6地址
-4. 随仓库提供可直接导入的第三方客户端Agent插件（DSH、ZCode、WorkBuddy）
+5. 随仓库提供可直接导入的第三方客户端Agent插件（DSH、ZCode、WorkBuddy）
    - 把MCP查询工具、全局提示词与只读约束打包成一个开箱即用的专家/Agent，免去逐个客户端手写配置
    - 插件默认连接`http://localhost:8000/mcp`，服务未启动时自动重试并静默提醒，不影响客户端其他功能
 
@@ -300,6 +304,44 @@ python InfoGen.py describe <resource> -n<namespace> [<name>] # 输出<resource>�
 | `-o, --output` | 输出格式，目前支持wide，json和yaml | — |
 
 注：get和describe均不支持模糊查询，如果要模糊查询，请使用`python InfoGen.py get <resource> [-A | -n<namespace>] | grep ...`
+
+### 注解（打标签）
+
+```
+python InfoGen.py annotate <resource> <ident> -n<namespace> [KEY=VALUE | KEY-]... [--overwrite]
+```
+
+给数据库中保存的系统或物体打标签（注解），用于记录数据库结构之外的自定义信息。
+
+一条命令可传入多个键值对，新增与删除可以混用。
+
+#### `annotate` 参数说明
+
+| 参数 | 说明 | 默认值 |
+| --- | --- | --- |
+| `system` / `object` | 资源类型（必填） | — |
+| `ident` | 系统ID/主ID，或物体ID/名称/别名（必填） | — |
+| `-n, --namespace` | 命名空间（必填） | — |
+| `KEY=VALUE` | 要新增或修改的注解，可重复传入 | — |
+| `KEY-` | 要删除的注解，可重复传入 | — |
+| `--overwrite` | 覆盖已存在的同名注解 | 关闭 |
+
+注解键由可选的`前缀/`与`键名`组成，规则如下：
+
+| 部分 | 规则 |
+| --- | --- |
+| 前缀（可选） | 由点（`.`）分隔的多个DNS标签，每个标签1～63个字符，只含字母、数字和连字符（`-`），且不能以连字符开头或结尾；整个前缀不超过253个字符 |
+| 键名（必填） | 不超过63个字符，以字母或数字开头和结尾，中间可含字母、数字、`-`、`_`、`.` |
+
+示例：
+
+```
+# 给系统添加两个注解，并删除一个旧注解
+python InfoGen.py annotate system RS-1234-5678 -n<namespace> "review/status=approved" "difficulty=hard" "old-tag-"
+
+# 物体注解：键已存在时需用 --overwrite 覆盖
+python InfoGen.py annotate object Earth -n<namespace> "review/status=approved" --overwrite
+```
 
 ### AI创作（如生成文明，矿产，宜居度评级等）
 
